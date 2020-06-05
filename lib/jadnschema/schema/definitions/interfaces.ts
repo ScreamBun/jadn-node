@@ -1,7 +1,7 @@
 /**
   * JADN Interfaces
   */
-import Options from '../schema/options';
+import Options from '../options';
 
 // Fields Types
 // id, value, description
@@ -101,28 +101,4 @@ export interface  SchemaObjectComplexType {
       options: ["*Feature", "{0", "}10", "q"],
       description: "An array of zero to ten names used to query an Actuator for its supported capabilities"
   */
-}
-
-// Schema Definitions
-export interface SchemaMetaJADN {
-  module: string;
-  patch?: string;
-  title?: string;
-  description?: string;
-  imports?: Record<string, string>;
-  exports?: Array<string>;
-  config?: Record<string, number|string>;
-}
-
-export interface SchemaJADN {
-  meta: SchemaMetaJADN;
-  types: Array<SchemaSimpleType|SchemaSimpleComplexType|SchemaObjectType|SchemaObjectComplexType>;
-}
-
-export interface SchemaSimpleJADN extends SchemaJADN {
-  types: Array<SchemaSimpleType|SchemaSimpleComplexType>;
-}
-
-export interface SchemaObjectJADN extends SchemaJADN {
-  types: Array<SchemaObjectType|SchemaObjectComplexType>;
 }

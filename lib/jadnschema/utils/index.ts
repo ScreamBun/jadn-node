@@ -10,24 +10,6 @@ import {
 } from './general';
 
 import {
-  // Generic
-  SchemaJADN,
-  // Simple
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  SchemaSimpleType,
-  SchemaSimpleJADN,
-  SchemaSimpleComplexType,
-  SchemaMetaJADN,
-  // Complex
-  SchemaObjectGenField,
-  SchemaObjectEnumField,
-  SchemaObjectType,
-  SchemaObjectComplexType,
-  SchemaObjectJADN
-} from './interfaces';
-
-import {
   hasProperty,
   objectValues,
   prettyObject,
@@ -41,21 +23,6 @@ export {
   zip,
   // General
   capitalize,
-  // General Interfaces
-  SchemaJADN,
-  // Simple Interfaces
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  SchemaSimpleJADN,
-  SchemaMetaJADN,
-  // Complex Interfaces
-  SchemaObjectGenField,
-  SchemaObjectEnumField,
-  SchemaObjectType,
-  SchemaObjectComplexType,
-  SchemaObjectJADN,
   // Object
   hasProperty,
   objectValues,

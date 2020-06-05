@@ -1,17 +1,18 @@
 /* eslint lines-between-class-members: 0 */
 // JADN Array Structure
 import DefinitionBase from './base';
-
-import { Field } from '../fields';
-
-import { ValidationError } from '../../exceptions';
 import {
-  safeGet,
   // Simple Interfaces
   SchemaSimpleType,
   // Complex Interfaces
-  SchemaObjectType,
-  hasProperty
+  SchemaObjectType
+} from './interfaces';
+
+import { ValidationError } from '../../exceptions';
+import { Field } from '../fields';
+import {
+  hasProperty,
+  safeGet
 } from '../../utils';
 
 

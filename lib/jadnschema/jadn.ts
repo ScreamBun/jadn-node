@@ -7,7 +7,7 @@ from io import BufferedIOBase, TextIOBase
 from typing import ( Dict, Set, Union )
 from . import schema as jadn_schema
 */
-import { SchemaSimpleJADN } from './utils';
+import { SchemaSimpleJADN } from './schema/interfaces';
 import { Schema } from './schema';
 
 /**

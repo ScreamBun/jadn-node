@@ -12,6 +12,26 @@ import Options, { EnumId } from './options';
 
 import { FormatError, SchemaError, ValidationError } from '../exceptions';
 import {
+  // General Interfaces
+  SchemaJADN,
+  // Simple Interfaces
+  SchemaSimpleJADN,
+  // Complex Interfaces
+  SchemaObjectJADN
+} from './interfaces';
+import {
+  // Simple Interfaces
+  SchemaSimpleEnumField,
+  SchemaSimpleGenField,
+  SchemaSimpleType,
+  SchemaSimpleComplexType,
+  // Complex Interfaces
+  SchemaObjectGenField,
+  SchemaObjectEnumField,
+  SchemaObjectType,
+  SchemaObjectComplexType,
+} from './definitions/interfaces';
+import {
   flattenArray,
   mergeArrayObjects,
   objectValues,
@@ -19,21 +39,7 @@ import {
   safeGet,
   zip,
   // General
-  capitalize,
-  // General Interfaces
-  SchemaJADN,
-  // Simple Interfaces
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  SchemaSimpleJADN,
-  // Complex Interfaces
-  SchemaObjectGenField,
-  SchemaObjectEnumField,
-  SchemaObjectType,
-  SchemaObjectComplexType,
-  SchemaObjectJADN
+  capitalize
 } from '../utils';
 
 class Schema extends BaseModel {

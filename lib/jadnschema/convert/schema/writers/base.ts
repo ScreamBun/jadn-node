@@ -12,10 +12,10 @@ import {
   hasProperty,
   mergeArrayObjects,
   objectValues,
-  safeGet,
-  // Simple Interfaces
-  SchemaSimpleJADN
+  safeGet
 } from '../../../utils';
+// Simple Interface
+import { SchemaSimpleJADN } from '../../../schema/interfaces';
 
 /**
   * @class WriterBase

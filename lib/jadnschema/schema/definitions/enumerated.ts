@@ -1,17 +1,16 @@
 /* eslint lines-between-class-members: 0 */
 // JADN Enumerated Structure
 import DefinitionBase from './base';
-
-import { EnumeratedField } from '../fields';
-
-import { ValidationError } from '../../exceptions';
 import {
-  safeGet,
   // Simple Interfaces
   SchemaSimpleType,
   // Complex Interfaces
   SchemaObjectType
-} from '../../utils';
+} from './interfaces';
+
+import { EnumeratedField } from '../fields';
+import { ValidationError } from '../../exceptions';
+import { safeGet } from '../../utils';
 
 
 /**

@@ -1,20 +1,22 @@
 /* eslint lines-between-class-members: 0, max-classes-per-file: 0 */
 // JADN Field Models - Enumerated and General
 import BaseModel from './base';
+import {
+  // Simple Interfaces
+  SchemaSimpleEnumField,
+  SchemaSimpleGenField,
+  // Complex Interfaces
+  SchemaObjectEnumField,
+  SchemaObjectGenField,
+  SchemaObjectType
+} from './definitions/interfaces';
 import Options from './options';
-import { CustomDef } from './definitions';
 
 import { ValidationError } from '../exceptions';
 import {
   capitalize,
   safeGet,
-  zip,
-  // Simple Interfaces
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  SchemaObjectEnumField,
-  SchemaObjectGenField,
-  SchemaObjectType
+  zip
 } from '../utils';
 
 interface DefinitionBase {
@@ -211,6 +213,7 @@ class Field extends BaseModel {
         const tmpDef = this.object();
         delete tmpDef.id;
         tmpDef.name = capitalize(tmpDef.name.replace('_', '-'));
+        const CustomDef = require('./definitions').CustomDef; // eslint-disable-line global-require
         config.types[`_${this.name}`] = new CustomDef(tmpDef as SchemaObjectType, {_config: this._config});
       }
       typeDef = safeGet(config.types, `_${this.name}`);

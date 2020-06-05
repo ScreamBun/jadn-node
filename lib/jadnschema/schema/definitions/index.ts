@@ -1,12 +1,4 @@
 // JADN Definition Structures
-import {
-  zip,
-  // Simple Interfaces
-  SchemaSimpleType,
-  // Complex Interfaces
-  SchemaObjectType
-} from '../../utils';
-
 import DefinitionBase, { Slots } from './base';
 import ArrayDef from './array';
 import ArrayOfDef from './arrayOf';
@@ -17,7 +9,15 @@ import MapOfDef from './mapOf';
 import RecordDef from './record';
 import CustomDef from './custom';
 
-export type DefinitionData = RecordDef|DefinitionBase; // Array|ArrayOf|Choice|Enumerated|Map|MapOf|Record|CustomDefinition;
+import {
+  // Simple Interfaces
+  SchemaSimpleType,
+  // Complex Interfaces
+  SchemaObjectType
+} from './interfaces';
+import { zip } from '../../utils';
+
+export type DefinitionData = ArrayDef|ArrayOfDef|ChoiceDef|EnumeratedDef|MapDef|MapOfDef|RecordDef|CustomDef;
 
 
 /**

@@ -3,12 +3,14 @@
 import BaseModel from './base';
 import { ValidationError } from '../exceptions';
 import {
+  // Simple Interfaces
+  SchemaMetaJADN
+} from './interfaces';
+import {
   hasProperty,
   mergeArrayObjects,
   prettyObject,
-  safeGet,
-  // Simple Interfaces
-  SchemaMetaJADN
+  safeGet
 } from '../utils';
 
 /**

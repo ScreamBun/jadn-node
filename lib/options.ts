@@ -116,7 +116,7 @@ const CLIOptions: Record<string, Optionator> = {
         }],
         description: 'Message to validate'
       },
-  
+
       {
         heading: 'Miscellaneous'
       },

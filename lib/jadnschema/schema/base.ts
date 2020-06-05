@@ -1,16 +1,17 @@
 /* eslint lines-between-class-members: 0 */
 // JADN Base Model
 
+// Simple Interfaces
+import { SchemaSimpleJADN } from './interfaces';
+import { SchemaSimpleType } from './definitions/interfaces';
+
 import {
   flattenArray,
   hasProperty,
   mergeArrayObjects,
   objectValues,
   safeGet,
-  zip,
-  // Simple Interfaces
-  SchemaSimpleType,
-  SchemaSimpleJADN
+  zip
 } from '../utils';
 
 

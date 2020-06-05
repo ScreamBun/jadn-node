@@ -1,15 +1,15 @@
 /* eslint lines-between-class-members: 0 */
 // JADN Custom Structure
 import DefinitionBase from './base';
-
-import { ValidationError } from '../../exceptions';
 import {
-  safeGet,
   // Simple Interfaces
   SchemaSimpleType,
   // Complex Interfaces
   SchemaObjectType
-} from '../../utils';
+} from './interfaces';
+
+import { ValidationError } from '../../exceptions';
+import { safeGet } from '../../utils';
 
 
 /**

@@ -4,6 +4,16 @@ import { DefinitionData } from '.';
 
 import BaseModel from '../base';
 import { Field, EnumeratedField } from '../fields';
+import {
+  // Simple Interfaces
+  SchemaSimpleType,
+  SchemaSimpleComplexType,
+  // Complex Interfaces
+  SchemaObjectType,
+  SchemaObjectComplexType,
+  SchemaSimpleEnumField,
+  SchemaSimpleGenField
+} from './interfaces'
 import Options from '../options';
 
 import {
@@ -16,15 +26,7 @@ import {
   hasProperty,
   objectValues,
   safeGet,
-  zip,
-  // Simple Interfaces
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  // Complex Interfaces
-  SchemaObjectType,
-  SchemaObjectComplexType,
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField
+  zip
 } from '../../utils';
 
 
