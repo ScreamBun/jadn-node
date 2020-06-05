@@ -17,7 +17,7 @@
     "test": "yon run test-translate && yon run test-validate",
     "test-translate": "ts-node -r @babel/register ./tests/schema-translators.js",
     "test-validate": "ts-node -r @babel/register ./tests/schema-validator.js",
-    "tsc": "rimraf dist && tsc"
+    "tsc": "rimraf lib && tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -74,7 +74,6 @@
   },
   "files": [
     "bin",
-    "docs",
     "lib"
   ],
   "keywords": [

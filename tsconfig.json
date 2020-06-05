@@ -24,12 +24,12 @@
     /* Additional Options */
     "baseUrl": "src",
     "declaration": true,
-    "outDir": "./dist",
+    "outDir": "./lib",
     "removeComments": true,
   },
   "exclude": [
     "config",
-    "dist",
+    "lib",
     "tests"
   ],
   "include": [
