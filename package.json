@@ -11,6 +11,7 @@
     "docs": "rimraf doc && typedoc --options ./config/tsdoc.json",
     "lint": "eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "lint-errors": "eslint . --cache --quiet --ext .js,.jsx,.ts,.tsx",
+    "prepare": "npm run build",
     "prepublish": "yon run tsc",
     "prod": "tsc && node ./bin/jadnschema.js",
     "test": "yon run test-translate && yon run test-validate",
