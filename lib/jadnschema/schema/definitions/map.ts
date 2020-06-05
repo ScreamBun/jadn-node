@@ -1,0 +1,69 @@
+/* eslint lines-between-class-members: 0 */
+// JADN Map Structure
+import DefinitionBase from './base';
+
+import { Field } from '../fields';
+
+import { ValidationError } from '../../exceptions';
+import {
+  safeGet,
+  // Simple Interfaces
+  SchemaSimpleType,
+  // Complex Interfaces
+  SchemaObjectType
+} from '../../utils';
+
+
+/**
+  * An unordered map from a set of specified keys to values with semantics bound to each key
+  * Each key has an id and name or label, and is mapped to a type
+  * @extend DefinitionBase
+  */
+class MapDef extends DefinitionBase {
+  fields: Array<Field>
+
+  /**
+    * Create a Map Definition
+    * @param {SchemaObjectType|SchemaSimpleType|MapDef} data - Base data
+    * @param {Record<string, any>} kwargs - extra field values for the class
+    */
+   constructor(data: SchemaObjectType|SchemaSimpleType|MapDef, kwargs?: Record<string, any>) {
+    super(data, kwargs);
+    this.fields = safeGet(this, 'fields', []);
+  }
+
+  /**
+    * Validate the given map instance
+    * @param {Record<string, ant>} inst - the instance to validate
+    * @returns {Array<Error>} Errors resulting from the validation
+    */
+  validate(inst: Record<string, any>): Array<Error> {
+    // TODO: validate validation...
+    const errors: Array<Error> = [];
+    const config = this._config();
+
+    const keyCount = Object.keys(inst).length;
+    const minKeys = this.options.get('minv', 0);
+    let maxKeys = this.options.get('maxv', 0);
+    maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
+
+    const fields = this.fields.map(f => f.name);
+    const extraFields = Object.keys(inst).filter(f => !fields.includes(f));
+
+    if (extraFields.length > 0) {
+      errors.push(new ValidationError(`${this} - unknown field(s): ${extraFields.join(', ')}`));
+    } else if (minKeys > keyCount) {
+      errors.push(new ValidationError(`${this} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
+    } else if (keyCount > maxKeys) {
+        errors.push(new ValidationError(`${this} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
+    } else {
+      Object.keys(inst).forEach(key => {
+        const fieldDef = this.getField(key);
+        errors.push(...(fieldDef.validate(inst[key]) || []));
+      });
+    }
+    return errors;
+  }
+}
+
+export default MapDef;

@@ -1,0 +1,13 @@
+{
+  "exclude": [
+    ".eslintrc.js",
+    "config"
+  ],
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "inputFiles": [
+    "./lib"
+  ],
+  "mode": "modules",
+  "out": "doc"
+}
