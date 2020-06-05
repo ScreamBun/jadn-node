@@ -5,7 +5,7 @@
   "bin": {
     "jadnschema": "./bin/jadnschema.js"
   },
-  "main": "./lib/api.js",
+  "main": "./lib/api",
   "scripts": {
     "build": "yon run tsc",
     "docs": "rimraf doc && typedoc --options ./config/tsdoc.json",
@@ -17,7 +17,7 @@
     "test": "yon run test-translate && yon run test-validate",
     "test-translate": "ts-node -r @babel/register ./tests/schema-translators.js",
     "test-validate": "ts-node -r @babel/register ./tests/schema-validator.js",
-    "tsc": "rimraf lib && tsc"
+    "tsc": "rimraf dist && tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -72,9 +72,12 @@
     "webpack-cli": "^3.3.11",
     "yarn-or-npm": "^3.0.1"
   },
+  "directories": {
+    "bin": "bin",
+    "lib": "lib"
+  },
   "files": [
-    "bin",
-    "lib"
+    "dist/**"
   ],
   "keywords": [
     "jadn",

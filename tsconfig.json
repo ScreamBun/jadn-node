@@ -18,23 +18,23 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "typeRoots": [
-      "src/@types",
+      "lib/@types",
       "node_modules/@types"
     ],
     /* Additional Options */
-    "baseUrl": "src",
+    "baseUrl": "lib",
     "declaration": true,
-    "outDir": "./lib",
+    "outDir": "./dist",
     "removeComments": true,
   },
   "exclude": [
-    "config",
-    "lib",
+    "config/**",
+    "dist",
     "tests"
   ],
   "include": [
     "bin",
-    "src/**/*.ts",
+    "lib/**/*.ts",
     ".eslintrc.js"
   ]
 }

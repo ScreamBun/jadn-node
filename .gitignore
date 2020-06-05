@@ -368,6 +368,3 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
-# Packaged files
-lib
