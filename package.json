@@ -5,7 +5,7 @@
   "bin": {
     "jadnschema": "./bin/jadnschema.js"
   },
-  "main": "./dist/lib/api.js",
+  "main": "./lib/api.js",
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --colors --config ./config/webpack.config.base.babel.js",
     "docs": "rimraf doc && typedoc --options ./config/tsdoc.json",

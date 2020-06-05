@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { convert, jadn, CommentLevels } from '../lib/jadnschema';
+import { convert, jadn, CommentLevels } from '../src/jadnschema';
 
 /*
 from datetime import datetime
