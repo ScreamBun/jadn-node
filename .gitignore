@@ -368,3 +368,12 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Built Filesbin/**.js
+/*.d.ts
+/*.js
+bin/**.js
+bin/**.d.ts
+!lib/@types
+lib/**/*.js
+lib/**/*.d.ts

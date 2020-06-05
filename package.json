@@ -2,10 +2,11 @@
   "name": "jadnschema",
   "version": "0.1.0",
   "description": "",
-  "bin": {
-    "jadnschema": "./bin/jadnschema.js"
-  },
+  "author": "",
+  "license": "ISC",
   "main": "./lib/api",
+  "bin": "./bin/jadnschema.js",
+  "type": "module",
   "scripts": {
     "build": "yon run tsc",
     "docs": "rimraf doc && typedoc --options ./config/tsdoc.json",
@@ -17,7 +18,7 @@
     "test": "yon run test-translate && yon run test-validate",
     "test-translate": "ts-node -r @babel/register ./tests/schema-translators.js",
     "test-validate": "ts-node -r @babel/register ./tests/schema-validator.js",
-    "tsc": "rimraf dist && tsc"
+    "tsc": "tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -77,13 +78,12 @@
     "lib": "lib"
   },
   "files": [
-    "dist/**"
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
   ],
   "keywords": [
     "jadn",
     "schema",
     "validation"
-  ],
-  "author": "",
-  "license": "ISC"
+  ]
 }

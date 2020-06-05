@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /** @ignore *//** */
-/* eslint no-console:off */
-
+/* eslint no-console: 0 */
 
 // to use V8's code cache to speed up instantiation time
 require("v8-compile-cache");
@@ -38,36 +37,13 @@ const readStdin = () => {
  * @param {any} error The value to get.
  * @returns {string} The error message.
  */
-const getErrorMessage = error => {
-
+const getErrorMessage = (error: Error) => {
   // Lazy loading because those are used only if error happened.
-  const fs = require("fs");
-  const path = require("path");
   const util = require("util");
-  const lodash = require("lodash");
 
   // Foolproof -- thirdparty module might throw non-object.
   if (typeof error !== "object" || error === null) {
     return String(error);
-  }
-
-  // Use templates if `error.messageTemplate` is present.
-  if (typeof error.messageTemplate === "string") {
-    try {
-      const templateFilePath = path.resolve(
-        __dirname,
-        `../messages/${error.messageTemplate}.txt`
-      );
-
-      // Use sync API because Node.js should exit at this tick.
-      const templateText = fs.readFileSync(templateFilePath, "utf-8");
-      const template = lodash.template(templateText);
-
-      return template(error.messageData || {});
-    } catch {
-
-      // Ignore template error then fallback to use `error.stack`.
-    }
   }
 
   // Use the stacktrace if it's an error object.
@@ -84,7 +60,7 @@ const getErrorMessage = error => {
  * @param {any} error The thrown error object.
  * @returns {void}
  */
-const onFatalError = error => {
+const onFatalError = (error: Error) => {
   process.exitCode = 2;
   const { version } = require("../package.json");
   const message = getErrorMessage(error);

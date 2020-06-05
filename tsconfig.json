@@ -24,17 +24,15 @@
     /* Additional Options */
     "baseUrl": "lib",
     "declaration": true,
-    "outDir": "./dist",
     "removeComments": true,
   },
   "exclude": [
-    "config/**",
-    "dist",
+    ".eslintrc.js",
+    "config/",
     "tests"
   ],
   "include": [
     "bin",
-    "lib/**/*.ts",
-    ".eslintrc.js"
+    "lib/**/*.ts"
   ]
 }
