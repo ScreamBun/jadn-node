@@ -13,7 +13,7 @@ import {
   SchemaObjectComplexType,
   SchemaSimpleEnumField,
   SchemaSimpleGenField
-} from './interfaces'
+} from './interfaces';
 import Options from '../options';
 
 import {
@@ -47,6 +47,7 @@ class DefinitionBase extends BaseModel {
     * @param {SchemaObjectType|SchemaSimpleType|DefinitionData} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(data: SchemaObjectType|SchemaSimpleType|DefinitionData, kwargs?: Record<string, any>) {
     super(data, kwargs);
     // Field Vars
@@ -116,7 +117,7 @@ class DefinitionBase extends BaseModel {
     */
   get dependencies(): Set<string> {
     const t: DefinitionBase = this; // eslint-disable-line @typescript-eslint/no-this-alias
-    function optionDeps(typeDef: DefinitionBase|Field): Set<string> {
+    const optionDeps = (typeDef: DefinitionBase|Field): Set<string> => {
       const d: Set<string> = new Set();
       const type = safeGet(typeDef, 'baseType', typeDef.type);
       if (['ArrayOf', 'MapOf'].includes(type)) {
@@ -127,13 +128,13 @@ class DefinitionBase extends BaseModel {
         });
       }
       return d;
-    }
+    };
 
     let deps: Set<string> = optionDeps(this);
 
     if (this.isCompound() && this.baseType !== 'Enumerated') {
-      (this.fields || []).forEach(field => {
-        field = field as Field;
+      (this.fields || []).forEach(f => {
+        const field = f as Field;
         deps = new Set([ ...deps, ...optionDeps(field)]);
         if (!this.isBuiltin(field.type)) {
           if (field.type !== this.name) {
@@ -153,8 +154,8 @@ class DefinitionBase extends BaseModel {
   get fieldTypes(): Set<string> {
     const types: Set<string> = new Set();
     if (this.isCompound() && this.baseType !== 'Enumerated') {
-      (this.fields || []).forEach(field => {
-        field = field as Field;
+      (this.fields || []).forEach(f => {
+        const field = f as Field;
         if (!this.isBuiltin(field.type)) {
           types.add(field.type);
         }
@@ -213,8 +214,8 @@ class DefinitionBase extends BaseModel {
           const tags: Set<number> = new Set();
           const names: Set<string> = new Set();
 
-          this.fields.forEach((field, idx) => {
-            field = field as Field;
+          this.fields.forEach((f, idx) => {
+            const field = f as Field;
             tags.add(field.id);
             names.add(field.name);
 
@@ -255,7 +256,7 @@ class DefinitionBase extends BaseModel {
    */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-  validate(inst: any): Array<Error> {  // eslint-disable-line class-methods-use-this, no-unused-vars
+  validate(inst: any): Array<Error> {  // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
     throw new ReferenceError(`${this} does not implement "validate"`);
   }
 
@@ -308,13 +309,12 @@ class DefinitionBase extends BaseModel {
   getField(name: string): Field {
     if (this.isCompound()) {
       const field = (this.fields || []).filter(f => {
-        f = f as Field;
-        return f.name === name;
+        return (f as Field).name === name;
       }) as Array<Field>;
       if (field.length === 1) {
         return field[0];
       }
-      throw new FormatError(`${this} does not have a field by the name of $name}`);
+      throw new FormatError(`${this} does not have a field by the name of ${name}`);
     }
     throw new FormatError(`${this} does not have fields`);
   }

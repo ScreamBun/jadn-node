@@ -1,18 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { convert, jadn, CommentLevels } from '../src/jadnschema';
+import { convert, jadn, CommentLevels } from '../lib/jadnschema';
 
-/*
-from datetime import datetime
-
-from jadnschema import (
-  convert,
-  jadn,
-  # Enums
-  CommentLevels,
-)
-*/
 
 // TODO: Add CommentLevels, requires dump.py rewrite
 class Conversions {
@@ -30,73 +20,73 @@ class Conversions {
 
   CDDL() {
     console.log('Convert: JADN --> CDDL')
-    convert.cddl_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.cddl'), null, CommentLevels.ALL)
-    convert.cddl_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.cddl'), null, CommentLevels.NONE)
+    convert.cddl.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.cddl'), null, CommentLevels.ALL)
+    convert.cddl.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.cddl'), null, CommentLevels.NONE)
     // console.log('Convert: CDDL --> JADN')
-    // convert.cddl_load(open(path.join(this._test_dir, this._schema + '.all.cddl'), 'rb').read(), path.join(this._test_dir, this._schema + '.cddl.jadn'))
+    // convert.cddl.load(open(path.join(this._test_dir, this._schema + '.all.cddl'), 'rb').read(), path.join(this._test_dir, this._schema + '.cddl.jadn'))
   }
 
   HTML() {
-    console.log('Convert: JADN --> HMTL Tables')
-    convert.html_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.html'))
+    console.log('Convert: JADN --> HMTL')
+    convert.html.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.html'))
   }
 
   JADN() {
     console.log('Convert: JADN --> JADN')
-    convert.jadn_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.jadn'), null, CommentLevels.ALL)
-    convert.jadn_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.jadn'), null, CommentLevels.NONE)
+    convert.jadn.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.jadn'), null, CommentLevels.ALL)
+    convert.jadn.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.jadn'), null, CommentLevels.NONE)
   }
 
   JAS() {
     console.log('Convert: JADN --> JAS')
-    convert.jas_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.jas'))
+    convert.jas.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.jas'))
     // console.log('Convert: JAS --> JADN ')
-    // convert.jas_load(open(path.join(this._test_dir, this._schema + '.jas'), 'rb').read(), path.join(this._test_dir, this._schema + '.jas.jadn'))
+    // convert.jas.load(open(path.join(this._test_dir, this._schema + '.jas'), 'rb').read(), path.join(this._test_dir, this._schema + '.jas.jadn'))
   }
 
   JIDL() {
     console.log('Convert: JADN --> JIDL')
-    convert.jidl_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.jidl'))
+    convert.jidl.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.jidl'))
     // console.log('Convert: JIDL --> JADN')
     // with open(path.join(this._test_dir, this._schema + '.jidl.jadn'), 'w') as f:
-    //     convert.jidl_loads(open(path.join(this._test_dir, this._schema + '.jidl'), 'rb').read()).dump(f)
+    //     convert.jidl.loads(open(path.join(this._test_dir, this._schema + '.jidl'), 'rb').read()).dump(f)
   }
 
   JSON() {
     console.log('Convert: JADN --> JSON')
-    convert.json_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.json'), null, CommentLevels.ALL)
-    convert.json_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.json'), null, CommentLevels.NONE)
+    convert.json.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.json'), null, CommentLevels.ALL)
+    convert.json.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.json'), null, CommentLevels.NONE)
     // console.log('Convert: JSON --> JADN')
-    // convert.json_load(open(path.join(this._test_dir, this._schema + '.all.json'), 'rb').read(), path.join(this._test_dir, this._schema + '.json.jadn'))
+    // convert.json.load(open(path.join(this._test_dir, this._schema + '.all.json'), 'rb').read(), path.join(this._test_dir, this._schema + '.json.jadn'))
   }
 
   MarkDown() {
     console.log('Convert: JADN --> MarkDown')
-    convert.md_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.md'))
+    convert.md.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.md'))
   }
 
   ProtoBuf() {
     console.log('Convert: JADN --> ProtoBuf')
-    convert.proto_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.proto'), null, CommentLevels.ALL)
-    convert.proto_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.proto'), null, CommentLevels.NONE)
+    convert.proto.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.proto'), null, CommentLevels.ALL)
+    convert.proto.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.proto'), null, CommentLevels.NONE)
     // console.log('Convert: ProtoBuf --> JADN')
-    // convert.proto_load(open(path.join(this._test_dir, this._schema + '.all.proto'), 'rb').read(), path.join(this._test_dir, this._schema + '.proto.jadn'))
+    // convert.proto.load(open(path.join(this._test_dir, this._schema + '.all.proto'), 'rb').read(), path.join(this._test_dir, this._schema + '.proto.jadn'))
   }
 
   Relax_NG() {
     console.log('Convert: JADN --> RelaxNG')
-    convert.relax_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.rng'), null, CommentLevels.ALL)
-    convert.relax_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.rng'), null, CommentLevels.NONE)
+    convert.relax.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.rng'), null, CommentLevels.ALL)
+    convert.relax.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.rng'), null, CommentLevels.NONE)
     // console.log('Convert: RelaxNG --> JADN')
-    // convert.relax_load(open(path.join(this._test_dir, this._schema + '.all.rng'), 'rb').read(), path.join(this._test_dir, this._schema + '.rng.jadn'))
+    // convert.relax.load(open(path.join(this._test_dir, this._schema + '.all.rng'), 'rb').read(), path.join(this._test_dir, this._schema + '.rng.jadn'))
   }
 
   Thrift() {
     console.log('Convert: JADN --> Thrift')
-    convert.thrift_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.thrift'), null, CommentLevels.ALL)
-    convert.thrift_dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.thrift'), null, CommentLevels.NONE)
+    convert.thrift.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.all.thrift'), null, CommentLevels.ALL)
+    convert.thrift.dump(this._schemaObj, path.join(this._test_dir, this._schema + '.none.thrift'), null, CommentLevels.NONE)
     // console.log('Convert: Thrift --> JADN')
-    // convert.thrift_load(open(path.join(this._test_dir, this._schema + '.all.thrift'), 'rb').read(), path.join(this._test_dir, this._schema + '.thrift.jadn'))
+    // convert.thrift.load(open(path.join(this._test_dir, this._schema + '.all.thrift'), 'rb').read(), path.join(this._test_dir, this._schema + '.thrift.jadn'))
   }
 
   // Tester Functions
@@ -143,8 +133,9 @@ function duration(t0, t1){
 }
 
 
-// schema = 'oc2ls-v1.0-csprd03-update'
-const schema = 'oc2ls-v1.0-csprd03-update_fix';
+// const schema = 'oc2ls-v1.0-csprd03-update'
+// const schema = 'oc2ls-v1.0-csprd03-update_fix';
+const schema = 'oc2ls-v1.1-lang_resolved';
 const conversions = new Conversions(schema);
 const validConversions = [
   // 'CDDL',
@@ -171,9 +162,9 @@ validConversions.forEach(conv => {
     console.log(`Convert To/From: ${conv}`);
     const startTime = new Date();
     try {
-      conversions[conv]()
+      conversions[conv]();
     } catch (err) {
-      console.error(`Error: ${err}`)
+      console.error(`Error: ${err}`);
     }
     console.log(duration(startTime, new Date()));
     console.log('\n');

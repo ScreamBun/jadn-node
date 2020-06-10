@@ -18,6 +18,7 @@ import {
   RecordDef
 } from '../../../schema/definitions';
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Args = Record<string, any>
 
 
@@ -78,7 +79,9 @@ class JADNtoJADN extends WriterBase {
     * @returns {string} - header for schema
    */
   makeHeader(): string {
-    const mkRow = (key: string, val: any): Record<string, string> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mkRow = (key: string, v: any): Record<string, string> => {
+      let val = v || '';
       if (typeof val === 'object') {
         val = hasProperty(val, 'schema') ? val.schema() : val;
         if (Array.isArray(val)) {
@@ -91,16 +94,16 @@ class JADNtoJADN extends WriterBase {
     };
 
     const headers = {
-      '.': '',
+      '.': 'r',
       '..': ''
     };
-    let metaTable = this._makeTable(headers, this.metaOrder.map(k => mkRow(k, this.meta.get(k))));
+    let metaTable = this._makeTable(headers, this.metaOrder.map(k => mkRow(k, this.meta.get(k))).filter(idx => idx['..'] !== ''));
     metaTable = metaTable.replace(' .. ', ' .  ');
-
     return `## Schema\n${metaTable}\n`;
   }
 
   // Structure Formats
+  // eslint-disable-next-line spaced-comment
   /**
     * Formats array for the given schema type
     * @param {ArrarDef} itm - array to format
@@ -111,7 +114,8 @@ class JADNtoJADN extends WriterBase {
     const arrayMD = `**_Type: ${itm.name} (Array${fmt})_**\n\n`;
 
     const rows = itm.fields.map(f => {
-      f.description = `**${f.name}**:: ${f.description}`;
+      // eslint-disable-next-line no-param-reassign
+      f.description = `**${f.name}**::${f.description}`;
       return f;
     });
 
@@ -228,7 +232,8 @@ class JADNtoJADN extends WriterBase {
     * @returns {string} - formatted record
    */
   _formatRecord(itm: RecordDef): string {
-    const fmt = hasProperty(itm.options, 'format') ? ` /${itm.options.format}` : '';
+    const multi = itm.options.multiplicity(0, 0, false, (x: number, y: number) => x > 0 || y > 0);
+    const fmt = multi === '' ? '' : `{${multi}}`;
     const recordMD = `**_Type: ${itm.name} (Record${fmt})_**\n\n`;
 
     const headers = {
@@ -284,7 +289,7 @@ class JADNtoJADN extends WriterBase {
       fieldObject.type += `(${field.options.get('vtype', 'String')})`;
     }
 
-    const mltiOptsCheck = ['Integer', 'Number'].includes(field.type) ? undefined : (x: number, y: number) => x > 0 || y > 0;
+    const mltiOptsCheck = ['Integer', 'Number'].includes(field.type) ? undefined : (x: number, y: number): boolean => (x > 0 || y > 0);
     const multi = field.options.multiplicity(0, 0, false, mltiOptsCheck);
     if (multi !== '') {
       fieldObject.type += `{${multi}}`;

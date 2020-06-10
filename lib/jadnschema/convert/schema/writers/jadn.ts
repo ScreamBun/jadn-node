@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import WriterBase from './base';
 import { CommentLevels } from '../enums';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Args = Record<string, any>
 
 
@@ -34,7 +35,7 @@ class JADNtoJADN extends WriterBase {
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-   dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars
+   dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
     return this.schema.schemaPretty(this.comments === CommentLevels.NONE);
    }
 }

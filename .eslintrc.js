@@ -44,6 +44,8 @@ module.exports = {
   rules: {
     // eslint-disable-next-line global-require
     ...require('./config/eslint_rules'),
-    'import/extensions': 0
+    'import/extensions': 0,
+    // temp silence of cyclic dependencies
+    'import/no-cycle': 1
   }
 };

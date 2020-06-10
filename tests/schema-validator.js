@@ -1,4 +1,4 @@
-import { jadn } from '../src/jadnschema';
+import { jadn } from '../lib/jadnschema';
 
 const schema = 'tests/schema/oc2ls-v1.0-wd14_update.jadn';
 

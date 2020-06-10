@@ -24,7 +24,8 @@ class CustomDef extends DefinitionBase {
     * @param {SchemaObjectType|SchemaSimpleType|CustomDef} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
-   constructor(data: SchemaObjectType|SchemaSimpleType|CustomDef, kwargs?: Record<string, any>) {
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
+  constructor(data: SchemaObjectType|SchemaSimpleType|CustomDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
     this.fields = undefined;
   }
@@ -38,6 +39,7 @@ class CustomDef extends DefinitionBase {
     * @param {any} inst - the instance to validate
     * @returns {Array<Error>} Errors resulting from the validation
     */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(inst: any): Array<Error> {
     const errors: Array<Error> = [];
     const config = this._config();
@@ -69,7 +71,7 @@ class CustomDef extends DefinitionBase {
         }
       }
     } else if (['Binary', 'String'].includes(this.type)) {
-      inst = inst as string;
+      inst = inst as string;  // eslint-disable-line no-param-reassign
       const instLen = inst.length;
       const minLen = safeGet(this.options, 'minv');
       let maxLen = safeGet(this.options, 'maxv');
@@ -81,7 +83,7 @@ class CustomDef extends DefinitionBase {
         errors.push(new ValidationError(`${this} is invalid, maximum length of ${maxLen} bytes/characters exceeded`));
       }
     } else if (['Integer', 'Number'].includes(this.type)) {
-      inst = inst as number;
+      inst = inst as number;  // eslint-disable-line no-param-reassign
       const minVal = safeGet(this.options, 'minv');
       const maxVal = safeGet(this.options, 'maxv');
 

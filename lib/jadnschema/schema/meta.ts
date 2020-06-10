@@ -36,6 +36,7 @@ class Config extends BaseModel {
     * @param {Record<string, number|string>|Config} data - The config data to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data?: Record<string, number|string>|Config, kwargs?: Record<string, any> ) {
     super(data, kwargs);
   }
@@ -187,6 +188,7 @@ class Meta extends BaseModel {
     * @param {SchemaMetaJADN|Meta} schema - The JADN meta to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data?: SchemaMetaJADN|Meta, kwargs?: Record<string, any> ) {
     super(data, kwargs);
     const keys = Object.keys(data || {});

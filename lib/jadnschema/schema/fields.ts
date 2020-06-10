@@ -115,7 +115,8 @@ class Field extends BaseModel {
     * @param {SchemaSimpleGenField|Field} schema - The JADN schema to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
-   constructor(data: SchemaSimpleGenField|Field, kwargs?: Record<string, any> ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(data: SchemaSimpleGenField|Field, kwargs?: Record<string, any> ) {
     super(data, kwargs);
     // Field Vars
     this.id = safeGet(this, 'id', 0);
@@ -194,6 +195,7 @@ class Field extends BaseModel {
     * @param {boolean} cardEnforce
     * @return {void|Array<Error>}
     */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(inst: any, cardEnforce?: boolean): void|Array<Error> {
     cardEnforce = cardEnforce || true;  // eslint-disable-line no-param-reassign
     const config = this._config();

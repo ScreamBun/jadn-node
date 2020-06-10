@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "build": "yon run tsc",
+    "clean": "ts-clean -d bin, lib -e .js,.d.ts",
     "docs": "rimraf doc && typedoc --options ./config/tsdoc.json",
     "lint": "eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "lint-errors": "eslint . --cache --quiet --ext .js,.jsx,.ts,.tsx",
@@ -18,7 +19,7 @@
     "test": "yon run test-translate && yon run test-validate",
     "test-translate": "ts-node -r @babel/register ./tests/schema-translators.js",
     "test-validate": "ts-node -r @babel/register ./tests/schema-validator.js",
-    "tsc": "tsc"
+    "tsc": "yon run clean && tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -29,6 +30,8 @@
     "named-js-regexp": "^1.3.5",
     "optionator": "^0.9.1",
     "pluralize": "^8.0.0",
+    "table": "^5.4.6",
+    "ts-clean": "^1.0.3",
     "v8-compile-cache": "^2.1.1"
   },
   "devDependencies": {
@@ -47,6 +50,7 @@
     "@types/markdown-table": "^2.0.0",
     "@types/node": "^14.0.11",
     "@types/pluralize": "0.0.29",
+    "@types/table": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
     "babel-eslint": "^10.1.0",

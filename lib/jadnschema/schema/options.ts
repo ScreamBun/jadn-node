@@ -139,6 +139,7 @@ class Options extends BaseModel {
     * @param {Record<string, number|string>|Array<string>|Options} data - options data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data?: Record<string, number|string>|Array<string>|Options, kwargs?: Record<string, any> ) {
     super(data, kwargs);
   }
@@ -222,7 +223,7 @@ class Options extends BaseModel {
     * @param {string} defName - name of definition/field to use in error message
     * @param {boolean} field - options are field/type options
     * @param {boolean} silent - raise or return errors
-    * @return {Array<Error>} OPTIONAL(array of errors)
+    * @return {Array<Error>} array of errors
     */
   verify(baseType: string, defName?: string, field?: boolean, silent?: boolean): Array<Error> {
     silent = silent || false; // eslint-disable-line no-param-reassign
@@ -276,17 +277,18 @@ class Options extends BaseModel {
     * @param {number} minDefault - default value of minc/minv
     * @param {number} maxDefault -  default value of maxc/maxv
     * @param {boolean} field - if option for field or type
-    * @param {Func} check - function for ignoring multiplicity - Fun(minimum, maximum) -> boolean
+    * @param {Function} check - function for ignoring multiplicity - Fun(minimum, maximum) -> boolean
     * @return {string} options multiplicity or empty string
   */
-  multiplicity(minDefault: number, maxDefault: number, field: boolean, check?: Function): string {
+  multiplicity(minDefault?: number, maxDefault?: number, field?: boolean, check?: (x: number, y: number) => boolean): string {
+    field = typeof field === 'boolean' ? field : false; // eslint-disable-line no-param-reassign
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    check = check === undefined ? (x: number, y: number) => true : check;  // eslint-disable-line no-param-reassign, no-unused-vars
+    const checkFun: (x: number, y: number) => boolean = ['null', 'undefined'].includes(typeof check) ? (x: number, y: number): boolean => true : check;  // eslint-disable-line no-param-reassign, no-unused-vars, @typescript-eslint/no-unused-vars
     const values = field ? ['minc', 'maxc'] : ['minv', 'maxv'];
-    const minimum = safeGet(this, values[0], minDefault);
-    const maximum = safeGet(this, values[1], maxDefault);
-    if (check(minimum, maximum)) {
+    const minimum = safeGet(this, values[0], minDefault || 0);
+    const maximum = safeGet(this, values[1], maxDefault || 0);
+    if (checkFun(minimum, maximum)) {
       if (minimum === 1 && maximum === 1) {
         return '1';
       }
@@ -300,8 +302,12 @@ class Options extends BaseModel {
     * @return {[Options, Options]} Split option - [Field, Type]
     */
   split(): [Options, Options] {
-    const fieldOpts = mergeArrayObjects( ...OptionTypes.field.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} ));
-    const typeOpts = mergeArrayObjects( ...OptionTypes.type.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} ));
+    const fieldOpts = mergeArrayObjects(
+      ...OptionTypes.field.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} )
+    );
+    const typeOpts = mergeArrayObjects(
+      ...OptionTypes.type.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} )
+    );
     return [new Options(fieldOpts), new Options(typeOpts)];
   }
 }

@@ -26,7 +26,9 @@ interface Args {
 
 class JADNtoHTML extends WriterBase {
   format = 'html'
-  private themeFile = path.join(path.dirname(path.resolve(__filename)), 'theme.css');  //  Default theme
+
+  // eslint-disable-next-line global-require
+  private themeStyles = require('./theme').default;  //  Default theme
 
   /**
     * Produce JSON schema from JADN schema and write to file provided
@@ -78,7 +80,9 @@ class JADNtoHTML extends WriterBase {
     * @return {string} - header for schema
     */
   makeHeader(): string {
-    const mkRow = (key: string, val: any): string => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mkRow = (key: string, v: any): string => {
+      let val = v || '';  // eslint-disable-line no-param-reassign
       if (typeof val === 'object') {
         val = hasProperty(val, 'schema') ? val.schema() : val;
         if (Array.isArray(val)) {
@@ -106,7 +110,7 @@ class JADNtoHTML extends WriterBase {
       if (typeDef.isStructure()) {
         structureHTML += safeGet(this, `_format${typeDef.type}`, () => '<p>Oops...</p>').bind(this)(typeDef, idx+1);
       } else {
-        const mltiOptsCheck = ['Integer', 'Number'].includes(typeDef.type) ? undefined : (x: number, y: number) => x > 0 || y > 0;
+        const mltiOptsCheck = ['Integer', 'Number'].includes(typeDef.type) ? undefined : (x: number, y: number): boolean => (x > 0 || y > 0);
         let multi = typeDef.options.multiplicity(0, 0, false, mltiOptsCheck);
         multi = multi ? `{${multi}}` : '';
 
@@ -134,7 +138,7 @@ class JADNtoHTML extends WriterBase {
   }
 
   // Structure Formats
-
+  // eslint-disable-next-line spaced-comment
   /**
     * Formats array for the given schema type
     * @param {ArrarDef} itm - array to format
@@ -145,6 +149,7 @@ class JADNtoHTML extends WriterBase {
     const arrayHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
 
     const rows = itm.fields.map(f => {
+      // eslint-disable-next-line no-param-reassign
       f.description = `"${f.name}": ${f.description}`;
       return f;
     });
@@ -307,15 +312,15 @@ class JADNtoHTML extends WriterBase {
     let formattedHTML = '';
     const nestedTags: Array<string> = [];
 
-    const tmpFormat = html.split('><').map(elm => {
-      elm = elm.startsWith('<') ? elm : `<${elm}`;
+    const tmpFormat = html.split('><').map(e => {
+      let elm = e.startsWith('<') ? e : `<${e}`;
       elm = elm.endsWith('>') ? elm : `${elm}>`;
       return elm;
     });
 
     const tagRegEx = namedRegExp(/\s*?<\/?(?<tag>[\w]+)(\s|>).*$/);
-    tmpFormat.forEach(line => {
-      line = line.trim();
+    tmpFormat.forEach(ln => {
+      const line = ln.trim();
       const tag = safeGet((tagRegEx.execGroups(line) || {}), 'tag', null);
       let indent = '\t'.repeat(nestedTags.length);
 
@@ -374,7 +379,7 @@ class JADNtoHTML extends WriterBase {
   _loadStyles(styles: string): string {
     let theme = styles;
     if (['', ' ', null, undefined].includes(theme)) {
-      theme = this.themeFile;
+      return this.themeStyles;
     }
 
     const ext = path.extname(theme);
@@ -402,6 +407,7 @@ class JADNtoHTML extends WriterBase {
     * @param {string} caption - caption for the table
     * @return {string} formatted HTML table
     */
+  // eslint-disable-next-line max-len
   _makeTable(headers: Record<string, Record<string, string>>, rows: Array<Record<string, string|number>|EnumeratedField|Field>, caption?: string): string {
     const tableContents = [];
 

@@ -26,6 +26,7 @@ export type DefinitionData = ArrayDef|ArrayOfDef|ChoiceDef|EnumeratedDef|MapDef|
  * @param {Record<string, any>} kwargs - additional fields for the definition
  * @param DefinitionData - created definition
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function makeDefinition(data: SchemaObjectType|SchemaSimpleType|DefinitionData, kwargs?: Record<string, any>): DefinitionData {
   let d: SchemaObjectType;
   if (typeof data === 'object' && Array.isArray(data)) {

@@ -29,7 +29,8 @@ class ArrayDef extends DefinitionBase {
     * @param {SchemaObjectType|SchemaSimpleType|ArrayDef} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
-   constructor(data: SchemaObjectType|SchemaSimpleType|ArrayDef, kwargs?: Record<string, any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(data: SchemaObjectType|SchemaSimpleType|ArrayDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
     this.fields = safeGet(this, 'fields', []);
   }
@@ -39,6 +40,7 @@ class ArrayDef extends DefinitionBase {
     * @param {Array<any>} inst - the instance to validate
     * @returns {Array<Error>} Errors resulting from the validation
     */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(inst: Array<any>): Array<Error> {
     const errors: Array<Error> = [];
     const config = this._config();

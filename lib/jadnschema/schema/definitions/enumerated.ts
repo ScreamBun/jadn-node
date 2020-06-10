@@ -25,7 +25,8 @@ class EnumeratedDef extends DefinitionBase {
     * @param {SchemaObjectType|SchemaSimpleType|EnumeratedDef} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
-   constructor(data: SchemaObjectType|SchemaSimpleType|EnumeratedDef, kwargs?: Record<string, any>) {
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
+  constructor(data: SchemaObjectType|SchemaSimpleType|EnumeratedDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
     this.fields = safeGet(this, 'fields', []);
   }

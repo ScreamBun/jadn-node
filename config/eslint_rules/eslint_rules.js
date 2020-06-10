@@ -562,12 +562,20 @@ module.exports = {
   'no-undefined': 0,
   'no-underscore-dangle': [1, {
     allow: [
+      '_config',
+      '_formatArray',
+      '_formatArrayOf',
+      '_formatChoice',
+      '_formatMap',
+      '_formatMapOf',
+      '_formatRecord',
+      '_formatCustom',
       '^_[^_]'
     ],
-    allowAfterSuper: false,
-    allowAfterThis: false,
+    allowAfterSuper: true,
+    allowAfterThis: true,
     allowAfterThisConstructor: false,
-    enforceInMethodNames: true
+    enforceInMethodNames: false
   }],
   'no-unexpected-multiline': 1,
   'no-unmodified-loop-condition': 0,

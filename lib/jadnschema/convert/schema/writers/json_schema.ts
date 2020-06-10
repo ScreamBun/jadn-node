@@ -3,6 +3,7 @@
 import fs from 'fs-extra';
 
 import WriterBase from './base';
+import * as InterfaceJSON from './json_interface';
 import { CommentLevels } from '../enums';
 import { FormatError } from '../../../exceptions';
 import {
@@ -15,7 +16,7 @@ import {
   // EnumeratedField,
   Field, EnumeratedField
 } from '../../../schema/fields';
-import Options from '../../../schema/options';
+import Options, { EnumId } from '../../../schema/options';
 import {
   DefinitionBase,
   ArrayDef,
@@ -124,10 +125,8 @@ class JADNtoJSON extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     */
   dump(fname: string, source?: string, kwargs?: Args): void {
-    const args = kwargs || {}; // eslint-disable-lne no-param-reassign
     const now = new Date();
-    const indent = safeGet(args, 'indent', 2);
-    let contents = JSON.stringify(this.dumps(), null, indent);
+    let contents = this.dumps(kwargs);
 
     if (source !== null && source !== undefined) {
       contents = `<!-- Generated from ${source}, ${now.toLocaleString()} -->\n${contents}`;
@@ -137,20 +136,24 @@ class JADNtoJSON extends WriterBase {
 
    /**
     * Converts the JADN schema to JADN
+    * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
-   dumps(): Record<string, any> {
-    const exports = this.types.map((typeName: DefinitionBase) => {
-      if ((this.meta.exports || []).includes(typeName.name)) {
+  dumps(kwargs?: Args): string {
+    const args = kwargs || {}; // eslint-disable-lne no-param-reassign
+    const indent = safeGet(args, 'indent', 2);
+    const exports = (this.meta.exports || []).map((exp: string) => {
+      const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
+      if (expDefs.length === 1) {
         return {
-          '$ref': this.formatString(`#/definitions/${typeName.name}`),
-          'description': this._cleanComment(typeName.description || '<Fill Me In>')
+          '$ref': this.formatString(`#/definitions/${exp}`),
+          'description': this._cleanComment(expDefs[0].description || '')
         };
       }
       return {};
-    }).filter(o => Object.keys(o).length > 0);
+    }).filter(o => Object.keys(o).length > 0) as Array<InterfaceJSON.Export>;
 
-     const jsonSchema = {
+     const jsonSchema: InterfaceJSON.Schema = {
        ...this.makeHeader(),
        type: 'object',
        oneOf: exports,
@@ -176,33 +179,34 @@ class JADNtoJSON extends WriterBase {
       )
     };
 
-    return this._cleanEmpty(jsonSchema);
+    return JSON.stringify(this._cleanEmpty(jsonSchema), null, indent);
   }
 
   /**
     * Create the headers for the schema
-    * @returns {Record<string, any>} - header for schema
+    * @returns {InterfaceJSON.Meta} - header for schema
    */
-  makeHeader(): Record<string, any> {
+  makeHeader(): InterfaceJSON.Meta {
     const module = this.meta.get('module', '');
     const schemaID = `${module.startsWith('http') ? '' : 'http://'}${module}`;
     return this._cleanEmpty({
       $schema: 'http://json-schema.org/draft-07/schema#',
-      $id: schemaID.endsWith('.json') ? schemaID : `${schemaID}.json`,
+      $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
       title: hasProperty(this.meta, 'title') ? this.meta.title : (module + (hasProperty(this.meta, 'patch') ? ` v.${this.meta.patch}` : '')),
       description: this._cleanComment(this.meta.get('description', ''))
     });
   }
 
   // Structure Formats
+  // eslint-disable-next-line spaced-comment
   /**
     * Formats array for the given schema type
     * @param {ArrarDef} itm - array to format
-    * @returns {string} - formatted array
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted array
    `*/
-  _formatArray(itm: ArrayDef): Record<string, any> {
+  _formatArray(itm: ArrayDef): Record<string, InterfaceJSON.TypeDefinition> {
     const opts = this._optReformat('array', itm.options, false);
-    let arrayJSON: Record<string, any>;
+    let arrayJSON: InterfaceJSON.TypeDefinition;
 
     if (hasProperty(opts, 'pattern')) {
       arrayJSON = {
@@ -230,11 +234,15 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats arrayOf for the given schema type
     * @param {ArrayOfDef|Field} itm - arrayOf to format
-    * @returns {string} - formatted arrayOf
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted arrayOf
     */
-  _formatArrayOf(itm: ArrayOfDef|Field): Record<string, any> {
+  _formatArrayOf(itm: ArrayOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
     const vtype = itm.options.get('vtype', 'String');
-    const arrayOfJSON = {
+    const maxv = safeGet(itm.options, 'maxv', 0);
+    // eslint-disable-next-line no-param-reassign
+    itm.options.maxv = maxv === 0 ? this.schema.meta.config.MaxElements : maxv;
+
+    const arrayOfJSON: InterfaceJSON.TypeDefinition = {
       title: this.formatTitle(itm.name),
       type: 'array',
       description: this._cleanComment(itm.description),
@@ -267,9 +275,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats choice for the given schema type
     * @param {ChoiceDef} itm - choice to format
-    * @returns {string} - formatted choice
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted choice
     */
-  _formatChoice(itm: ChoiceDef): Record<string, any> {
+  _formatChoice(itm: ChoiceDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
       [this.formatString(itm.name)]: this._cleanEmpty({
           title: this.formatTitle(itm.name),
@@ -287,9 +295,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats enum for the given schema type
     * @param {EnumeratedDef} itm - enum to format
-    * @returns {string} - formatted enum
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted enum
     */
-  _formatEnumerated(itm: EnumeratedDef): Record<string, any> {
+  _formatEnumerated(itm: EnumeratedDef): Record<string, InterfaceJSON.TypeDefinition> {
     const useID = safeGet(itm.options, 'id', false);
 
     return {
@@ -300,7 +308,7 @@ class JADNtoJSON extends WriterBase {
         ...this._optReformat('object', itm.options, false),
         oneOf: itm.fields.map(f => ({
           const: useID ? f.id : f.value,
-          description: this._cleanComment(`${useID ? `${f.value} ` : ''}${f.description}`)
+          description: this._cleanComment(`${useID ? `${f.value} - ` : ''}${f.description}`)
         }))
       })
     };
@@ -309,9 +317,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats map for the given schema type
     * @param {MapDef} itm - map to format
-    * @returns {string} - formatted map
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted map
     */
-  _formatMap(itm: MapDef): Record<string, any> {
+  _formatMap(itm: MapDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
@@ -328,16 +336,15 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats mapOf for the given schema type
     * @param {MapDef} itm - mapOf to format
-    * @returns {string} - formatted mapOf
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted mapOf
     */
-  _formatMapOf(itm: MapOfDef|Field): Record<string, any> {
+  _formatMapOf(itm: MapOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
     const keyType = safeGet(this.schema.types, itm.options.get('ktype'));
-    let keys =  '^.*$';
+    let keys = [];
 
     if (['Choice', 'Enumerated', 'Map', 'Record'].includes(keyType.type)) {
       const attr = keyType.type === 'Enumerated' ? 'value' : 'name';
-      const keyValues = (keyType.fields || []).map((f: EnumeratedField|Field) => safeGet(f, attr) );
-      keys = `^(${keyValues.join('|')})$`;
+      keys = (keyType.fields || []).map((f: EnumeratedField|Field) => safeGet(f, attr) );
     } else {
       console.warn(`Invalid MapOf definition for ${itm.name}`);
     }
@@ -349,9 +356,9 @@ class JADNtoJSON extends WriterBase {
         description: this._cleanComment(itm.description),
         additionalProperties: false,
         minProperties: 1,
-        patternProperties: {
-          [keys]: this._getFieldType(itm.options.get('vtype', 'String'))
-        }
+        properties: mergeArrayObjects(
+          ...keys.map((k: string) => ({ [k]: this._getFieldType(itm.options.get('vtype', 'String')) }) )
+        )
       })
     };
   }
@@ -359,9 +366,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats record for the given schema type
     * @param {RecordDef} itm - record to format
-    * @returns {string} - formatted record
+    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted record
     */
-  _formatRecord(itm: RecordDef): Record<string, any> {
+  _formatRecord(itm: RecordDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
@@ -378,10 +385,10 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats custom type for the given schema type
     * @param {DefinitionBase} itm - custom type to format
-    * @returns {string} - formatted custom type
+    * @returns {Record<string, InterfaceJSON.PrimitiveDefinition>} - formatted custom type
    */
-  _formatCustom(itm: DefinitionBase): Record<string, any> {
-    const customJSON: Record<string, any> = {
+  _formatCustom(itm: DefinitionBase): Record<string, InterfaceJSON.PrimitiveDefinition> {
+    const customJSON: InterfaceJSON.PrimitiveDefinition = {
       title: this.formatTitle(itm.name),
       ...this._getFieldType(itm.type),
       description: this._cleanComment(itm.description)
@@ -424,14 +431,14 @@ class JADNtoJSON extends WriterBase {
     * Reformat options for the given schema
     * @param {string} optType: type to reformat the options for
     * @param {Options} opts: original options to reformat
-    * @returns {Record<string, any>} - reformatted options
+    * @returns {Record<string, number|string>} - reformatted options
     */
-  _optReformat(optType: string, opts: Options, baseRef?: boolean): Record<string, any> {
+  _optReformat(optType: string, opts: Options, baseRef?: boolean): Record<string, number|string> {
     optType = optType.toLowerCase(); // eslint-disable-line no-param-reassign
     const optKeys = this._getOptKeys(optType);
-    let formattedOpts: Record<string, any> = {};
+    let formattedOpts: Record<string, number|string> = {};
 
-    const ignore = (key: string, val: any) => {
+    const ignore = (key: string, val: number|string): boolean => {
       if (['array', 'object'].includes(key)) {
         return false;
       }
@@ -478,14 +485,15 @@ class JADNtoJSON extends WriterBase {
 
   /**
     * Determines the field type for the schema
-    * @param {string|FormFieldtError} field - current type
-    * @returns {Record<string, any>} - type mapped to the schema
+    * @param {string|Field} field - current type
+    * @returns {Record<string, string|number|Array<string|Record<string, number|string>>>} - type mapped to the schema
    */
-  _getFieldType(field: string|Field): Record<string, any> {
+  _getFieldType(field: string|Field): Record<string, string|number|Array<string|Record<string, number|string>>> {
     let fieldType = typeof field === 'object' ? safeGet(field, 'type', field) : field;
     fieldType = typeof fieldType === 'string' ? fieldType : 'String';
 
     if (typeof field === 'object' && field instanceof Field) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let rtn: Record<string, any>;
       switch (field.type) {
         case 'ArrayOf':
@@ -509,11 +517,12 @@ class JADNtoJSON extends WriterBase {
           type: this.formatString(safeGet(this.fieldMap, field.type, field.type))
         };
         if (field.type.toLowerCase() === 'binary') {
-          if (['b', 'x', 'binary', null].includes(safeGet(field.options, 'format', null))) {
+          const fmt = safeGet(field.options, 'format', '');
+          if (['b', 'x', 'binary', null].includes(fmt)) {
             this.hasBinary = !hasProperty(this.customFields, 'Binary');
             rtn = { '$ref' : '#/definitions/Binary' };
           } else {
-            rtn.format = field.options.format;
+            rtn.format = fmt;
           }
         }
         return rtn;
@@ -527,7 +536,7 @@ class JADNtoJSON extends WriterBase {
     }
 
     if (hasProperty(this.fieldMap, fieldType)) {
-      let rtn: Record<string, any> = {
+      let rtn: Record<string, string> = {
         type: this.formatString(safeGet(this.fieldMap, fieldType, fieldType))
       };
 
@@ -549,13 +558,14 @@ class JADNtoJSON extends WriterBase {
       }
     }
 
-    if (fieldType.match(/^Enum\(.*?\)$/)) {
-      const fType: DefinitionBase = safeGet(this.schema.types, fieldType.substring(5, fieldType.length - 1));
+    const enumRegEx = new RegExp(`^${EnumId}`);
+    if (enumRegEx.exec(fieldType)) {
+      const fType: DefinitionBase = safeGet(this.schema.types, fieldType.substring(1));
       if (['Array', 'Choice', 'Map', 'Record'].includes(fType.type)) {
         return {
-          type: 'string',
+          type: safeGet(fType.options, 'id', false) ? 'number' : 'string',
           description: `Derived enumeration from ${fType.name}`,
-          enum: (fType.fields || []).map(f => safeGet(f, 'name'))
+          oneOf: (fType.fields || []).map(f => ({ const: safeGet(f, 'name'), description: safeGet(f, 'description') }) )
         };
       }
       throw new FormatError(`Invalid derived enumeration - ${fType.name} should be a Array, Choice, Map or Record type`);
@@ -572,19 +582,19 @@ class JADNtoJSON extends WriterBase {
   /**
    * Format a Field as a JSON field
    * @param {Field} field - Field object to format
-   * @returns {Record<string, any>} - formatted JSON field
+   * @returns {Record<string, string|number|Array<string>>} - formatted JSON field
    */
   // eslint-disable-next-line class-methods-use-this
-  _makeField(field: Field): Record<string, any> {
-    let fieldDef: Record<string, any>;
+  _makeField(field: Field): Record<string, string|number|Array<string>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let fieldDef: Record<string, any> = this._getFieldType(field);
     if (this._isArray(field.options)) {
       fieldDef = {
         type: 'array',
-        items: this._getFieldType(field)
+        items: fieldDef
       };
-    } else {
-      fieldDef = this._getFieldType(field);
-      fieldDef = (Object.keys(fieldDef).length === 1 && hasProperty(fieldDef, field.name)) ? safeGet(fieldDef, field.name, {}) : fieldDef;
+    } else if (Object.keys(fieldDef).length === 1 && hasProperty(fieldDef, field.name)) {
+      fieldDef = safeGet(fieldDef, field.name, {});
     }
 
     const ref = hasProperty(fieldDef, '$ref') && ['Integer', 'Number'].includes(field.type);
@@ -608,17 +618,16 @@ class JADNtoJSON extends WriterBase {
       delete fieldDef.format;
     }
 
-    // console.log(fieldDef)
     return fieldDef;
   }
 
   /**
     * Format a comment for the given schema
     * @param {string} msg - comment text
-    * @param {Record<string, any>} kwargs - key/value comments
+    * @param {Record<string, number|string>} kwargs - key/value comments
     * @returns {string} - formatted comment
     */
-  _cleanComment(msg: string, kwargs?: Record<string, any>): string {
+  _cleanComment(msg: string, kwargs?: Record<string, number|string>): string {
     if (this.comments === CommentLevels.NONE) {
       return '';
     }
@@ -630,9 +639,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Get the option keys for conversion
     * @param {string} type - the type to get the keys of
-    * @returns {Record<string, any>} - option keys for translation
+    * @returns {Record<string, string>} - option keys for translation
    */
-  _getOptKeys(type: string): Record<string, any> {
+  _getOptKeys(type: string): Record<string, string> {
     const opts = Object.keys(this.optKeys).map(key => key.split('|').includes(type) ? this.optKeys[key] : {} ).filter(o => Object.keys(o).length > 0);
     return opts.length === 1 ? opts[0] : {};
   }
@@ -642,6 +651,7 @@ class JADNtoJSON extends WriterBase {
    * @param {any} itm - item to clean and reorder
    * @returns {any} - cleaned and reoreded item
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _cleanEmpty(itm: any): any {
     if (typeof itm === 'object') {
       if (Array.isArray(itm)) {

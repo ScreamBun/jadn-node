@@ -10,11 +10,7 @@ import { Schema } from '../../../schema';
   * Base Schema Loader
   */
 class ReaderBase {
-  format: string
-
-  constructor() {
-    this.format = '';
-  }
+  format = '';
 
   /**
     * Load the schema file as a JADN schema
@@ -30,10 +26,10 @@ class ReaderBase {
   }
 
   /**
-   * Loads the schema string to a JADN schema
-   * @param {string} schema - schema string to load
-   * @returns {Schema} JADN schema
-   */
+    * Loads the schema string to a JADN schema
+    * @param {string} schema - schema string to load
+    * @returns {Schema} JADN schema
+    */
   loads(schema: string): Schema {
     return this.parse(schema);
   }
@@ -45,7 +41,7 @@ class ReaderBase {
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-  parse(schema: string): Schema { // eslint-disable-line class-methods-use-this, no-unused-vars
+  parse(schema: string): Schema { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this} does not implement "parse"`);
   }
 }

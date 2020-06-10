@@ -265,3 +265,4 @@ tests
 
 # Assorted
 babel.config.js
+lib/@types

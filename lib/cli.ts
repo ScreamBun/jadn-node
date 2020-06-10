@@ -31,6 +31,7 @@ class CLI {
     this.command = '';
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkArgs(): [string, Record<string, any>]|number {
   if (Array.isArray(this.args)) {
       debug(`CLI args: ${this.args}`);

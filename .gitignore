@@ -369,7 +369,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Built Filesbin/**.js
+# Assorted Files
+tests/schema_gen
+
+# Built Files
 /*.d.ts
 /*.js
 bin/**.js

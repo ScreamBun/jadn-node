@@ -3,22 +3,18 @@ import {
   CommentLevels,
   SchemaFormats
 } from './enums';
-import ReaderBase from './readers/base';
-import WriterBase, {
-  JADNtoHTML,
-  JADNtoJADN,
-  // JADNtoIDL,
-  JADNtoJSON,
-  JADNtoMD
-} from './writers';
+import { ConversionLib } from './interface';
+import ReaderBase, * as Readers from './readers';
+import WriterBase, * as Writers from './writers';
 
 import { Schema } from '../../schema';
 import { safeGet } from '../../utils';
 import { FormatError } from '../../exceptions';
 
-// Base Vars
+// Conversion Vars
 const ValidReaders: Record<string, typeof ReaderBase> = {};
 const ValidWriters: Record<string, typeof WriterBase> = {};
+
 
 // Base Functions
 /**
@@ -30,6 +26,7 @@ const ValidWriters: Record<string, typeof WriterBase> = {};
   * @param {SchemaFormats} format: format of the desired output schema
   * @param {Record<string, any>} kwargs - extra field values for the function
   */
+// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function dump(schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): void {
   const Writer = safeGet(ValidWriters, (format || ''), null);
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
@@ -47,6 +44,7 @@ function dump(schema: string|Record<string, any>|Schema, fname: string, source?:
   * @param {Record<string, any>} kwargs - extra field values for the function
   * @return {string|Record<string, any>} - formatted schema
  */
+// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): string|Record<string, any> {
   const Writer = safeGet(ValidWriters, (format || ''), null);
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
@@ -64,6 +62,7 @@ function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevel
   * @param {Record<string, any>} kwargs - extra field values for the function
   * @returns {Schema} - loaded schema
   */
+// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function load(schema: string, format: SchemaFormats, kwargs?: Record<string, any>): Schema {
   const Reader = safeGet(ValidReaders, (format || ''), null);
   if (Reader !== null && Reader.prototype instanceof ReaderBase) {
@@ -80,6 +79,7 @@ function load(schema: string, format: SchemaFormats, kwargs?: Record<string, any
   * @param {Record<string, any>} kwargs - extra field values for the function
   * @return: loaded JADN schema
  */
+// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function loads(schema: string, format: SchemaFormats, kwargs: Record<string, any>): Schema {
   const Reader = safeGet(ValidReaders, (format || ''), null);
   if (Reader !== null && Reader.prototype instanceof ReaderBase) {
@@ -91,72 +91,57 @@ function loads(schema: string, format: SchemaFormats, kwargs: Record<string, any
 
 
 // Add format reader/writers
-// CDDL
-// ValidReaders[SchemaFormats.CDDL] = CDDLtoJADN;
-// ValidWriters[SchemaFormats.CDDL] = JADNtoCDDL;
-// cddl_dump = partial(dump, fmt="cddl")
-// cddl_dumps = partial(dumps, fmt="cddl")
-// cddl_load = partial(load, fmt="cddl")
-// cddl_loads = partial(loads, fmt="cddl")
-
 // HTML
-ValidWriters[SchemaFormats.HTML] = JADNtoHTML;
-const html_dump = (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>) => dump(schema, fname, source, comment, SchemaFormats.HTML, kwargs);
-const html_dumps = (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.HTML, kwargs);
+ValidWriters[SchemaFormats.HTML] = Writers.JADNtoHTML;
+const html: ConversionLib = {
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.HTML, kwargs),
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.HTML, kwargs)
+};
 
 // JADN
-ValidWriters[SchemaFormats.JADN] = JADNtoJADN;
-const jadn_dump = (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>) => dump(schema, fname, source, comment, SchemaFormats.JADN, kwargs);
-const jadn_dumps = (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JADN, kwargs);
-// jadn_load = partial(load, fmt="jadn")
-// jadn_loads = partial(loads, fmt="jadn")
+ValidReaders[SchemaFormats.JADN] = Readers.JADNtoJADN;
+ValidWriters[SchemaFormats.JADN] = Writers.JADNtoJADN;
+const jadn: ConversionLib = {
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JADN, kwargs),
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JADN, kwargs),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  load: (schema: string, kwargs?: Record<string, any>): Schema => load(schema, SchemaFormats.JADN, kwargs),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  loads: (schema: string, kwargs?: Record<string, any>): Schema => load(schema, SchemaFormats.JADN, kwargs)
+};
 
 // JADN IDL
 // ValidReaders[SchemaFormats.JIDL] = JADNtoJIDL;
-// ValidWriters[SchemaFormats.JIDL] = JIDLtoJADN;
-// -jidl_dump = partial(dump, fmt="jidl")
-// -jidl_dumps = partial(dumps, fmt="jidl")
-// jidl_load = partial(load, fmt="jidl")
-// jidl_loads = partial(loads, fmt="jidl")
+ValidWriters[SchemaFormats.JIDL] = Writers.JADNtoIDL;
+const jidl: ConversionLib = {
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JIDL, kwargs),
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JIDL, kwargs)
+};
 
 // JSON
 // ValidReaders[SchemaFormats.JSON] = JSONtoJADN;
-ValidWriters[SchemaFormats.JSON] = JADNtoJSON;
-const json_dump = (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>) => dump(schema, fname, source, comment, SchemaFormats.JSON, kwargs);
-const json_dumps = (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JSON, kwargs);
-// json_load = partial(load, fmt="json")
-// json_loads = partial(loads, fmt="json")
+ValidWriters[SchemaFormats.JSON] = Writers.JADNtoJSON;
+const json: ConversionLib = {
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JSON, kwargs),
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JSON, kwargs)
+};
 
 // Markdown
-ValidWriters[SchemaFormats.MarkDown] = JADNtoMD;
-const md_dump = (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>) => dump(schema, fname, source, comment, SchemaFormats.MarkDown, kwargs);
-const md_dumps = (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.MarkDown, kwargs);
-
-// ProtoBuf
-// ValidReaders[SchemaFormats.ProtoBuf] = JADNtoProto;
-// ValidWriters[SchemaFormats.ProtoBuf] = PrototoJADN;
-// proto_dump = partial(dump, fmt="proto")
-// proto_dumps = partial(dumps, fmt="proto")
-// proto_load = partial(load, fmt="proto")
-// proto_loads = partial(loads, fmt="proto")
-
-// Relax-NG
-// ValidReaders[SchemaFormats.RelaxNG] = JADNtoRelaxNG;
-// ValidWriters[SchemaFormats.RelaxNG] = RelaxNGtoJADN;
-// register_writer(fmt=writers.JADNtoRelax)
-// relax_dump = partial(dump, fmt="relax")
-// relax_dumps = partial(dumps, fmt="relax")
-// relax_load = partial(load, fmt="relax")
-// relax_loads = partial(loads, fmt="relax")
-
-// Thrift
-// ValidReaders[SchemaFormats.Thrift] = JADNtoThrift;
-// ValidWriters[SchemaFormats.Thrift] = ThrifttoJADN;
-// register_writer(fmt=writers.JADNtoThrift)
-// thrift_dump = partial(dump, fmt="thrift")
-// thrift_dumps = partial(dumps, fmt="thrift")
-// thrift_load = partial(load, fmt="thrift")
-// thrift_loads = partial(loads, fmt="thrift")
+ValidWriters[SchemaFormats.MarkDown] = Writers.JADNtoMD;
+const md: ConversionLib = {
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.MarkDown, kwargs),
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.MarkDown, kwargs)
+};
 
 
 export {
@@ -164,44 +149,11 @@ export {
   CommentLevels,
   SchemaFormats,
   // Converters
-  // Convert to ...
-  // cddl_dump,
-  // cddl_dumps,
-  html_dump,
-  html_dumps,
-  jadn_dump,
-  jadn_dumps,
-  // jas_dump,
-  // jas_dumps,
-  // -jidl_dump,
-  // -jidl_dumps,
-  json_dump,
-  json_dumps,
-  md_dump,
-  md_dumps,
-  // proto_dump,
-  // proto_dumps,
-  // relax_dump,
-  // relax_dumps,
-  // thrift_dump,
-  // thrift_dumps,
-  // Load From ...
-  // cddl_load,
-  // cddl_loads,
-  // jadn_load,
-  // jadn_loads,
-  // jas_load,
-  // jas_loads,
-  // jidl_load,
-  // jidl_loads,
-  // json_load,
-  // json_loads,
-  // proto_load,
-  // proto_loads,
-  // relax_load,
-  // relax_load,
-  // thrift_load,
-  // thrift_loads,
+  html,
+  jadn,
+  jidl,
+  json,
+  md,
   // Dynamic
   dump,
   dumps,

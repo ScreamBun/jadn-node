@@ -2,7 +2,7 @@
 enum SchemaFormats {
   // CDDL: 'cddl',
   HTML = 'html',
-  JDIL = 'jidl',
+  JIDL = 'jidl',
   JADN = 'jadn',
   // JAS = 'jas',
   JSON = 'json',

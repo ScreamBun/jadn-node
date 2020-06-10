@@ -1,4 +1,4 @@
-/* Theme Colors - CC3322 as base using Adobe Kuler */
+export default `/* Theme Colors - CC3322 as base using Adobe Kuler */
 /* PDF Styles */
 @page {
     size: letter portrait;
@@ -89,4 +89,4 @@ table table th {
     font-weight: bold;
     text-align: right;
     padding-right: 0;
-}
+}`;

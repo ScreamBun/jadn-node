@@ -30,8 +30,8 @@ class WriterBase {
   'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr',
   'IPv4-Net', 'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI',
   'Action-Targets', 'Targets', 'Date-Time', 'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr',
-  'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Versions', 'Version',
-  'Profiles', 'Rate-Limit', 'Binary', 'Command-ID'];
+  'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Version', 'Versions',
+  'Namespace', 'Profiles', 'Rate-Limit', 'Command-ID'];
   protected indent: string = ' '.repeat(2);
   protected metaOrder: Array<string> = ['title', 'module', 'patch', 'description', 'exports', 'imports', 'config'];
   protected titleOverrides: Record<string, string> = {
@@ -95,7 +95,7 @@ class WriterBase {
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-   dump(fname: string, source?: string, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars
+   dump(fname: string, source?: string, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this} does not implement "dump"`);
   }
 
@@ -105,7 +105,7 @@ class WriterBase {
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-   dumps(kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars
+   dumps(kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this} does not implement "dumps"`);
   }
 
@@ -116,6 +116,7 @@ class WriterBase {
     * @param {Record<string, any>} kwargs - extra field values for the function
     * @returns {Record<string, any>} - type definitions for the schema
    */
+  // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   _makeStructures(def?: any, kwargs?: Record<string, any>): Record<string, any> {
     return mergeArrayObjects(
       ...this.types.map(typeDef => {
@@ -157,7 +158,7 @@ class WriterBase {
     * @param {Record<string, any>|Options} opts - field options
     * @returns {boolean} - is optional
     */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this, no-underscore-dangle, @typescript-eslint/no-explicit-any
   _isOptional(opts: Record<string, any>|Options): boolean {
     return opts.get('minc', 1) === 0;
   }
@@ -167,7 +168,7 @@ class WriterBase {
     * @param {Record<string, any>|Options} opts - field options
     * @returns {boolean} - is array
     */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this, no-underscore-dangle, @typescript-eslint/no-explicit-any
   _isArray(opts: Record<string, any>|Options): boolean {
     if (hasProperty(opts, 'ktype') ||  hasProperty(opts, 'vtype')) {
       return false;

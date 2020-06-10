@@ -26,7 +26,8 @@ class MapDef extends DefinitionBase {
     * @param {SchemaObjectType|SchemaSimpleType|MapDef} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
-   constructor(data: SchemaObjectType|SchemaSimpleType|MapDef, kwargs?: Record<string, any>) {
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
+  constructor(data: SchemaObjectType|SchemaSimpleType|MapDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
     this.fields = safeGet(this, 'fields', []);
   }
@@ -36,6 +37,7 @@ class MapDef extends DefinitionBase {
     * @param {Record<string, ant>} inst - the instance to validate
     * @returns {Array<Error>} Errors resulting from the validation
     */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(inst: Record<string, any>): Array<Error> {
     // TODO: validate validation...
     const errors: Array<Error> = [];

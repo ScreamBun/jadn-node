@@ -23,16 +23,18 @@ import {
   * @param {boolean} silent - raise or return errors
   * @return {[Record<string, any>, Array<Error>]} - validated fields, OPTIONAL(ERRORS)
   */
+// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaSimpleJADN|BaseModel|Record<string, any>, kwargs?: Record<string, any>, silent?: boolean): [Record<string, any>, Array<Error>] {
   silent = silent || true;  // eslint-disable-line no-param-reassign
   const modelClass = model.constructor.name;
-  let data: Record<string, any>;
+  let data: Record<string, any>;  // eslint-disable-line @typescript-eslint/no-explicit-any
   if (typeof inputData === 'object' && Array.isArray(inputData)) {
     data = zip(model.slots, inputData || []);
   } else {
     data = inputData || {};
   }
   const baseType = hasProperty(data, 'type') ? data.type : null;
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   const fields: Record<string, any> = kwargs ? mergeArrayObjects( ...Object.keys(kwargs).map(k => /^_[^_]/.exec(k) ? { [k]: kwargs[k] } : {} )) : {};
   const errors: Array<Error> = [];
 
@@ -138,11 +140,12 @@ class BaseModel {
     * @param {SchemaSimpleJADN|SchemaSimpleType|BaseModel|Record<string, any>} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   constructor(data?: SchemaSimpleJADN|SchemaSimpleType|BaseModel|Record<string, any>, kwargs?: Record<string, any> ) {
-    data = this.initData(data); // eslint-disable-next-line no-param-reassign
+    const d = this.initData(data); // eslint-disable-next-line no-param-reassign
 
-    if (data !== null && data !== undefined) {
-      const [values, errs] = initModel(this, data, kwargs);
+    if (data !== null && d !== undefined) {
+      const [values, errs] = initModel(this, d, kwargs);
       if (errs.length > 0) {
         throw errs[0];
       }
@@ -155,6 +158,7 @@ class BaseModel {
     * @param {SchemaSimpleJADN|SchemaSimpleType|BaseModel|Record<string, any>} data - Base data
     * @return {Record<string, any>} - initialized data
     */
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   initData(data: any): any {
     return data;
   }
@@ -163,6 +167,7 @@ class BaseModel {
     * Create a dictionary of the current object
     * @return {Record<string, any>} simple object (key/value) of the object
     */
+  // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   object(): Record<string, any> {
     return mergeArrayObjects(
       ...this.slots.map((key: string) => {
