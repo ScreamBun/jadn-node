@@ -6,7 +6,7 @@ export interface ConversionDumpLib {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>) => void;
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => string|Record<string, any>;
+  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => string;
 }
 
 export interface ConversionLoadLib {
