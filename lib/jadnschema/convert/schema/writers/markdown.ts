@@ -32,10 +32,10 @@ class JADNtoJADN extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     */
   dump(fname: string, source?: string, kwargs?: Args): void {
-    const now = new Date();
     let contents = this.dumps(kwargs);
 
     if (source !== null && source !== undefined) {
+      const now = new Date();
       contents = `<!-- Generated from ${source}, ${now.toLocaleString()} -->\n${contents}`;
     }
     fs.outputFileSync(fname, contents);

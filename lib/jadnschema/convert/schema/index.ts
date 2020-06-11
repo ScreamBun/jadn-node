@@ -3,7 +3,7 @@ import {
   CommentLevels,
   SchemaFormats
 } from './enums';
-import { ConversionLib } from './interface';
+import { ConversionLib, ConversionDumpLib } from './interface';
 import ReaderBase, * as Readers from './readers';
 import WriterBase, * as Writers from './writers';
 
@@ -27,7 +27,7 @@ const ValidWriters: Record<string, typeof WriterBase> = {};
   * @param {Record<string, any>} kwargs - extra field values for the function
   */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-function dump(schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): void {
+function dump(schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): void {
   const Writer = safeGet(ValidWriters, (format || ''), null);
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
     const writer = new Writer(schema, comment);
@@ -42,10 +42,10 @@ function dump(schema: string|Record<string, any>|Schema, fname: string, source?:
   * @param {CommentLevels} comments - include or ignore comments
   * @param {SchemaFormats} fmt: format of the desired output schema
   * @param {Record<string, any>} kwargs - extra field values for the function
-  * @return {string|Record<string, any>} - formatted schema
+  * @return {string} - formatted schema
  */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): string|Record<string, any> {
+function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): string {
   const Writer = safeGet(ValidWriters, (format || ''), null);
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
     const writer = new Writer(schema, comment);
@@ -93,9 +93,9 @@ function loads(schema: string, format: SchemaFormats, kwargs: Record<string, any
 // Add format reader/writers
 // HTML
 ValidWriters[SchemaFormats.HTML] = Writers.JADNtoHTML;
-const html: ConversionLib = {
+const html: ConversionDumpLib = {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.HTML, kwargs),
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.HTML, kwargs),
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.HTML, kwargs)
 };
@@ -105,7 +105,7 @@ ValidReaders[SchemaFormats.JADN] = Readers.JADNtoJADN;
 ValidWriters[SchemaFormats.JADN] = Writers.JADNtoJADN;
 const jadn: ConversionLib = {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JADN, kwargs),
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JADN, kwargs),
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JADN, kwargs),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,9 +117,9 @@ const jadn: ConversionLib = {
 // JADN IDL
 // ValidReaders[SchemaFormats.JIDL] = JADNtoJIDL;
 ValidWriters[SchemaFormats.JIDL] = Writers.JADNtoIDL;
-const jidl: ConversionLib = {
+const jidl: ConversionDumpLib = {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JIDL, kwargs),
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JIDL, kwargs),
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JIDL, kwargs)
 };
@@ -127,18 +127,18 @@ const jidl: ConversionLib = {
 // JSON
 // ValidReaders[SchemaFormats.JSON] = JSONtoJADN;
 ValidWriters[SchemaFormats.JSON] = Writers.JADNtoJSON;
-const json: ConversionLib = {
+const json: ConversionDumpLib = {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JSON, kwargs),
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.JSON, kwargs),
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.JSON, kwargs)
 };
 
 // Markdown
 ValidWriters[SchemaFormats.MarkDown] = Writers.JADNtoMD;
-const md: ConversionLib = {
+const md: ConversionDumpLib = {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.MarkDown, kwargs),
+  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>): void => dump(schema, fname, source, comment, SchemaFormats.MarkDown, kwargs),
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => dumps(schema, comment, SchemaFormats.MarkDown, kwargs)
 };

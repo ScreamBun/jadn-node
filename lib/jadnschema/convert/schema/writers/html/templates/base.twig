@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ module|default('JADN Schema Convert') }} v.{{ version|default('0.0') }}</title>
+    <style type="text/css">
+      {{ styles }}
+    </style>
+  </head>
+  <body>
+    <div id="schema">
+      <h1>Schema</h1>
+      <div id="meta">{{ meta }}</div>
+      <div id="types">{{ structures }}</div>
+    </div>
+  </body>
+</html>

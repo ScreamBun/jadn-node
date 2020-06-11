@@ -169,21 +169,22 @@ class Schema extends BaseModel {
 
   /**
     * Given a schema, return a simplified schema with schema extensions removed
+    * @param {boolean} simple - return a simple type (SchemaSimpleJADN) instead of an object (Schema)
     * @param {SchemaSimpleJADN} schema - JADN schema to simplify
     * @param {boolean} anon - Replace all anonymous type definitions with explicit
     * @param {boolean} multi -  Replace all multiple-value fields with explicit ArrayOf type definitions
     * @param {boolean} derived - Replace all derived enumerations with explicit Enumerated type definitions
     * @param {boolean} mapOf - Replace all MapOf types with listed keys with explicit Map type definitions
-    * @param {boolean} simple - return a simple type (SchemaSimpleJADN) instead of an object (Schema)
     * @return {SchemaSimpleJADN|Schema} Simplified schema
     */
   // eslint-disable-next-line max-len
-  simplify(schema: SchemaSimpleJADN, anon?: boolean, multi?: boolean, derived?: boolean, mapOf?: boolean, simple?: boolean): SchemaSimpleJADN|Schema {
+  simplify(simple?: boolean, schema?: SchemaSimpleJADN, anon?: boolean, multi?: boolean, derived?: boolean, mapOf?: boolean): SchemaSimpleJADN|Schema {
+    simple = typeof simple === 'boolean' ? simple : true; // eslint-disable-line no-param-reassign
+    schema = schema === undefined ? this.schema() : schema; // eslint-disable-line no-param-reassign
     anon = typeof anon === 'boolean' ? anon : true; // eslint-disable-line no-param-reassign
     multi = typeof multi === 'boolean' ? multi : true; // eslint-disable-line no-param-reassign
     derived = typeof derived === 'boolean' ? derived : true; // eslint-disable-line no-param-reassign
     mapOf = typeof mapOf === 'boolean' ? mapOf : true; // eslint-disable-line no-param-reassign
-    simple = typeof simple === 'boolean' ? simple : true; // eslint-disable-line no-param-reassign
 
     const removeAnonymousType = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType|SchemaObjectComplexType> = [];
@@ -518,7 +519,7 @@ class Schema extends BaseModel {
 
     const simpleSchema: SchemaSimpleJADN = data instanceof Schema ? data.schema() : data;
     // eslint-disable-next-line no-param-reassign
-    data = this.simplify(simpleSchema, true, true, false, false);
+    data = this.simplify(true, simpleSchema, true, true, false, false);
 
     const [values, errs] = initModel(this, data, {_config: this._getConfig.bind(this)});
     if (errs.length > 0) {

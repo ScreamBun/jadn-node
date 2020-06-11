@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import less from 'less';
 import namedRegExp from 'named-js-regexp';
 import path from 'path';
+import Twig from 'twig';
 
 import WriterBase from '../base';
 import { safeGet, hasProperty } from '../../../../utils';
@@ -23,9 +24,20 @@ interface Args {
   styles?: string;
 }
 
+interface TypeTable {
+  title?: string;
+  description?: string;
+  caption?: string;
+  headers: Array<string>;
+  rows: Array<Record<string, string|number>|EnumeratedField|Field>;
+  columnClasses?: Array<string>;
+}
+
+const templatesDir = path.join(__dirname, 'templates');
 
 class JADNtoHTML extends WriterBase {
   format = 'html'
+  typeTableTemplate = Twig.twig({ data: fs.readFileSync(path.join(templatesDir, 'typeTable.twig')).toString() })
 
   // eslint-disable-next-line global-require
   private themeStyles = require('./theme').default;  //  Default theme
@@ -37,10 +49,10 @@ class JADNtoHTML extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     */
   dump(fname: string, source?: string, kwargs?: Args): void {
-    const now = new Date();
     let contents = this.dumps(kwargs);
 
     if (source !== null && source !== undefined) {
+      const now = new Date();
       contents = `<!-- Generated from ${source}, ${now.toLocaleString()} -->\n${contents}`;
     }
     fs.outputFileSync(fname, contents);
@@ -54,23 +66,16 @@ class JADNtoHTML extends WriterBase {
   dumps(kwargs?: Args): string {
     const args = kwargs || {};
     const styles = safeGet(args, 'styles');
-    const html = `<!DOCTYPE html>
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8" />
-            <title>${this.meta.get('module', 'JADN Schema Convert')} v.${this.meta.get('version', '0.0')}</title>
-            <style type="text/css">${this._loadStyles(styles)}</style>
-        </head>
-        <body>
-            <div id="schema">
-                <h1>Schema</h1>
-                <div id="meta">${this.makeHeader()}</div>
-                <div id="types">
-                    ${this.makeStructures()}
-                </div>
-            </div>
-        </body>
-    </html>`;
+
+    const html = Twig.twig({
+      data: fs.readFileSync(path.join(templatesDir, 'base.twig')).toString()
+    }).render({
+      module: this.meta.get('module', 'JADN Schema Convert'),
+      version: this.meta.get('version', '0.0'),
+      styles: this._loadStyles(styles),
+      meta: this.makeHeader(),
+      structures: this.makeStructures()
+    });
 
     return this._formatHTML(html);
   }
@@ -81,7 +86,7 @@ class JADNtoHTML extends WriterBase {
     */
   makeHeader(): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mkRow = (key: string, v: any): string => {
+    const mkRow = (key: string, v: any): Record<string, string> => {
       let val = v || '';  // eslint-disable-line no-param-reassign
       if (typeof val === 'object') {
         val = hasProperty(val, 'schema') ? val.schema() : val;
@@ -91,11 +96,14 @@ class JADNtoHTML extends WriterBase {
           val = Object.keys(val).map(k => `**${k}**: ${val[k]}`).join(', ');
         }
       }
-      return `<tr><td class="h">${key}:</td><td class="s">${val}</td></tr>`;
+      return { key, val };
     };
 
-    const metaRows = this.metaOrder.map(k => mkRow(k, this.meta.get(k))).join('');
-    return `<table>${metaRows}</table>`;
+    return Twig.twig({
+      data: fs.readFileSync(path.join(templatesDir, 'header.twig')).toString()
+    }).render({
+      rows: this.metaOrder.map(k => mkRow(k, this.meta.get(k)))
+    });
   }
 
   /**
@@ -124,16 +132,12 @@ class JADNtoHTML extends WriterBase {
       }
     });
 
-
-    const primitiveTable = this._makeTable(
-      {
-        Name: {'class': 'b'},
-        Definition: {'class': 's'},
-        Description: {'class': 'd'}
-      },
-      primitives
-    );
-    const primitiveHTML = `<h2>3.3 Primitive Types</h2>${primitiveTable}`;
+    const primitiveHTML = this._makeTable({
+      title: '3.3 Primitive Types',
+      headers: ['Name', 'Definition', 'Description'],
+      rows: primitives,
+      columnClasses: ['b', 's', 'd']
+    });
     return `${structureHTML}${primitiveHTML}`;
   }
 
@@ -145,26 +149,20 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} - formatted array
    `*/
   _formatArray(itm: ArrayDef, idx: number): string {
-    const desc = itm.description === '' ? '' : `<h4>${itm.description}</h4>`;
-    const arrayHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
-
     const rows = itm.fields.map(f => {
       // eslint-disable-next-line no-param-reassign
       f.description = `"${f.name}": ${f.description}`;
       return f;
     });
 
-    const arrayTable = this._makeTable(
-      {
-          ID: {'class': 'n'},
-          Type: {'class': 's'},
-          '#': {'class': 'n'},
-          Description: {'class': 's'}
-      },
+    return this._makeTable({
+      title: `3.2.${idx} ${this.formatString(itm.name)}`,
+      description: itm.description,
+      caption: `${this.formatString(itm.name)} (Array)`,
+      headers: ['ID', 'Type', '#', 'Description'],
       rows,
-      `${this.formatString(itm.name)} (Array)`
-    );
-    return `${arrayHTML}${arrayTable}`;
+      columnClasses: [ 'n', 's', 'n', 'd']
+    });
   }
 
   /**
@@ -189,20 +187,14 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} - formatted choice
     */
   _formatChoice(itm: ChoiceDef, idx: number): string {
-    const desc = itm.description === '' ? '' : `<h4>${itm.description}</h4>`;
-    const choiceHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
-
-    const choiceTable = this._makeTable(
-      {
-          ID: {'class': 'n'},
-          Name: {'class': 'b'},
-          Type: {'class': 's'},
-          Description: {'class': 'd'}
-      },
-      itm.fields,
-      `${this.formatString(itm.name)} (Choice${Object.keys(itm.options.object()).length > 0 ? ` ${JSON.stringify(itm.options.object())}` : ''})`
-  );
-  return `${choiceHTML}${choiceTable}`;
+    return this._makeTable({
+      title: `3.2.${idx} ${this.formatString(itm.name)}`,
+      description: itm.description,
+      caption: `${this.formatString(itm.name)} (Choice${Object.keys(itm.options.object()).length > 0 ? ` ${JSON.stringify(itm.options.object())}` : ''})`,
+      headers: ['ID', 'Name', 'Type', 'Description'],
+      rows: itm.fields,
+      columnClasses: [ 'n', 'b', 's', 'd']
+    });
   }
 
   /**
@@ -211,25 +203,28 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} - formatted enum
    */
   _formatEnumerated(itm: EnumeratedDef, idx: number): string {
-    const desc = itm.description === '' ? '' : `<h4>${itm.description}</h4>`;
-    const enumHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
-    let headers: Record<string, Record<string, string>>;
+    let headers: Array<string>;
     let rows: Array<Record<string, number|string>|EnumeratedField>;
+    let columnClasses: Array<string>;
 
     if (hasProperty(itm.options, 'id')) {
-      headers = {ID: {'class': 'n'}};
+      headers = ['ID'];
+      columnClasses = ['n'];
       rows = itm.fields.map(f => ({ID: f.id, Description: `<span class="b">${f.value}</span>::${f.description}`}) );
     } else {
-      headers = {ID: {'class': 'n'}, Name: {'class': 'b'}};
+      headers = ['ID', 'Name'];
+      columnClasses = ['n', 'b'];
       rows = itm.fields;
     }
-    headers.Description = {'class': 'd'};
-    const enumTable = this._makeTable(
-      headers,
+
+    return this._makeTable({
+      title: `3.2.${idx} ${this.formatString(itm.name)}`,
+      description: itm.description,
+      caption: `${this.formatString(itm.name)} (Enumerated${hasProperty(itm.options, 'id') ? '.ID' : ''})`,
+      headers: [ ...headers, 'Description'],
       rows,
-      `${this.formatString(itm.name)} (Enumerated${hasProperty(itm.options, 'id') ? '.ID' : ''})`
-    );
-    return `${enumHTML}${enumTable}`;
+      columnClasses: [ ...columnClasses, 'd']
+    });
   }
 
   /**
@@ -238,24 +233,17 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} - formatted map
    */
   _formatMap(itm: MapDef, idx: number): string {
-    const desc = itm.description === '' ? '' : `<h4>${itm.description}</h4>`;
-    const mapHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
-
     let multi = itm.options.multiplicity(0, 0, false, (x: number, y: number) => x > 0 || y > 0);
     multi = multi ? `{${multi}}` : '';
 
-    const mapTable = this._makeTable(
-      {
-          ID: {'class': 'n'},
-          Name: {'class': 'b'},
-          Type: {'class': 's'},
-          '#': {'class': 'n'},
-          Description: {'class': 'd'}
-      },
-      itm.fields,
-      `${this.formatString(itm.name)} (Map${multi})`
-    );
-    return `${mapHTML}${mapTable}`;
+    return this._makeTable({
+      title: `3.2.${idx} ${this.formatString(itm.name)}`,
+      description: itm.description,
+      caption: `${this.formatString(itm.name)} (Map${multi})`,
+      headers: ['ID', 'Name', 'Type', '#', 'Description'],
+      rows: itm.fields,
+      columnClasses: ['n', 'b', 's', 'n', 'd']
+    });
   }
 
   /**
@@ -280,24 +268,17 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} - formatted record
    */
   _formatRecord(itm: RecordDef, idx: number): string {
-    const desc = itm.description === '' ? '' : `<h4>${itm.description}</h4>`;
-    const recordHTML = `<h3>3.2.${idx} ${this.formatString(itm.name)}</h3>${desc}`;
-
     let multi = itm.options.multiplicity(0, 0, false, (x: number, y: number) => x > 0 || y > 0);
     multi = multi ? `{${multi}}` : '';
 
-    const recordTable = this._makeTable(
-      {
-          ID: {'class': 'n'},
-          Name: {'class': 'b'},
-          Type: {'class': 's'},
-          '#': {'class': 'n'},
-          Description: {'class': 'd'}
-      },
-      itm.fields,
-      `${this.formatString(itm.name)} (Record${multi})`
-    );
-    return `${recordHTML}${recordTable}`;
+    return this._makeTable({
+      title: `3.2.${idx} ${this.formatString(itm.name)}`,
+      description: itm.description,
+      caption: `${this.formatString(itm.name)} (Record${multi})`,
+      headers: ['ID', 'Name', 'Type', '#', 'Description'],
+      rows: itm.fields,
+      columnClasses: ['n', 'b', 's', 'n', 'd']
+    });
   }
 
 
@@ -408,64 +389,50 @@ class JADNtoHTML extends WriterBase {
     * @return {string} formatted HTML table
     */
   // eslint-disable-next-line max-len
-  _makeTable(headers: Record<string, Record<string, string>>, rows: Array<Record<string, string|number>|EnumeratedField|Field>, caption?: string): string {
-    const tableContents = [];
+ _makeTable(options: TypeTable = { headers: [], rows: [], columnClasses: [] }): string {
+  const tableBody = options.rows.map(row => {
+    const fieldRow: Array<number| string> = [];
+    options.headers.forEach(column => {
+      const hasColumn = hasProperty(row, column);
+      const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column);
+      let cell;
 
-    // Caption
-    if (!['', ' ', null, undefined].includes(caption)) {
-      tableContents.push(`<caption>${caption}</caption>`);
-    }
+      if (typeof columnName === 'string') {
+        cell = safeGet(row, columnName, '');
+      } else {
+        const cellList = columnName.map((c: string) => safeGet(row, c, '')).filter((c: string) => c.length > 0);
+        cell = cellList.length === 1 ? cellList[0] : '';
+      }
 
-    // Headers
-    const columnHeaders = Object.keys(headers).map(column => {
-      const attrs = Object.keys(headers[column]).map(key => `${key}="${headers[column][key]}"`);
-      return `<th${ attrs.length > 0 ? ` ${attrs}` : ''}>${column}</th>`;
-    });
-    tableContents.push(`<thead><tr>${columnHeaders.join('')}</tr></thead>`);
-
-    // Body
-    const tableBody = rows.map(row => {
-      let fieldRow = '';
-      Object.keys(headers).forEach(column => {
-        const attrs = Object.keys(headers[column]).map(key => `${key}="${headers[column][key]}"`);
-        const hasColumn = hasProperty(row, column);
-        const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column);
-        let cell;
-
-        if (typeof columnName === 'string') {
-          cell = safeGet(row, columnName, '');
-        } else {
-          const cellList = columnName.map((c: string) => safeGet(row, c, '')).filter((c: string) => c.length > 0);
-          cell = cellList.length === 1 ? cellList[0] : '';
+      if (columnName === 'type' && row instanceof Field) {
+        cell = `${row.type}`;
+        switch (row.type) {
+          case 'ArrayOf':
+            cell += `(${row.options.get('vtype', 'String')})`;
+            break;
+          case 'MapOf':
+            cell += `(${row.options.get('ktype', 'String')}, ${row.options.get('vtype', 'String')})`;
+            break;
+          case 'String':
+            cell += hasProperty(row.options, 'pattern') ? `(%${row.options.pattern}%)` : '';
+            break;
+          default:
+            cell += '';
         }
-
-        if (columnName === 'type' && row instanceof Field) {
-          cell = `${row.type}`;
-          switch (row.type) {
-            case 'ArrayOf':
-              cell += `(${row.options.get('vtype', 'String')})`;
-              break;
-            case 'MapOf':
-              cell += `(${row.options.get('ktype', 'String')}, ${row.options.get('vtype', 'String')})`;
-              break;
-            case 'String':
-              cell += hasProperty(row.options, 'pattern') ? `(%${row.options.pattern}%)` : '';
-              break;
-            default:
-              cell += '';
-          }
-          cell += hasProperty(row.options, 'format') ?  ` /${row.options.format}` : '';
-        } else if (columnName === 'options' && cell instanceof Options) {
-          cell = cell.multiplicity(1, 1, true);
-        }
-        fieldRow += `<td${attrs.length > 0 ? ` ${attrs}` : ''}>${cell === '' ? ' ' : cell}</td>`;
-      });
-
-      return `<tr>${fieldRow}</tr>`;
+        cell += hasProperty(row.options, 'format') ?  ` /${row.options.format}` : '';
+      } else if (columnName === 'options' && cell instanceof Options) {
+        cell = cell.multiplicity(1, 1, true);
+      }
+      fieldRow.push(cell);
     });
-    tableContents.push(`<tbody>${tableBody.join('')}</tbody>`);
-    return `<table>${tableContents.join('')}</table>`;
-  }
+    return fieldRow;
+  });
+
+   return this.typeTableTemplate.render({
+     ...options,
+     body: tableBody
+   });
+ }
 }
 
 export default JADNtoHTML;

@@ -1,6 +1,6 @@
 {
   "name": "jadnschema",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "author": "",
   "license": "ISC",
@@ -17,13 +17,14 @@
     "prepublish": "yon run tsc",
     "prod": "tsc && node ./bin/jadnschema.js",
     "test": "yon run test-translate && yon run test-validate",
-    "test-translate": "ts-node -r @babel/register ./tests/schema-translators.js",
-    "test-validate": "ts-node -r @babel/register ./tests/schema-validator.js",
+    "test-translate": "ts-node -r @babel/register ./tests/schema-translators.ts",
+    "test-validate": "ts-node -r @babel/register ./tests/schema-validator.ts",
     "tsc": "yon run clean && tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
     "fs-extra": "^9.0.1",
+    "js-beautify": "^1.11.0",
     "less": "^3.11.2",
     "lodash": "^4.17.15",
     "markdown-table": "^2.0.0",
@@ -32,6 +33,7 @@
     "pluralize": "^8.0.0",
     "table": "^5.4.6",
     "ts-clean": "^1.0.3",
+    "twig": "^1.15.1",
     "v8-compile-cache": "^2.1.1"
   },
   "devDependencies": {
@@ -51,6 +53,7 @@
     "@types/node": "^14.0.11",
     "@types/pluralize": "0.0.29",
     "@types/table": "^5.0.0",
+    "@types/twig": "^1.12.3",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
     "babel-eslint": "^10.1.0",
@@ -85,7 +88,8 @@
     "bin/**.js",
     "bin/**.d.ts",
     "lib/**/*.js",
-    "lib/**/*.d.ts"
+    "lib/**/*.d.ts",
+    "lib/**/*.twig"
   ],
   "keywords": [
     "jadn",
