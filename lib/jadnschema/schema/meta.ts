@@ -249,7 +249,10 @@ class Meta extends BaseModel {
     * @returns {SchemaMetaJADN} JADN formatted meta
     */
   schema(): SchemaMetaJADN {
-    const tmp = mergeArrayObjects(...this.slots.map(f => ({ [f]: safeGet(this, f) }))) as SchemaMetaJADN;
+    const tmp = mergeArrayObjects(...this.slots.map(k => {
+      const v = safeGet(this, k);
+      return v ? { [k]: v } : {};
+    })) as SchemaMetaJADN;
     if (this.configSet) {
       if ('config' in tmp) {
         tmp.config = this.config.schema();
