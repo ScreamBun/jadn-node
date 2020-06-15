@@ -1,9 +1,9 @@
-/** @ignore *//** */
-// from .message import Message
+// import * as message from './message';
 import * as schema from './schema';
 
-module.exports = {
-  ...schema
-  // Message Convert to
-  // Message
+export {
+  // Message Conversion
+  // message
+  // Schema Conversion
+  schema
 };

@@ -26,34 +26,34 @@ class Conversions {
 
   HTML() {
     console.log('Convert: JADN --> HMTL')
-    convert.html.dump(this.schemaObj, path.join(this.testDir, this.schema + '.html'))
+    convert.schema.html.dump(this.schemaObj, path.join(this.testDir, this.schema + '.html'))
   }
 
   JADN() {
     console.log('Convert: JADN --> JADN')
-    convert.jadn.dump(this.schemaObj, path.join(this.testDir, this.schema + '.all.jadn'), null, CommentLevels.ALL)
-    convert.jadn.dump(this.schemaObj, path.join(this.testDir, this.schema + '.none.jadn'), null, CommentLevels.NONE)
+    convert.schema.jadn.dump(this.schemaObj, path.join(this.testDir, this.schema + '.all.jadn'), null, CommentLevels.ALL)
+    convert.schema.jadn.dump(this.schemaObj, path.join(this.testDir, this.schema + '.none.jadn'), null, CommentLevels.NONE)
   }
 
   JIDL() {
     console.log('Convert: JADN --> JIDL')
-    convert.jidl.dump(this.schemaObj, path.join(this.testDir, this.schema + '.jidl'))
+    convert.schema.jidl.dump(this.schemaObj, path.join(this.testDir, this.schema + '.jidl'))
     // console.log('Convert: JIDL --> JADN')
     // with open(path.join(this.testDir, this.schema + '.jidl.jadn'), 'w') as f:
-    //     convert.jidl.loads(open(path.join(this.testDir, this.schema + '.jidl'), 'rb').read()).dump(f)
+    //     convert.schema.jidl.loads(open(path.join(this.testDir, this.schema + '.jidl'), 'rb').read()).dump(f)
   }
 
   JSON() {
     console.log('Convert: JADN --> JSON')
-    convert.json.dump(this.schemaObj, path.join(this.testDir, this.schema + '.all.json'), null, CommentLevels.ALL)
-    convert.json.dump(this.schemaObj, path.join(this.testDir, this.schema + '.none.json'), null, CommentLevels.NONE)
+    convert.schema.json.dump(this.schemaObj, path.join(this.testDir, this.schema + '.all.json'), null, CommentLevels.ALL)
+    convert.schema.json.dump(this.schemaObj, path.join(this.testDir, this.schema + '.none.json'), null, CommentLevels.NONE)
     // console.log('Convert: JSON --> JADN')
-    // convert.json.load(open(path.join(this.testDir, this.schema + '.all.json'), 'rb').read(), path.join(this.testDir, this.schema + '.json.jadn'))
+    // convert.schema.json.load(open(path.join(this.testDir, this.schema + '.all.json'), 'rb').read(), path.join(this.testDir, this.schema + '.json.jadn'))
   }
 
   MarkDown() {
     console.log('Convert: JADN --> MarkDown')
-    convert.md.dump(this.schemaObj, path.join(this.testDir, this.schema + '.md'))
+    convert.schema.md.dump(this.schemaObj, path.join(this.testDir, this.schema + '.md'))
   }
 
   // Tester Functions

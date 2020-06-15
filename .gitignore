@@ -369,14 +369,17 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Assorted Files
+# Test Files
 tests/schema_gen
+
+# Docs
+docs-html
 
 # Built Files
 /*.d.ts
 /*.js
-bin/**.js
-bin/**.d.ts
+bin/**/*.js
+bin/**/*.d.ts
 !lib/@types
 lib/**/*.js
 lib/**/*.d.ts

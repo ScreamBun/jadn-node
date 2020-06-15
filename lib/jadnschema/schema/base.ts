@@ -177,6 +177,10 @@ class BaseModel {
     );
   }
 
+  /**
+   * Set the given key/value pairs as properties of the current class
+   * @param {Record<string, any>} props - key/value pairs to set
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setProperties(props: Record<string, any>): void {
     Object.keys(props).forEach((key: string) => {
@@ -190,9 +194,9 @@ class BaseModel {
   }
 
   /**
-    * Emulate a dictionary get method
+    * Replicates Python dictionary get method
     * @param {string} attr - Attribute to get the value
-    * @param {Any} def -  Default value if attribute does not exist
+    * @param {Any} def - Default value if attribute does not exist
     * @return {Any} value of attribute/default - Null
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

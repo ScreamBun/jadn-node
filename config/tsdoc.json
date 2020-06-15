@@ -1,13 +1,11 @@
 {
+  "tsconfig": "./tsconfig.json",
   "exclude": [
-    ".eslintrc.js",
-    "config"
   ],
-  "excludeExternals": true,
-  "excludePrivate": true,
-  "inputFiles": [
-    "./lib"
-  ],
-  "mode": "modules",
-  "out": "doc"
+  "excludeExternals": false,
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "mode": "library",
+  "includeVersion": true,
+  "excludeNotExported": true
 }
