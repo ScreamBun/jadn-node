@@ -6,7 +6,6 @@
   "license": "ISC",
   "main": "./lib/api",
   "bin": "./bin/jadnschema.js",
-  "type": "module",
   "scripts": {
     "build": "yon run tsc",
     "clean": "ts-clean -d bin, lib -e .js,.d.ts",
