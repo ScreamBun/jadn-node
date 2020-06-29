@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Array Structure
 import DefinitionBase from './base';
 import {
@@ -10,6 +9,7 @@ import {
 
 import { ValidationError } from '../../exceptions';
 import { Field } from '../fields';
+import { GeneralValidator } from '../schema';
 import {
   hasProperty,
   safeGet
@@ -32,7 +32,7 @@ class ArrayDef extends DefinitionBase {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(data: SchemaObjectType|SchemaSimpleType|ArrayDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<Field>;
   }
 
   /**
@@ -46,21 +46,21 @@ class ArrayDef extends DefinitionBase {
     const config = this._config();
 
     if (hasProperty(this.options, 'format')) {
-      const fmtFun = safeGet(config.validationFormats, this.options.get('format', ''));
+      const fmtFun = safeGet(config.validationFormats, this.options.get('format', '')) as GeneralValidator;
       if (fmtFun) {
         errors.push(...fmtFun(inst));
       }
     } else {
-      console.log(`Array: ${inst}`);
+      console.log(`Array: [${inst.join(', ')}]`);
       const keyCount = inst.length;
-      const minKeys = this.options.get('minv', 0);
-      let maxKeys = this.options.get('maxv', 0);
+      const minKeys = this.options.get('minv', 0) as number;
+      let maxKeys = this.options.get('maxv', 0) as number;
       maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
 
       if (minKeys > keyCount) {
-        errors.push(new ValidationError(`${this} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
+        errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
       } else if (keyCount > maxKeys) {
-        errors.push( new ValidationError(`${this} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
+        errors.push( new ValidationError(`${this.toString()} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
       }
 
       // TODO: finish validation

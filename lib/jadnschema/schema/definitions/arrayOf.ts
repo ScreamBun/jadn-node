@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN ArrayOf Structure
 import DefinitionBase from './base';
 import {
@@ -32,7 +31,7 @@ class ArrayOfDef extends DefinitionBase {
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(data: SchemaObjectType|SchemaSimpleType|ArrayOfDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<Field>;
   }
 
   /**
@@ -46,25 +45,26 @@ class ArrayOfDef extends DefinitionBase {
     const config = this._config();
 
     const keyCount = Object.keys(inst).length;
-    const minKeys = this.options.get('minv', 0);
-    let maxKeys = this.options.get('maxv', 0);
+    const minKeys = this.options.get('minv', 0) as number;
+    let maxKeys = this.options.get('maxv', 0) as number;
     maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
 
     if (minKeys > keyCount) {
-      errors.push(new ValidationError(`${this} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
+      errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
     } else if (keyCount > maxKeys) {
-      errors.push( new ValidationError(`${this} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
+      errors.push( new ValidationError(`${this.toString()} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
     }
 
     if (safeGet(this.options, 'unique', false)) {
       if ((keyCount - new Set(inst).size) > 0) {
         const dups = this.duplicates(inst).filter(itm => itm[1] > 1);
-        errors.push(new ValidationError(`${this} - fields are not unique, duplicated ${dups.map(itm => itm[0]).join(',')}`));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        errors.push(new ValidationError(`${this.toString()} - fields are not unique, duplicated ${dups.map(itm => itm[0]).join(',')}`));
       }
     }
 
-    const vtype = this.options.get('vtype', null);
-    if (vtype) {
+    const vtype = this.options.get('vtype', '') as string;
+    if (vtype !== '') {
         const JavaScriptType = null;
         if (JavaScriptType) {
           // TODO: Type check...
@@ -74,16 +74,15 @@ class ArrayOfDef extends DefinitionBase {
           }
           */
         } else {
-          const SchemaType = vtype.startsWith('$') ? safeGet(config.derived, vtype) : safeGet(config.types, vtype);
+          const SchemaType = (vtype.startsWith('$') ? safeGet(config.derived, vtype) : safeGet(config.types, vtype)) as DefinitionBase;
           inst.forEach(idx => {
             const errs = SchemaType.validate(idx);
             errors.push(...errs);
           });
         }
     } else {
-        errors.push( new SchemaError(`${this} invalid value type given, ${vtype}`));
+        errors.push(new SchemaError(`${this.toString()} invalid value type given, ${vtype}`));
     }
-
     return errors;
   }
 

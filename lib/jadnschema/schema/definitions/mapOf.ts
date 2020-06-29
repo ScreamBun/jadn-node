@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN MapOf Structure
 import DefinitionBase from './base';
 import {
@@ -29,7 +28,7 @@ class MapOfDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|MapOfDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<Field>;
   }
 
   /**
@@ -44,26 +43,35 @@ class MapOfDef extends DefinitionBase {
     const config = this._config();
 
     const keyCount = Object.keys(inst).length;
-    const minKeys = this.options.get('minv', 0);
-    let maxKeys = this.options.get('maxv', 0);
+    const minKeys = this.options.get('minv', 0) as number;
+    let maxKeys = this.options.get('maxv', 0) as number;
     maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
 
-    const keyName = safeGet(this.options, 'ktype');
-    const keyCls: DefinitionBase = safeGet(config.types, keyName);
+    const keyName = safeGet(this.options, 'ktype', '') as string;
+    const keyCls = safeGet(config.types, keyName) as null|DefinitionBase;
 
-    const valueName = safeGet(this.options, 'vtype');
-    const valueCls: DefinitionBase = safeGet(config.types, valueName);
+    const valueName = safeGet(this.options, 'vtype', '') as string;
+    const valueCls = safeGet(config.types, valueName) as null|DefinitionBase;
 
     if (minKeys > keyCount) {
-      errors.push(new ValidationError(`${this} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
+      errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
     } else if (keyCount > maxKeys) {
-        errors.push(new ValidationError(`${this} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
+        errors.push(new ValidationError(`${this.toString()} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
     }
 
-    Object.keys(inst).forEach(key => {
-      errors.push(...keyCls.validate(key));
-      errors.push(...valueCls.validate(inst[key]));
-    });
+    if (keyCls && valueCls) {
+      Object.keys(inst).forEach(key => {
+        errors.push(...keyCls.validate(key));
+        errors.push(...valueCls.validate(inst[key]));
+      });
+    } else {
+      if (!keyCls) {
+        errors.push(new ValidationError(`${this.toString()} - Key type of ${keyName} is not definied within the schema`));
+      }
+      if (!valueCls) {
+        errors.push(new ValidationError(`${this.toString()} - Value type of ${valueName} is not definied within the schema`));
+      }
+    }
     return errors;
   }
 }

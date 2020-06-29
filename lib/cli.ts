@@ -4,21 +4,13 @@
  * exit codes. This allows other programs to use the CLI object and still control
  * when the program exits.
  */
-// import fs from 'fs';
-// import path from 'path';
-// import { promisify } from 'util';
 import debug from 'debug';
-import CLIOptions from './options';
+import CLIOptions, { ConvertArgs, ValidateArgs } from './options';
+import { SchemaFormats } from './jadnschema/convert/schema/enums';
 import pkg from '../package.json';
 
 // Init debugger
 debug('jadnschema:cli');
-
-// Helpers
-//------------------------------------------------------------------------------
-// const mkdir = promisify(fs.mkdir);
-// const stat = promisify(fs.stat);
-// const writeFile = promisify(fs.writeFile);
 
 // Public Interface
 //------------------------------------------------------------------------------
@@ -34,7 +26,7 @@ class CLI {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkArgs(): [string, Record<string, any>]|number {
   if (Array.isArray(this.args)) {
-      debug(`CLI args: ${this.args}`);
+      debug(`CLI args: [${ this.args.join(', ') }]`);
     }
 
     this.command = this.args.length >= 3 ? this.args[2] : 'N/A';
@@ -42,18 +34,41 @@ class CLI {
 
     if (validCmd) {
       this.args.splice(2, 1);
-      const args = CLIOptions[this.command].parse(this.args);
+      const cliArgs = CLIOptions[this.command].parse(this.args);
+      const positionals = cliArgs._ as Array<string>;
+      let args: ConvertArgs|ValidateArgs|Record<string, any>;
       // eslint-disable-next-line default-case
       switch (this.command) {
         case 'convert':
-          args.schemas = args._;
+          args = {
+            // Basics
+            schemas: positionals,
+            // conversion rules
+            // -rulesdir: as string;
+            // -plugins: as Array<string>;
+            // -rules: as Array<string>;
+            // Warnings
+            quiet: cliArgs.quiet as boolean,
+            maxWarnings: cliArgs.maxWarnings as number,
+            // Output
+            output: cliArgs.output as string,
+            format: cliArgs.format as Array<SchemaFormats>,
+            // Miscellaneous
+            debug: cliArgs.debug as boolean
+          };
           break;
         case 'validate':
-          args.schema = args._[0];
-          args.messages = args._.splice(1);
+          args = {
+            // Basics
+            schema: positionals[0],
+            messages: positionals.splice(1),
+            // Miscellaneous
+            debug: cliArgs.debug as boolean
+          };
           break;
+        default:
+          args = {};
       }
-      delete args._;
       return [this.command, args];
     }
 
@@ -66,7 +81,7 @@ class CLI {
       return 0;
     }
     console.error(`'${this.command}' is not a valid subcommand`);
-    console.error(`Valid subcommands are: ${Object.keys(CLIOptions).filter(i => i !== 'general')}`);
+    console.error(`Valid subcommands are: ${Object.keys(CLIOptions).filter(i => i !== 'general').join(', ')}`);
     console.error('');
     this.help();
     return 2;

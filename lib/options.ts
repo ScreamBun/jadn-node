@@ -5,6 +5,31 @@ import optionator, { Optionator } from 'optionator';
 import { SchemaFormats } from './jadnschema/convert/schema/enums';
 import { objectValues } from './jadnschema/utils';
 
+export interface ConvertArgs {
+  // Basics
+  schemas: Array<string>;
+  // conversion rules
+  rulesdir?: string;
+  plugins?: Array<string>;
+  rules?: Array<string>;
+  // Warnings
+  quiet: boolean;
+  maxWarnings: number;
+  // Output
+  output: string;
+  format: Array<SchemaFormats>;
+  // Miscellaneous
+  debug: boolean;
+}
+
+export interface ValidateArgs {
+  // Basics
+  schema: string;
+  messages: Array<string>;
+  // Miscellaneous
+  debug: boolean;
+}
+
 const CLIOptions: Record<string, Optionator> = {
   convert: optionator({
     defaults: {
@@ -22,12 +47,12 @@ const CLIOptions: Record<string, Optionator> = {
         description: 'Use additional rules from this directory'
       },
       {
-        option: 'plugin',
+        option: 'plugins',
         type: '[String]',
         description: 'Specify plugins'
       },
       {
-        option: 'rule',
+        option: 'rules',
         type: 'Object',
         description: 'Specify rules'
       },

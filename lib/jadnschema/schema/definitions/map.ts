@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Map Structure
 import DefinitionBase from './base';
 import {
@@ -29,7 +28,7 @@ class MapDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|MapDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<Field>;
   }
 
   /**
@@ -44,19 +43,19 @@ class MapDef extends DefinitionBase {
     const config = this._config();
 
     const keyCount = Object.keys(inst).length;
-    const minKeys = this.options.get('minv', 0);
-    let maxKeys = this.options.get('maxv', 0);
+    const minKeys = this.options.get('minv', 0) as number;
+    let maxKeys = this.options.get('maxv', 0) as number;
     maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
 
     const fields = this.fields.map(f => f.name);
     const extraFields = Object.keys(inst).filter(f => !fields.includes(f));
 
     if (extraFields.length > 0) {
-      errors.push(new ValidationError(`${this} - unknown field(s): ${extraFields.join(', ')}`));
+      errors.push(new ValidationError(`${this.toString()} - unknown field(s): ${extraFields.join(', ')}`));
     } else if (minKeys > keyCount) {
-      errors.push(new ValidationError(`${this} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
+      errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));
     } else if (keyCount > maxKeys) {
-        errors.push(new ValidationError(`${this} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
+        errors.push(new ValidationError(`${this.toString()} - maximum field count exceeded; max of ${maxKeys}, given ${keyCount}`));
     } else {
       Object.keys(inst).forEach(key => {
         const fieldDef = this.getField(key);

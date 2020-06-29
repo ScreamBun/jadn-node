@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 // JADN to JADN
 import fs from 'fs-extra';
 
@@ -33,7 +32,6 @@ class JADNtoJADN extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
    dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
     return this.schema.schemaPretty(this.comments === CommentLevels.NONE);

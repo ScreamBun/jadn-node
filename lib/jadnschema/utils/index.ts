@@ -1,4 +1,3 @@
-/** @ignore *//** */
 import {
   flattenArray,
   mergeArrayObjects,
@@ -10,7 +9,10 @@ import {
 } from './general';
 
 import {
+  cloneObject,
   hasProperty,
+  invertObject,
+  objectFromTuple,
   objectValues,
   prettyObject,
   safeGet
@@ -24,7 +26,10 @@ export {
   // General
   capitalize,
   // Object
+  cloneObject,
   hasProperty,
+  invertObject,
+  objectFromTuple,
   objectValues,
   prettyObject,
   safeGet

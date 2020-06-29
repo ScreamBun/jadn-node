@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Choice Structure
 import DefinitionBase from './base';
 import {
@@ -29,7 +28,7 @@ class ChoiceDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|ChoiceDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<Field>;
   }
 
   /**
@@ -47,15 +46,14 @@ class ChoiceDef extends DefinitionBase {
     const valueKey = safeGet(this.options, 'id', false) ? 'id' : 'name';
 
     if (keyCount !== 1) {
-      errors.push(new ValidationError(`${this} - invalid, only one key/value allowed, given ${keyCount}`));
+      errors.push(new ValidationError(`${this.toString()} - invalid, only one key/value allowed, given ${keyCount}`));
     } else if (this.fields.map(f => f[valueKey]).includes(key)) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
-      const typeDef: DefinitionBase = safeGet(config.types, this.getField(key).type, null);
+      const typeDef = safeGet(config.types, this.getField(key).type, null) as null|DefinitionBase;
       if (typeDef) {
         errors.push(...typeDef.validate(inst[key]));
       } else {
-        errors.push(new ValidationError(`${this} - invalid value for choice of ${key}`));
+        errors.push(new ValidationError(`${this.toString()} - invalid value for choice of ${key}`));
       }
     }
     return errors;

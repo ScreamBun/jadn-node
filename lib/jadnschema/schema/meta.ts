@@ -1,4 +1,4 @@
-/* eslint lines-between-class-members: 0, max-classes-per-file: 0 */
+/* eslint max-classes-per-file: 0 */
 // JADN Config
 import BaseModel from './base';
 import { ValidationError } from '../exceptions';
@@ -8,7 +8,7 @@ import {
 } from './interfaces';
 import {
   hasProperty,
-  mergeArrayObjects,
+  objectFromTuple,
   prettyObject,
   safeGet
 } from '../utils';
@@ -57,7 +57,9 @@ class Config extends BaseModel {
     } else {
       d = data || {};
     }
-    return mergeArrayObjects(...Object.keys(d).map(k => ({ [k.replace(/^\$/, '')]: safeGet(d, k) }) ));
+    return objectFromTuple(
+      ...Object.keys(d).map<[string, any]>(k => [k.replace(/^\$/, ''), safeGet(d, k) ])
+    );
   }
 
   /**
@@ -65,9 +67,9 @@ class Config extends BaseModel {
     * @returns {Record<string, string>} JADN formatted meta
     */
   schema(): Record<string, string> {
-    return mergeArrayObjects(
-      ...(this.slots || []).map(k => {
-        return hasProperty(this, `_${k}`) ? { [`$${k}`]: safeGet(this, k) } : {};
+    return objectFromTuple(
+      ...(this.slots || []).map<[string, any]|[]>(k => {
+        return hasProperty(this, `_${k}`) ? [`$${k}`, safeGet(this, k) ] : [];
       })
     );
   }
@@ -81,7 +83,7 @@ class Config extends BaseModel {
   }
 
   get MaxBinary(): number {
-    return safeGet(this, '_MaxBinary', 255);
+    return safeGet(this, '_MaxBinary', 255) as number;
   }
 
   set MaxString(val: number) {
@@ -92,7 +94,7 @@ class Config extends BaseModel {
   }
 
   get MaxString(): number {
-    return safeGet(this, '_MaxString', 255);
+    return safeGet(this, '_MaxString', 255) as number;
   }
 
   set MaxElements(val: number) {
@@ -103,7 +105,7 @@ class Config extends BaseModel {
   }
 
   get MaxElements(): number {
-    return safeGet(this, '_MaxElements', 100);
+    return safeGet(this, '_MaxElements', 100) as number;
   }
 
   set FS(val: string) {
@@ -114,7 +116,7 @@ class Config extends BaseModel {
   }
 
   get FS(): string {
-    return safeGet(this, '_FS', '/');
+    return safeGet(this, '_FS', '/') as string;
   }
 
   set Sys(val: string) {
@@ -125,7 +127,7 @@ class Config extends BaseModel {
   }
 
   get Sys(): string {
-    return safeGet(this, '_Sys', '$');
+    return safeGet(this, '_Sys', '$') as string;
   }
 
   set TypeName(val: string) {
@@ -137,7 +139,7 @@ class Config extends BaseModel {
   }
 
   get TypeName(): string {
-    return safeGet(this, '_TypeName', '^[A-Z][-$A-Za-z0-9]{0,31}$');
+    return safeGet(this, '_TypeName', '^[A-Z][-$A-Za-z0-9]{0,31}$') as string;
   }
 
   set FieldName(val: string) {
@@ -149,7 +151,7 @@ class Config extends BaseModel {
   }
 
   get FieldName(): string {
-    return safeGet(this, '_FieldName', '^[a-z][_A-Za-z0-9]{0,31}$');
+    return safeGet(this, '_FieldName', '^[a-z][_A-Za-z0-9]{0,31}$') as string;
   }
 
   set NSID(val: string) {
@@ -161,7 +163,7 @@ class Config extends BaseModel {
   }
 
   get NSID(): string {
-    return safeGet(this, '_NSID', '^[A-Za-z][A-Za-z0-9]{0,7}$');
+    return safeGet(this, '_NSID', '^[A-Za-z][A-Za-z0-9]{0,7}$') as string;
   }
 }
 
@@ -194,18 +196,17 @@ class Meta extends BaseModel {
     const keys = Object.keys(data || {});
 
     // Field Vars
-    this.module = safeGet(this, 'module', 'MODULE');
-    this.config = safeGet(this, 'config', new Config());
+    this.module = safeGet(this, 'module', 'MODULE') as string;
+    this.config = safeGet(this, 'config', new Config()) as Config;
 
     // Helper Vars
     this.configSet = keys.includes('config');
   }
 
   toString(): string {
-    // console.log(`META - ${JSON.stringify(this)}`);
-    const value = mergeArrayObjects(
-      ...this.slots.map(k => {
-        return hasProperty(this, k) ? { [k]: safeGet(this, k) } : {};
+    const value = objectFromTuple(
+      ...this.slots.map<[string, any]|[]>(k => {
+        return hasProperty(this, k) ? [k, safeGet(this, k) ] : [];
       })
     );
     return `Meta ${prettyObject(value)}`;
@@ -249,10 +250,14 @@ class Meta extends BaseModel {
     * @returns {SchemaMetaJADN} JADN formatted meta
     */
   schema(): SchemaMetaJADN {
-    const tmp = mergeArrayObjects(...this.slots.map(k => {
-      const v = safeGet(this, k);
-      return v ? { [k]: v } : {};
-    })) as SchemaMetaJADN;
+    const tmp = objectFromTuple(
+      ...this.slots.map<[string, any]|[]>(k => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const v = safeGet(this, k);
+        return v ? [k, v ] : [];
+      })
+    ) as SchemaMetaJADN;
+
     if (this.configSet) {
       if ('config' in tmp) {
         tmp.config = this.config.schema();

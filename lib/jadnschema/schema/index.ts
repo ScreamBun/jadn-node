@@ -1,4 +1,3 @@
-/** @ignore *//** */
 import { DefinitionData } from './definitions';
 import { EnumeratedField, Field } from './fields';
 import Options from './options';

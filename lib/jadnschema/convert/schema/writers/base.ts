@@ -1,4 +1,4 @@
-/* eslint lines-between-class-members: 0 */
+/* eslint lines-between-class-members: 0, @typescript-eslint/lines-between-class-members: 0 */
 // JADN Schema Writer Base
 import { CommentLevels } from '../enums';
 
@@ -16,6 +16,9 @@ import {
 } from '../../../utils';
 // Simple Interface
 import { SchemaSimpleJADN } from '../../../schema/interfaces';
+
+
+type StructConvFun = (d: DefinitionBase, a?: Record<string, any>) => any;
 
 /**
   * @class WriterBase
@@ -82,7 +85,7 @@ class WriterBase {
 
     // Helper Vars
     this.meta = this.schema.meta;
-    this.imports = this.meta.get('imports', {});
+    this.imports = this.meta.get('imports', {}) as Record<string, string>;
     this.types = objectValues(this.schema.types);
     this.customFields = mergeArrayObjects( ...this.types.map(t => ({ [t.name]: t.type}) ));
   }
@@ -93,20 +96,18 @@ class WriterBase {
     * @param {string} source - source schema file
     * @param {Record<string, any>} kwargs - extra field values for the function
     */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-   dump(fname: string, source?: string, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-    throw new ReferenceError(`${this} does not implement "dump"`);
+   dump(fname: string, source?: string|null, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+    throw new ReferenceError(`${this.constructor.name} does not implement "dump"`);
   }
 
   /**
     * Parse the given schema to a JADN schema
     * @param {Record<string, any>} kwargs - extra field values for the function
     */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-   dumps(kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-    throw new ReferenceError(`${this} does not implement "dumps"`);
+   dumps(kwargs?: Record<string, any>): string { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+    throw new ReferenceError(`${this.constructor.name} does not implement "dumps"`);
   }
 
   // Helper Functions
@@ -116,14 +117,15 @@ class WriterBase {
     * @param {Record<string, any>} kwargs - extra field values for the function
     * @returns {Record<string, any>} - type definitions for the schema
    */
-  // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   _makeStructures(def?: any, kwargs?: Record<string, any>): Record<string, any> {
-    return mergeArrayObjects(
-      ...this.types.map(typeDef => {
-        const df = safeGet(this, typeDef.isStructure() ?  `_format${typeDef.type}` : '_formatCustom', null);
-        return { [typeDef.name]: df === null ? def : df.bind(this)(typeDef, kwargs) };
-      })
-    );
+    const structures: Record<string, any> = {};
+    this.types.forEach(typeDef => {
+      const df = safeGet(this, typeDef.isStructure() ?  `_format${typeDef.type}` : '_formatCustom', null) as StructConvFun|null;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      structures[typeDef.name] = df === null ? def : df.bind(this)(typeDef, kwargs);
+    });
+    return structures;
   }
 
   /**
@@ -158,9 +160,9 @@ class WriterBase {
     * @param {Record<string, any>|Options} opts - field options
     * @returns {boolean} - is optional
     */
-  // eslint-disable-next-line class-methods-use-this, no-underscore-dangle, @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
   _isOptional(opts: Record<string, any>|Options): boolean {
-    return opts.get('minc', 1) === 0;
+    return safeGet(opts, 'minc', 1) === 0;
   }
 
   /**
@@ -173,7 +175,7 @@ class WriterBase {
     if (hasProperty(opts, 'ktype') ||  hasProperty(opts, 'vtype')) {
       return false;
     }
-    return opts.get('maxc', 1) !== 1;
+    return safeGet(opts, 'maxc', 1) !== 1;
   }
 }
 

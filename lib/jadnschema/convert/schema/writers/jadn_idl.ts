@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 // JADN to JADN
 import fs from 'fs-extra';
 import {
@@ -8,6 +7,7 @@ import {
 
 import WriterBase from './base';
 import { Field, EnumeratedField } from '../../../schema';
+import { Config } from '../../../schema/meta';
 import {
   DefinitionBase,
   ArrayDef,
@@ -48,11 +48,10 @@ class JADNtoIDL extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
    dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
     let schemaJIDL = this.makeHeader();
-    const structures = this._makeStructures('');
+    const structures: Record<string, string> = this._makeStructures('');
 
     this.definitionOrder.forEach((defName: string) => {
       if (hasProperty(structures, defName)) {
@@ -62,7 +61,7 @@ class JADNtoIDL extends WriterBase {
       }
     });
 
-    schemaJIDL += objectValues(structures).map(strDef => `${strDef}\n`).join('');
+    schemaJIDL += objectValues(structures).map((strDef: string) => `${strDef}\n`).join('');
     return schemaJIDL.replace('\t', ' '.repeat(4));
    }
 
@@ -72,19 +71,23 @@ class JADNtoIDL extends WriterBase {
     */
   makeHeader(): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const val = (v: any): string => {
-      v = v || '';  // eslint-disable-line no-param-reassign
-      if (typeof v === 'object') {
-        if (hasProperty(v, 'schema')) {
-          return JSON.stringify(v.schema());
-        }
+    const val = (v: string|Record<string, string>|Config): string => {
+      if (v instanceof Config) {
+        return JSON.stringify(v.schema());
+      }
+      if (v instanceof Object) {
         if (Array.isArray(v)) {
           return `['${v.join('\', \'')}']`;
         }
+        return JSON.stringify(v);
       }
       return v;
     };
-    const meta = this.metaOrder.filter(k => k === 'config' ? safeGet(this.meta, 'configSet', false) : hasProperty(this.meta, k)).map(k => [`${k}:`, val(this.meta.get(k))]);
+
+    const meta = this.metaOrder.filter(k => {
+      return k === 'config' ? safeGet(this.meta, 'configSet', false) as boolean : hasProperty(this.meta, k);
+    }).map(k => [`${k}:`, val(this.meta.get(k))]);
+
      return `${this._makeTable(meta, ['r', ''])}\n`;
    }
 
@@ -96,20 +99,20 @@ class JADNtoIDL extends WriterBase {
     * @returns {string} - formatted array
    `*/
    _formatArray(itm: ArrayDef): string {
-    const fmt = hasProperty(itm.options, 'format') ? ` /${itm.options.format}` : '';
+    const fmt = itm.options.format ? ` /${itm.options.format}` : '';
     let arrayIDL = `${itm.name} = Array${fmt} {`;
 
     const fieldCount = itm.fields.length;
     const itmFields: Array<[number, string, string]> = itm.fields.map((f: Field, idx: number) => {
       let fieldType = `${f.type}`;
       if (f.type === 'ArrayOf') {
-        fieldType += `(${f.options.get('vtype', 'String')})`;
+        fieldType += `(${f.options.get('vtype', 'String') as string})`;
       } else if (f.type === 'MapOf') {
-        fieldType += `(${f.options.get('ktype', 'String')}, ${f.options.get('vtype', 'String')})`;
+        fieldType += `(${f.options.get('ktype', 'String') as string}, ${f.options.get('vtype', 'String') as string})`;
       }
 
       const array = this._isArray(f.options) ? `[${f.options.multiplicity()}]` : '';
-      const fldFmt = hasProperty(f.options, 'format') ? ` /${f.options.format}` : '';
+      const fldFmt = f.options.format ? ` /${f.options.format}` : '';
       const opt = this._isOptional(f.options) ? ' optional' : '';
       const cont = idx+1 !== fieldCount ? ',' : '';
 
@@ -261,9 +264,9 @@ class JADNtoIDL extends WriterBase {
     let itmType = `${itm.type}`;
 
     if (itm.type === 'ArrayOf') {
-      itmType += `(${itm.options.get('vtype', 'String')})`;
+      itmType += `(${itm.options.get('vtype', 'String') as string})`;
     } else if (itm.type === 'MapOf') {
-      itmType += `(${itm.options.get('ktype', 'String')}, ${itm.options.get('vtype', 'String')})`;
+      itmType += `(${itm.options.get('ktype', 'String') as string}, ${itm.options.get('vtype', 'String') as string})`;
     }
 
     const multi = itm.options.multiplicity();
@@ -273,8 +276,8 @@ class JADNtoIDL extends WriterBase {
       itmType += multi !== '0..*' ? `{${multi}}` : '';
     }
 
-    itmType += hasProperty(itm.options, 'pattern') ? `(%${itm.options.pattern}%)` : '';
-    itmType += hasProperty(itm.options, 'format') ? ` /${itm.options.format}` : '';
+    itmType += itm.options.pattern ? `(%${itm.options.pattern}%)` : '';
+    itmType += itm.options.format ? ` /${itm.options.format}` : '';
     itmType += safeGet(itm.options, 'unique', false) ? ' unique' : '';
     return `${itm.name} = ${itmType}${itm.description ? `  // ${itm.description}` : ''}\n`;
   }
@@ -295,10 +298,10 @@ class JADNtoIDL extends WriterBase {
       let fieldType = `${f.type}`;
 
       if (f.type === 'ArrayOf') {
-        fieldType += `(${f.options.get('vtype', 'String')})`;
+        fieldType += `(${f.options.get('vtype', 'String') as string})`;
         fieldType += `{${f.options.multiplicity()}}`;
       } else if (f.type === 'MapOf') {
-        fieldType += `(${f.options.get('ktype', 'String')}, ${f.options.get('vtype', 'String')})`;
+        fieldType += `(${f.options.get('ktype', 'String') as string}, ${f.options.get('vtype', 'String') as string})`;
         fieldType += `{${f.options.multiplicity()}}`;
       } else {
         let multi = '';
@@ -317,8 +320,8 @@ class JADNtoIDL extends WriterBase {
         fieldType += multi || '';
       }
 
-      const fmt = hasProperty(f.options, 'format') ? ` /${f.options.format}` : '';
-      const pattern = hasProperty(f.options, 'pattern') ? `(%${f.options.pattern}%)` : '';
+      const fmt = f.options.format ? ` /${f.options.format}` : '';
+      const pattern = f.options.pattern ? `(%${f.options.pattern}%)` : '';
       const unq = safeGet(f.options, 'unique', false) ? ' unique' : '';
       const opt = this._isOptional(f.options) ? ' optional' : '';
       const cont = idx+1 !== fieldCount ? ',' : '';
@@ -345,7 +348,7 @@ class JADNtoIDL extends WriterBase {
     if (alignment !== null || alignment !== undefined) {
       (alignment || []).forEach((a: string, i: number) => {
         columns[`${i}`] = {
-          alignment: safeGet(alignments, a, 'left')
+          alignment: safeGet(alignments, a, 'left') as string
         };
       });
     }

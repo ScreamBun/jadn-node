@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Enumerated Structure
 import DefinitionBase from './base';
 import {
@@ -28,7 +27,7 @@ class EnumeratedDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|EnumeratedDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []);
+    this.fields = safeGet(this, 'fields', []) as Array<EnumeratedField>;
   }
 
   toString(): string {
@@ -45,7 +44,7 @@ class EnumeratedDef extends DefinitionBase {
     const valueKey = safeGet(this.options, 'id', false) ? 'id' : 'value';
 
     if (!this.fields.map(f => f[valueKey]).includes(inst)) {
-      errors.push(new ValidationError(`${this} - invalid value, ${inst}`));
+      errors.push(new ValidationError(`${this.toString()} - invalid value, ${inst}`));
     }
 
     return errors;

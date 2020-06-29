@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Custom Structure
 import DefinitionBase from './base';
 import {
@@ -8,6 +7,7 @@ import {
   SchemaObjectType
 } from './interfaces';
 
+import { GeneralValidator } from '../schema';
 import { ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';
 
@@ -45,7 +45,7 @@ class CustomDef extends DefinitionBase {
     const config = this._config();
 
     if (this.type === 'None' && inst !== null) {
-      errors.push(new ValidationError(`${this} is not valid as ${this.type}`));
+      errors.push(new ValidationError(`${this.toString()} is not valid as ${this.type}`));
       return errors;
     }
 
@@ -60,37 +60,36 @@ class CustomDef extends DefinitionBase {
     if python_type and not isinstance(inst, python_type):
       errors.append(ValidationError(f"{self} is not valid as {self.type}"))
     */
-    const fmt = safeGet(this.options, 'format');
+    const fmt = safeGet(this.options, 'format') as null|string;
     if (fmt) {
       if (/^u\d+$/.exec(fmt)) {
-        errors.push(...config.validationFormats.unsigned(parseInt(fmt.subString(1), 10), inst));
+        errors.push(...config.validationFormats.unsigned(parseInt(fmt.substring(1), 10), inst));
       } else {
-        const fun = safeGet(config.validationFormats, fmt);
+        const fun = safeGet(config.validationFormats, fmt) as null|GeneralValidator;
         if (fun) {
-          errors.push(fun(inst));
+          errors.push(...fun(inst));
         }
       }
     } else if (['Binary', 'String'].includes(this.type)) {
-      inst = inst as string;  // eslint-disable-line no-param-reassign
-      const instLen = inst.length;
-      const minLen = safeGet(this.options, 'minv');
-      let maxLen = safeGet(this.options, 'maxv');
-      maxLen = maxLen <= 0 ? config.meta.config[`Max${this.type}`] : maxLen;
+      const instLen = (inst as string).length;
+      const minLen = safeGet(this.options, 'minv', 0) as number;
+      let maxLen = safeGet(this.options, 'maxv', 0) as number;
+      maxLen = maxLen <= 0 ? safeGet(config.meta.config, `Max${this.type}`) as number : maxLen;
 
       if (minLen > instLen) {
-        errors.push( new ValidationError(`${this} is invalid, minimum length of ${minLen} bytes/characters not met`));
+        errors.push( new ValidationError(`${this.toString()} is invalid, minimum length of ${minLen} bytes/characters not met`));
       } else if (maxLen < instLen) {
-        errors.push(new ValidationError(`${this} is invalid, maximum length of ${maxLen} bytes/characters exceeded`));
+        errors.push(new ValidationError(`${this.toString()} is invalid, maximum length of ${maxLen} bytes/characters exceeded`));
       }
     } else if (['Integer', 'Number'].includes(this.type)) {
       inst = inst as number;  // eslint-disable-line no-param-reassign
-      const minVal = safeGet(this.options, 'minv');
-      const maxVal = safeGet(this.options, 'maxv');
+      const minVal = safeGet(this.options, 'minv', 0) as number;
+      const maxVal = safeGet(this.options, 'maxv', 0) as number;
 
       if (minVal > inst) {
-        errors.push(new ValidationError(`${this} is invalid, minimum of ${minVal} not met`));
+        errors.push(new ValidationError(`${this.toString()} is invalid, minimum of ${minVal} not met`));
       } else if (maxVal !== 0 && maxVal < inst) {
-        errors.push(new ValidationError(`${this} is invalid, maximum of ${maxVal} exceeded`));
+        errors.push(new ValidationError(`${this.toString()} is invalid, maximum of ${maxVal} exceeded`));
       }
     }
 

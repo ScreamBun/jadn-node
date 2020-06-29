@@ -1,4 +1,4 @@
-/* eslint @typescript-eslint/camelcase: 0, lines-between-class-members: 0 */
+/* eslint lines-between-class-members: 0, @typescript-eslint/lines-between-class-members: 0 */
 // JADN to JADN
 import fs from 'fs-extra';
 
@@ -9,6 +9,7 @@ import { FormatError } from '../../../exceptions';
 import {
   hasProperty,
   mergeArrayObjects,
+  objectFromTuple,
   objectValues,
   safeGet
 } from '../../../utils';
@@ -141,7 +142,7 @@ class JADNtoJSON extends WriterBase {
     */
   dumps(kwargs?: Args): string {
     const args = kwargs || {}; // eslint-disable-lne no-param-reassign
-    const indent = safeGet(args, 'indent', 2);
+    const indent = safeGet(args, 'indent', 2) as number;
     const exports = (this.meta.exports || []).map((exp: string) => {
       const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
       if (expDefs.length === 1) {
@@ -170,14 +171,10 @@ class JADNtoJSON extends WriterBase {
       };
     }
 
-    jsonSchema.definitions = {
-      ...mergeArrayObjects(
-        ...this.definitionOrder.map(f => hasProperty(defs, f) ? { [f]: defs[f]} : {} )
-      ),
-      ...mergeArrayObjects(
-        ...Object.keys(defs).map(f => this.definitionOrder.includes(f) ? {} : { [f]: defs[f]} )
-      )
-    };
+    jsonSchema.definitions = objectFromTuple(
+      ...this.definitionOrder.filter(d => hasProperty(defs, d)).map<[string, any]>(f => [f, defs[f] ] ),
+      ...Object.keys(defs).filter(d => !this.definitionOrder.includes(d)).map<[string, any]>(f =>  [f, defs[f] ] )
+    );
 
     return JSON.stringify(this._cleanEmpty(jsonSchema), null, indent);
   }
@@ -187,14 +184,14 @@ class JADNtoJSON extends WriterBase {
     * @returns {InterfaceJSON.Meta} - header for schema
    */
   makeHeader(): InterfaceJSON.Meta {
-    const module = this.meta.get('module', '');
+    const module = this.meta.get('module', '') as string;
     const schemaID = `${module.startsWith('http') ? '' : 'http://'}${module}`;
     return this._cleanEmpty({
       $schema: 'http://json-schema.org/draft-07/schema#',
       $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
-      title: hasProperty(this.meta, 'title') ? this.meta.title : (module + (hasProperty(this.meta, 'patch') ? ` v.${this.meta.patch}` : '')),
+      title: this.meta.title ? this.meta.title : (module + (this.meta.patch ? ` v.${this.meta.patch}` : '')),
       description: this._cleanComment(this.meta.get('description', ''))
-    });
+    }) as InterfaceJSON.Meta;
   }
 
   // Structure Formats
@@ -226,9 +223,8 @@ class JADNtoJSON extends WriterBase {
       };
     }
 
-    return {
-      [this.formatString(itm.name)]: this._cleanEmpty(arrayJSON)
-    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return { [this.formatString(itm.name)]: this._cleanEmpty(arrayJSON) };
   }
 
   /**
@@ -237,8 +233,8 @@ class JADNtoJSON extends WriterBase {
     * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted arrayOf
     */
   _formatArrayOf(itm: ArrayOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
-    const vtype = itm.options.get('vtype', 'String');
-    const maxv = safeGet(itm.options, 'maxv', 0);
+    const vtype = itm.options.get('vtype', 'String') as string;
+    const maxv = safeGet(itm.options, 'maxv', 0) as number;
     // eslint-disable-next-line no-param-reassign
     itm.options.maxv = maxv === 0 ? this.schema.meta.config.MaxElements : maxv;
 
@@ -253,23 +249,22 @@ class JADNtoJSON extends WriterBase {
     if (vtype.startsWith('$')) {
       const valDefs = this.types.filter(d => d.name === vtype.substring(1));
       if (valDefs.length !== 1) {
-        throw new FormatError(`${itm.name} has multiple matches for its vtype value, ${valDefs.map(d => d.name)}`);
+        throw new FormatError(`${itm.name} has multiple matches for its vtype value, [${valDefs.map(d => d.name).join(', ')}]`);
       }
       const valDef = valDefs[0];
-      const idVal = safeGet(valDef.options, 'id', false);
+      const idVal = safeGet(valDef.options, 'id', false) as boolean;
       // eslint-disable-next-line no-nested-ternary
       const enumVal = idVal ? 'id' : (valDef.type === 'Enumerated' ? 'value' : 'name');
       arrayOfJSON.items = {
         type: idVal ? 'integer' : 'string',
-        enum: (valDef.fields || []).map(f => safeGet(f, enumVal))
+        enum: (valDef.fields || []).map<string>(f => safeGet(f, enumVal) as string)
       };
     } else {
       arrayOfJSON.items = this._getFieldType(vtype);
     }
 
-    return {
-      [this.formatString(itm.name)]: this._cleanEmpty(arrayOfJSON)
-    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return { [this.formatString(itm.name)]: this._cleanEmpty(arrayOfJSON) };
   }
 
   /**
@@ -279,6 +274,7 @@ class JADNtoJSON extends WriterBase {
     */
   _formatChoice(itm: ChoiceDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
           title: this.formatTitle(itm.name),
           type: 'object',
@@ -287,7 +283,7 @@ class JADNtoJSON extends WriterBase {
           minProperties: 1,
           maxProperties: 1,
           ...this._optReformat('object', itm.options, false),
-          properties: mergeArrayObjects( ...itm.fields.map(f => ({ [f.name]: this._makeField(f) })) )
+          properties: objectFromTuple( ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ]))
       })
     };
   }
@@ -298,9 +294,10 @@ class JADNtoJSON extends WriterBase {
     * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted enum
     */
   _formatEnumerated(itm: EnumeratedDef): Record<string, InterfaceJSON.TypeDefinition> {
-    const useID = safeGet(itm.options, 'id', false);
+    const useID = safeGet(itm.options, 'id', false) as boolean;
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
         type: useID ? 'integer' : 'string',
@@ -321,6 +318,7 @@ class JADNtoJSON extends WriterBase {
     */
   _formatMap(itm: MapDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
         type: 'object',
@@ -328,7 +326,7 @@ class JADNtoJSON extends WriterBase {
         additionalProperties: false,
         ...this._optReformat('object', itm.options, false),
         required: itm.fields.filter(f => !this._isOptional(f.options)).map(f => f.name),
-        properties: mergeArrayObjects( ...itm.fields.map(f => ({ [f.name]: this._makeField(f) }) ))
+        properties: objectFromTuple( ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ]))
       })
     };
   }
@@ -339,25 +337,26 @@ class JADNtoJSON extends WriterBase {
     * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted mapOf
     */
   _formatMapOf(itm: MapOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
-    const keyType = safeGet(this.schema.types, itm.options.get('ktype'));
-    let keys = [];
+    const keyType = safeGet(this.schema.types, itm.options.get('ktype')) as DefinitionBase;
+    let keys: Array<number|string> = [];
 
     if (['Choice', 'Enumerated', 'Map', 'Record'].includes(keyType.type)) {
       const attr = keyType.type === 'Enumerated' ? 'value' : 'name';
-      keys = (keyType.fields || []).map((f: EnumeratedField|Field) => safeGet(f, attr) );
+      keys = (keyType.fields || []).map<number|string>((f: EnumeratedField|Field) => safeGet(f, attr) as number|string );
     } else {
       console.warn(`Invalid MapOf definition for ${itm.name}`);
     }
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
         type: 'object',
         description: this._cleanComment(itm.description),
         additionalProperties: false,
         minProperties: 1,
-        properties: mergeArrayObjects(
-          ...keys.map((k: string) => ({ [k]: this._getFieldType(itm.options.get('vtype', 'String')) }) )
+        properties: objectFromTuple(
+          ...keys.map<[number|string, any]>(k => [k, this._getFieldType(itm.options.get('vtype', 'String')) ])
         )
       })
     };
@@ -370,6 +369,7 @@ class JADNtoJSON extends WriterBase {
     */
   _formatRecord(itm: RecordDef): Record<string, InterfaceJSON.TypeDefinition> {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
         title: this.formatTitle(itm.name),
         type: 'object',
@@ -377,7 +377,9 @@ class JADNtoJSON extends WriterBase {
         additionalProperties: false,
         ...this._optReformat('object', itm.options, false),
         required: itm.fields.filter(f => !this._isOptional(f.options)).map(f => f.name),
-        properties: mergeArrayObjects( ...itm.fields.map(f => ({ [f.name]: this._makeField(f) }) ))
+        properties: objectFromTuple(
+          ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ])
+        )
       })
     };
   }
@@ -399,7 +401,7 @@ class JADNtoJSON extends WriterBase {
     const keys = Object.keys(customJSON).filter(k => optKeys.includes(k));
 
     if (keys.length > 0) {
-      console.warn(`${itm.name} has duplicate keys: ${keys}`);
+      console.warn(`${itm.name} has duplicate keys: [${keys.join(', ')}]`);
     }
 
     if (['format', 'pattern'].some(k => hasProperty(opts, k))) {
@@ -409,6 +411,7 @@ class JADNtoJSON extends WriterBase {
     }
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
         ...customJSON,
         ...opts
@@ -422,9 +425,9 @@ class JADNtoJSON extends WriterBase {
     * @param {string} name - type of field as defined in JADN
     * @returns {string} - type of the field as defined in JSON
    */
-  _getType(name: string): string {
+  _getType(name?: string): string {
     const typeDef = this.types.filter(t => t.name === name);
-    return safeGet(typeDef.length === 1 ? typeDef[0] : {}, 'type', 'String');
+    return safeGet(typeDef.length === 1 ? typeDef[0] : {}, 'type', 'String') as string;
   }
 
   /**
@@ -451,28 +454,30 @@ class JADNtoJSON extends WriterBase {
       return false;
     };
 
-    const optObj = opts.object();
+    const optObj = opts.object() as Record<string, number|string>;
     Object.keys(optObj).forEach(key => {
       const val = optObj[key];
       if (ignore(key, val) || this.ignoreOpts.includes(key)) {
         return;
       }
 
-      const fmt = safeGet(this.jadnFmt, val, null);
-      if (fmt !== null && key === 'format') {
-        formattedOpts = {
-          ...formattedOpts,
-          ...fmt
-        };
+      if (key === 'format') {
+        const fmt = safeGet(this.jadnFmt, val as string, null) as null|Record<string, number|string>;
+        if (fmt !== null) {
+          formattedOpts = {
+            ...formattedOpts,
+            ...fmt
+          };
+        }
       } else if (hasProperty(optKeys, key)) {
-        formattedOpts[optKeys[key]] = key === 'format' ? safeGet(this.validationMap, val, val) : val;
+        formattedOpts[optKeys[key]] = key === 'format' ? safeGet(this.validationMap, val as string, val) as string : val;
       } else {
         console.warn(`unknown option for type of ${optType}: ${key} - ${val}`);
       }
     });
 
-    const fmt = safeGet(formattedOpts, 'format', '');
-    if (fmt.match(/^u\d+$/)) {
+    const fmt = safeGet(formattedOpts, 'format', '') as string;
+    if (/^u\d+$/.exec(fmt)) {
       delete formattedOpts.format;
       formattedOpts = {
         ...formattedOpts,
@@ -489,7 +494,7 @@ class JADNtoJSON extends WriterBase {
     * @returns {Record<string, string|number|Array<string|Record<string, number|string>>>} - type mapped to the schema
    */
   _getFieldType(field: string|Field): Record<string, string|number|Array<string|Record<string, number|string>>> {
-    let fieldType = typeof field === 'object' ? safeGet(field, 'type', field) : field;
+    let fieldType = field instanceof Field ? safeGet(field, 'type', field) as string : field;
     fieldType = typeof fieldType === 'string' ? fieldType : 'String';
 
     if (typeof field === 'object' && field instanceof Field) {
@@ -517,7 +522,7 @@ class JADNtoJSON extends WriterBase {
           type: this.formatString(safeGet(this.fieldMap, field.type, field.type))
         };
         if (field.type.toLowerCase() === 'binary') {
-          const fmt = safeGet(field.options, 'format', '');
+          const fmt = safeGet(field.options, 'format', '') as string;
           if (['b', 'x', 'binary', null].includes(fmt)) {
             this.hasBinary = !hasProperty(this.customFields, 'Binary');
             rtn = { '$ref' : '#/definitions/Binary' };
@@ -560,18 +565,21 @@ class JADNtoJSON extends WriterBase {
 
     const enumRegEx = new RegExp(`^${EnumId}`);
     if (enumRegEx.exec(fieldType)) {
-      const fType: DefinitionBase = safeGet(this.schema.types, fieldType.substring(1));
+      const fType = safeGet(this.schema.types, fieldType.substring(1)) as DefinitionBase;
       if (['Array', 'Choice', 'Map', 'Record'].includes(fType.type)) {
         return {
           type: safeGet(fType.options, 'id', false) ? 'number' : 'string',
           description: `Derived enumeration from ${fType.name}`,
-          oneOf: (fType.fields || []).map(f => ({ const: safeGet(f, 'name'), description: safeGet(f, 'description') }) )
+          oneOf: (fType.fields || []).map(f => ({
+            const: safeGet(f, 'name', '') as string,
+            description: safeGet(f, 'description', '') as string
+          }))
         };
       }
       throw new FormatError(`Invalid derived enumeration - ${fType.name} should be a Array, Choice, Map or Record type`);
     }
 
-    if (fieldType.match(/^MapOf\(.*?\)$/)) {
+    if (/^MapOf\(.*?\)$/.exec(fieldType)) {
       console.log(`Derived MapOf - ${fieldType}`);
     }
 
@@ -594,12 +602,12 @@ class JADNtoJSON extends WriterBase {
         items: fieldDef
       };
     } else if (Object.keys(fieldDef).length === 1 && hasProperty(fieldDef, field.name)) {
-      fieldDef = safeGet(fieldDef, field.name, {});
+      fieldDef = safeGet(fieldDef, field.name, {}) as Record<string, any>;
     }
 
     const ref = hasProperty(fieldDef, '$ref') && ['Integer', 'Number'].includes(field.type);
-    let fieldType = safeGet(fieldDef, 'type', '');
-    fieldType = fieldType === '' ? safeGet(fieldDef, '$ref', '') : fieldType;
+    let fieldType = safeGet(fieldDef, 'type', '') as string;
+    fieldType = fieldType === '' ? safeGet(fieldDef, '$ref', '') as string : fieldType;
     fieldType = fieldType.startsWith('#') ? this._getType(fieldType.split('/').pop()) : fieldType;
     const fieldOpts = this._optReformat(fieldType, field.options, ref);
 
@@ -653,34 +661,34 @@ class JADNtoJSON extends WriterBase {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _cleanEmpty(itm: any): any {
-    if (typeof itm === 'object') {
-      if (Array.isArray(itm)) {
-        return itm.map(idx => this._cleanEmpty(idx));
-      }
+    switch (true) {
+      case (itm instanceof Array):
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return (itm as Array<any>).map(idx => this._cleanEmpty(idx));
 
-      const tmp = mergeArrayObjects(
-        ...Object.keys(itm).map(key => {
-          const val = itm[key];
-          if (['', ' ', null, undefined].includes(val) && ['boolean', 'number'].includes(typeof val)) {
-            return {};
-          }
-          if ((typeof val === 'string' || (typeof val === 'object' && Array.isArray(val))) && val.length === 0) {
-            return {};
-          }
-          return { [key]: this._cleanEmpty(val) };
-        })
-      );
+        case (itm instanceof Object):
+          const tmp = objectFromTuple(
+            ...Object.keys(itm).map<[string, any]|[]>(key => {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              const val = itm[key];
+              if (['', ' ', null, undefined].includes(val) && ['boolean', 'number'].includes(typeof val)) {
+                return [];
+              }
+              if ((typeof val === 'string' || (typeof val === 'object' && Array.isArray(val))) && val.length === 0) {
+                return [];
+              }
+              return [key, this._cleanEmpty(val) ];
+            })
+          );
+          return objectFromTuple(
+            ...this.schemaOrder.map<[string, any]|[]>(f => hasProperty(tmp, f) ? [f, tmp[f] ] : [] ),
+            ...Object.keys(tmp).map<[string, any]|[]>(f => this.schemaOrder.includes(f) ? [] : [f, tmp[f] ] )
+          );
 
-      return {
-        ...mergeArrayObjects(
-          ...this.schemaOrder.map(f => hasProperty(tmp, f) ? { [f]: tmp[f]} : {} )
-        ),
-        ...mergeArrayObjects(
-          ...Object.keys(tmp).map(f => this.schemaOrder.includes(f) ? {} : { [f]: tmp[f]} )
-        )
-      };
+      default:
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return itm;
     }
-    return itm;
   }
 }
 

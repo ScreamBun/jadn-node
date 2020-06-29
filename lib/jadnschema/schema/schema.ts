@@ -1,8 +1,6 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Schema Model
 import path from 'path';
 import fs from 'fs-extra';
-import { cloneDeep } from 'lodash';
 import pluralize from 'pluralize';
 
 import BaseModel, { initModel } from './base';
@@ -32,6 +30,7 @@ import {
   SchemaObjectComplexType
 } from './definitions/interfaces';
 import {
+  cloneObject,
   flattenArray,
   mergeArrayObjects,
   objectValues,
@@ -42,6 +41,10 @@ import {
   capitalize
 } from '../utils';
 
+// Format valiator
+export type GeneralValidator = (inst: any) => Array<Error>;
+export type UnsignedValidator = (n: number, inst: any) => Array<Error>;
+
 class Schema extends BaseModel {
   // Fields Variables
   meta: Meta;
@@ -51,7 +54,7 @@ class Schema extends BaseModel {
   slots: Array<string> = ['meta', 'types'];
   derived: Record<string, DefinitionBase>;
   protected schemaTypes: Set<string>;
-  protected validationFormats: Record<string, Function> = {} // = ValidationFormats;
+  protected validators: Record<string, GeneralValidator|UnsignedValidator> = {} // = ValidationFormats;
   protected definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
     'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr',
     'IPv4-Net', 'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI',
@@ -68,8 +71,8 @@ class Schema extends BaseModel {
   constructor(schema?: SchemaSimpleJADN|Schema, kwargs?: Record<string, any> ) {
     super({}, kwargs);
     // Fields Variables
-    this.meta = safeGet(this, 'meta', new Meta());
-    this.types = safeGet(this, 'types', {});
+    this.meta = safeGet(this, 'meta', new Meta()) as Meta;
+    this.types = safeGet(this, 'types', {}) as Record<string, DefinitionBase>;
 
     // Helper Variables
     this.derived = {};
@@ -89,7 +92,11 @@ class Schema extends BaseModel {
   }
 
   get formats(): Array<string> {
-    return Object.keys(this.validationFormats);
+    return Object.keys(this.validators);
+  }
+
+  get validationFormats(): Record<string, GeneralValidator|UnsignedValidator> {
+    return cloneObject(this.validators) as Record<string, GeneralValidator|UnsignedValidator>;
   }
 
   /**
@@ -98,12 +105,15 @@ class Schema extends BaseModel {
     */
   analyze(): Record<string, string|Array<string>> {
     const typeDeps = this.dependencies();
-    const refs = new Set([...objectValues(typeDeps).reduce((acc: Array<string>, val: Set<string>) => [...acc, ...val], []), ...this.meta.get('exports', [])]);
+    const refs = new Set([
+      ...objectValues(typeDeps).reduce((acc: Array<string>, val: Set<string>) => [...acc, ...val], []),
+      ...this.meta.get('exports', []) as Array<string>
+    ]);
     const types = new Set([...Object.keys(typeDeps), ...Object.keys(this.derived)]);
 
     return {
-      module: `${this.meta.get('module', '')}${this.meta.get('patch', '')}`,
-      exports: this.meta.get('exports', []),
+      module: `${this.meta.get('module', '') as string}${this.meta.get('patch', '') as string}`,
+      exports: this.meta.get('exports', []) as Array<string>,
       unreferenced: [...types].filter(d => !refs.has(d)).filter(d => !Object.keys(this.derived).includes(d)),
       undefined: [...refs].filter(d => !types.has(d))
     };
@@ -115,7 +125,9 @@ class Schema extends BaseModel {
     */
   dependencies(): Record<string, Set<string>> {
     const nsids = Object.keys(this.meta.get('imports', {}));
-    const typeDeps = mergeArrayObjects(...nsids.map((imp: string) => ({[imp]: new Set() })));
+    const typeDeps = mergeArrayObjects(
+      ...nsids.map((imp: string) => ({[imp]: new Set<string>() }))
+    );
 
     /**
       * Return namespace if name has a known namespace, otherwise return full name
@@ -227,8 +239,8 @@ class Schema extends BaseModel {
             const fieldDef: SchemaObjectGenField|SchemaObjectEnumField = { ...fd };
             if ('options' in fieldDef) {
               const [fieldOpts, typeOpts] = fieldDef.options.split();
-              const minc = fieldOpts.get('minc', 0);
-              const maxc = fieldOpts.get('maxc', null);
+              const minc = fieldOpts.get('minc', 0) as number;
+              const maxc = fieldOpts.get('maxc', null) as null|number;
               if ((maxc !== null && maxc !== 1) || (minc !== null && minc > 1)) {
                 delete fieldOpts.maxc;
 
@@ -267,7 +279,7 @@ class Schema extends BaseModel {
     const removeDerivedEnum = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType|SchemaObjectComplexType> = [];
       const derivable = ['ArrayOf', 'Enumerated', 'MapOf'];
-      const optChecks: Record<string, Function> = {
+      const optChecks: Record<string, (v: string) => boolean> = {
         enum: () => true,
         ktype: (v: string) => v.startsWith(EnumId),
         vtype: (v: string) => v.startsWith(EnumId)
@@ -279,7 +291,7 @@ class Schema extends BaseModel {
         if (derivable.includes(typeDef.type)) {
           Object.keys(optChecks).forEach((optName: string) => {
             const optCheck = optChecks[optName];
-            let opt = typeDef.options.get(optName, null);
+            let opt = typeDef.options.get(optName, null) as null|string;
 
             if (opt && optCheck(opt)) {
               opt = opt.startsWith(EnumId) ? opt.substring(1) : opt;
@@ -301,7 +313,6 @@ class Schema extends BaseModel {
                   })
                 });
               }
-              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
               // @ts-ignore
               typeDef.options[optName] = newName;
             }
@@ -320,7 +331,7 @@ class Schema extends BaseModel {
           const keyType = (sch.types || []).filter(t => t.name === td.options.ktype);
           const valueType = td.options.vtype;
           if (keyType.length !== 1) {
-            throw new TypeError(`Type of ${td.options.ktype} does not exist within the schema`);
+            throw new TypeError(`Type of ${td.options.ktype || 'KTYPE'} does not exist within the schema`);
           }
 
           if (keyType[0].type === 'Enumerated') {
@@ -328,7 +339,7 @@ class Schema extends BaseModel {
             delete td.options.ktype;
             delete td.options.vtype;
             td.fields = (keyType[0] as SchemaObjectComplexType).fields.map(f => {
-              return {id: f.id, name: safeGet(f, 'value'), type: valueType, options: new Options(), description: f.description} as SchemaObjectGenField;
+              return {id: f.id, name: safeGet(f, 'value', 'NAME') as string, type: valueType, options: new Options(), description: f.description} as SchemaObjectGenField;
             });
           }
           return td;
@@ -380,7 +391,7 @@ class Schema extends BaseModel {
     try {
       this._setSchema(JSON.parse(schema));
     } catch (err) {
-      throw new SchemaError(`Schema improperly formatted - ${err}`);
+      throw new SchemaError(`Schema improperly formatted - ${String(err)}`);
     }
   }
 
@@ -456,7 +467,7 @@ class Schema extends BaseModel {
     const errors: Array<Error> = [];
 
     const exports: Array<string> = this.meta.exports || [];
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax,  @typescript-eslint/no-for-in-array
+    // eslint-disable-next-line guard-for-in, no-restricted-syntax, @typescript-eslint/no-for-in-array
     for (const exp in exports) {
       const rtn = this.validateAs(inst, exp);
       if ( rtn.length === 0) {
@@ -478,7 +489,6 @@ class Schema extends BaseModel {
    * @param {boolean} silent - raise or return errors
    * @return {Array<Error>} List of errors raises
    */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   validateAs(inst: Record<string, any>, type: string, silent? : boolean): Array<Error> {  // eslint-disable-line @typescript-eslint/no-explicit-any
     silent = silent || true; // eslint-disable-line no-param-reassign
@@ -553,10 +563,10 @@ class Schema extends BaseModel {
     const indLvl = level || 0;// eslint-disable-line no-param-reassign
 
     // eslint-disable-next-line no-underscore-dangle
-    let _indent = (indSpace % 2 === 1) ? indSpace - 1 : indSpace;
-    _indent += (indLvl * 2);
-    const ind = ' '.repeat(_indent);
-    const indE = ' '.repeat(_indent - 2);
+    let tmpInd = (indSpace % 2 === 1) ? indSpace - 1 : indSpace;
+    tmpInd += (indLvl * 2);
+    const ind = ' '.repeat(tmpInd);
+    const indE = ' '.repeat(tmpInd - 2);
 
     if (obj === null || obj === undefined) {
       return '';
@@ -589,17 +599,17 @@ class Schema extends BaseModel {
   /**
     * Add a format validation function
     * @param {string} fmt -format to validate
-    * @param {Function} fun - function that performs the validation
+    * @param {GeneralValidator|UnsignedValidator} fun - function that performs the validation
     * @param {boolean} override - override the format if it exists
     */
-  addFormat(fmt: string, fun: Function, override?: boolean): void {
+  addFormat(fmt: string, fun: GeneralValidator|UnsignedValidator, override?: boolean): void {
     // eslint-disable-next-line no-param-reassign
     override = override || false;
 
     if (fmt in this.formats && !override) {
       throw new FormatError(`format ${fmt} is already defined, user arg 'override' as true to override format validation`);
     }
-    this.validationFormats[fmt] = fun;
+    this.validators[fmt] = fun;
   }
 
   // eslint-disable-next-line class-methods-use-this, no-underscore-dangle
@@ -607,7 +617,7 @@ class Schema extends BaseModel {
     const typeKeys = ['name', 'type', 'options', 'description', 'fields'];
     const genFieldKeys = ['id', 'name', 'type', 'options', 'description'];
     const enumFieldKeys = ['id', 'value', 'description'];
-    schema = cloneDeep(schema); // eslint-disable-line no-param-reassign
+    schema = cloneObject(schema) as SchemaJADN; // eslint-disable-line no-param-reassign
 
     if (!('types' in schema)) {
       throw new SchemaError('Schema types improperly formatted');

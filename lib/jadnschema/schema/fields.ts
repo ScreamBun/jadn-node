@@ -1,4 +1,4 @@
-/* eslint lines-between-class-members: 0, max-classes-per-file: 0 */
+/* eslint max-classes-per-file: 0 */
 // JADN Field Models - Enumerated and General
 import BaseModel from './base';
 import {
@@ -21,7 +21,7 @@ import {
 
 interface DefinitionBase {
   type: string;
-  validate: Function;
+  validate: (inst: any) => Array<Error>;
 }
 
 
@@ -43,9 +43,10 @@ class EnumeratedField extends BaseModel {
     */
   constructor(data: SchemaSimpleEnumField|EnumeratedField) {
     super(data);
-    this.id = safeGet(this, 'id', 0);
-    this.value = safeGet(this, 'value', 'VALUE');
-    this.description = safeGet(this, 'description', '');
+    // Field Vars
+    this.id = safeGet(this, 'id', 0) as number;
+    this.value = safeGet(this, 'value', 'VALUE') as string;
+    this.description = safeGet(this, 'description', '') as string;
   }
 
   /**
@@ -56,7 +57,12 @@ class EnumeratedField extends BaseModel {
   initData(data: SchemaSimpleEnumField|EnumeratedField): SchemaObjectEnumField {
     let d: SchemaObjectEnumField;
     if (typeof data === 'object' && Array.isArray(data)) {
-      d = zip(EnumeratedFieldSlots, data) as SchemaObjectEnumField;
+      const tmp = zip(EnumeratedFieldSlots, data);
+      d = {
+        id: tmp.id as number,
+        value: tmp.value as number|string,
+        description: tmp.description as string
+      };
     } else if (data instanceof Field) {  // eslint-disable-line no-use-before-define, @typescript-eslint/no-use-before-define
       d = data.object() as SchemaObjectEnumField;
     } else {
@@ -119,11 +125,11 @@ class Field extends BaseModel {
   constructor(data: SchemaSimpleGenField|Field, kwargs?: Record<string, any> ) {
     super(data, kwargs);
     // Field Vars
-    this.id = safeGet(this, 'id', 0);
-    this._name = safeGet(this, 'name', 'NAME');
-    this.type = safeGet(this, 'type', 'FIELD');
-    this.options = safeGet(this, 'options', new Options());
-    this.description = safeGet(this, 'description', '');
+    this.id = safeGet(this, 'id', 0) as number;
+    this._name = safeGet(this, 'name', 'NAME') as string;
+    this.type = safeGet(this, 'type', 'FIELD') as string;
+    this.options = safeGet(this, 'options', new Options()) as Options;
+    this.description = safeGet(this, 'description', '') as string;
   }
 
   /**
@@ -134,8 +140,14 @@ class Field extends BaseModel {
   initData(data: SchemaSimpleGenField|Field): SchemaObjectGenField {
     let d: SchemaObjectGenField;
     if (typeof data === 'object' && Array.isArray(data)) {
-      d = zip(FieldSlots, data) as SchemaObjectGenField;
-      // d.options = new Options(d.options);
+      const tmp = zip(FieldSlots, data);
+      d = {
+        id: tmp.id as number,
+        name: tmp.name as string,
+        type: tmp.type as string,
+        options: new Options(tmp.options as Array<string>|Options),
+        description: tmp.description as string
+      };
     } else if (data instanceof Field) {
       d = data.object() as SchemaObjectGenField;
     } else {
@@ -191,21 +203,21 @@ class Field extends BaseModel {
 
   /**
     *  Validate the field value against the defined type
-    * @param {any} inst
+    * @param {any} inst - the instance to validate
     * @param {boolean} cardEnforce
-    * @return {void|Array<Error>}
+    * @return {Array<Error>} Errors resulting from the validation
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate(inst: any, cardEnforce?: boolean): void|Array<Error> {
+  validate(inst: any, cardEnforce?: boolean): Array<Error> {
     cardEnforce = cardEnforce || true;  // eslint-disable-line no-param-reassign
     const config = this._config();
     const errors: Array<Error> = [];
-    const minCard = this.options.get('minc', 1);
-    const maxCard = this.options.get('maxc', Math.max(minCard, 1));
+    const minCard = this.options.get('minc', 1) as number;
+    const maxCard = this.options.get('maxc', Math.max(minCard, 1)) as number;
 
     if (cardEnforce && minCard === maxCard && minCard === 1) {
       if (inst === null) {
-        errors.push(new ValidationError(`field is required, ${this}`));
+        errors.push(new ValidationError(`field is required, ${this.toString()}`));
       }
     }
 
@@ -214,16 +226,17 @@ class Field extends BaseModel {
       if (!(`_${this.name}` in config.types)) {
         const tmpDef = this.object();
         delete tmpDef.id;
-        tmpDef.name = capitalize(tmpDef.name.replace('_', '-'));
-        const CustomDef = require('./definitions').CustomDef; // eslint-disable-line global-require
+        tmpDef.name = capitalize((tmpDef.name as string).replace('_', '-'));
+        const CustomDef = require('./definitions').CustomDef; // eslint-disable-line global-require, @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         config.types[`_${this.name}`] = new CustomDef(tmpDef as SchemaObjectType, {_config: this._config});
       }
-      typeDef = safeGet(config.types, `_${this.name}`);
+      typeDef = safeGet(config.types, `_${this.name}`) as DefinitionBase;
     } else {
-      typeDef = safeGet(config.types, this.type);
+      typeDef = safeGet(config.types, this.type) as DefinitionBase;
     }
 
-    const errs = typeDef ? typeDef.validate(inst) : new ValidationError(`invalid type for field, ${this}`);
+    const errs = typeDef ? typeDef.validate(inst) : new ValidationError(`invalid type for field, ${this.toString()}`);
     errors.push(...(Array.isArray(errs) ? errs : [errs]));
     return errors.filter(e => e);
   }

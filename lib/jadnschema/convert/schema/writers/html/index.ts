@@ -1,16 +1,16 @@
-/* eslint lines-between-class-members: 0 */
 // JADN to HTML
 import fs from 'fs-extra';
-import less from 'less';
 import namedRegExp from 'named-js-regexp';
 import path from 'path';
-import Twig from 'twig';
 
+import { baseTemplate, headerTemplate, typeTableTemplate } from './templates';
 import WriterBase from '../base';
 import { safeGet, hasProperty } from '../../../../utils';
 import { Field, EnumeratedField } from '../../../../schema/fields';
+import { Config } from '../../../../schema/meta';
 import Options from '../../../../schema/options';
 import {
+  DefinitionBase,
   ArrayDef,
   ArrayOfDef,
   ChoiceDef,
@@ -19,6 +19,8 @@ import {
   MapOfDef,
   RecordDef
 } from '../../../../schema/definitions';
+
+type StructConvFun = (d: DefinitionBase, i: number) => any;
 
 interface Args {
   styles?: string;
@@ -33,14 +35,11 @@ interface TypeTable {
   columnClasses?: Array<string>;
 }
 
-const templatesDir = path.join(__dirname, 'templates');
-
 class JADNtoHTML extends WriterBase {
   format = 'html'
-  typeTableTemplate = Twig.twig({ data: fs.readFileSync(path.join(templatesDir, 'typeTable.twig')).toString() })
 
   // eslint-disable-next-line global-require
-  private themeStyles = require('./theme').default;  //  Default theme
+  private themeStyles = require('./theme').default as string;  //  Default theme
 
   /**
     * Produce JSON schema from JADN schema and write to file provided
@@ -65,13 +64,11 @@ class JADNtoHTML extends WriterBase {
     */
   dumps(kwargs?: Args): string {
     const args = kwargs || {};
-    const styles = safeGet(args, 'styles');
+    const styles = safeGet(args, 'styles', '') as string;
 
-    const html = Twig.twig({
-      data: fs.readFileSync(path.join(templatesDir, 'base.twig')).toString()
-    }).render({
-      module: this.meta.get('module', 'JADN Schema Convert'),
-      version: this.meta.get('version', '0.0'),
+    const html = baseTemplate({
+      module: this.meta.get('module', 'JADN Schema Convert') as string,
+      version: this.meta.get('version', '0.0') as string,
       styles: this._loadStyles(styles),
       meta: this.makeHeader(),
       structures: this.makeStructures()
@@ -85,24 +82,28 @@ class JADNtoHTML extends WriterBase {
     * @return {string} - header for schema
     */
   makeHeader(): string {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mkRow = (key: string, v: any): Record<string, string> => {
-      let val = v || '';  // eslint-disable-line no-param-reassign
-      if (typeof val === 'object') {
-        val = hasProperty(val, 'schema') ? val.schema() : val;
-        if (Array.isArray(val)) {
-          val = val.length > 0 ? val.map(idx => Array.isArray(idx) ? `**${idx[0]}**: ${idx[1]}` : idx).join(', ') : 'N/A/';
-        } else {
-          val = Object.keys(val).map(k => `**${k}**: ${val[k]}`).join(', ');
-        }
+    const mkRow = (v?: Array<string>|Record<string, string>|Config): string => {
+      if (v instanceof Config) {
+        const val = v.schema();
+        return Object.keys(val).map(k => `**${k}**: ${val[k]}`).join(', ');
       }
-      return { key, val };
+      if (v instanceof Object) {
+        if (Array.isArray(v)) {
+          return v.length > 0 ? v.join(', ') : 'N/A/';
+        }
+        return Object.keys(v).map(k => `**${k}**: ${v[k]}`).join(', ');
+      }
+      return v || '';
     };
 
-    return Twig.twig({
-      data: fs.readFileSync(path.join(templatesDir, 'header.twig')).toString()
-    }).render({
-      rows: this.metaOrder.map(k => mkRow(k, this.meta.get(k)))
+    return headerTemplate({
+      title: this.meta.title || '',
+      module: this.meta.module,
+      patch: this.meta.patch || '',
+      description: this.meta.description || '',
+      exports: (this.meta.exports || []).join(', '),
+      imports: mkRow(this.meta.imports),
+      config: mkRow(this.meta.config)
     });
   }
 
@@ -116,13 +117,14 @@ class JADNtoHTML extends WriterBase {
 
     this.types.forEach((typeDef, idx) => {
       if (typeDef.isStructure()) {
-        structureHTML += safeGet(this, `_format${typeDef.type}`, () => '<p>Oops...</p>').bind(this)(typeDef, idx+1);
+        const convFun = safeGet(this, `_format${typeDef.type}`, () => '<p>Oops...</p>') as StructConvFun;
+        structureHTML += convFun.bind(this)(typeDef, idx+1);
       } else {
         const mltiOptsCheck = ['Integer', 'Number'].includes(typeDef.type) ? undefined : (x: number, y: number): boolean => (x > 0 || y > 0);
         let multi = typeDef.options.multiplicity(0, 0, false, mltiOptsCheck);
         multi = multi ? `{${multi}}` : '';
 
-        const fmt = hasProperty(typeDef.options, 'format') ? ` /${typeDef.options.format}` : '';
+        const fmt = typeDef.options.format ? ` /${typeDef.options.format}` : '';
 
         primitives.push({
           Name: typeDef.name,
@@ -302,7 +304,7 @@ class JADNtoHTML extends WriterBase {
     const tagRegEx = namedRegExp(/\s*?<\/?(?<tag>[\w]+)(\s|>).*$/);
     tmpFormat.forEach(ln => {
       const line = ln.trim();
-      const tag = safeGet((tagRegEx.execGroups(line) || {}), 'tag', null);
+      const tag = safeGet((tagRegEx.execGroups(line) || {}), 'tag', '') as string;
       let indent = '\t'.repeat(nestedTags.length);
 
       if (tag === 'style') {
@@ -358,25 +360,17 @@ class JADNtoHTML extends WriterBase {
     * @returns {string} loaded styles
     */
   _loadStyles(styles: string): string {
-    let theme = styles;
-    if (['', ' ', null, undefined].includes(theme)) {
+    if (['', ' ', null, undefined].includes(styles)) {
       return this.themeStyles;
     }
 
-    const ext = path.extname(theme);
-    if (!['.css', '.less'].includes(ext)) {
-      throw new TypeError('Styles are not in css or less format');
+    const ext = path.extname(styles);
+    if (ext !== '.css') {
+      throw new TypeError('Styles are not in css format');
     }
 
-    if (fs.pathExistsSync(theme)) {
-      theme = fs.readFileSync(theme).toString();
-      if (ext === '.less') {
-        less.render(theme).then(out => {
-          theme = out.css;
-          return theme;
-        }).catch(err => console.warn(err));
-      }
-      return theme;
+    if (fs.pathExistsSync(styles)) {
+      return fs.readFileSync(styles).toString();
     }
     throw new ReferenceError(`The style file specified does not exist: ${styles}`);
   }
@@ -391,16 +385,16 @@ class JADNtoHTML extends WriterBase {
   // eslint-disable-next-line max-len
  _makeTable(options: TypeTable = { headers: [], rows: [], columnClasses: [] }): string {
   const tableBody = options.rows.map(row => {
-    const fieldRow: Array<number| string> = [];
+    const fieldRow: Array<number|string> = [];
     options.headers.forEach(column => {
       const hasColumn = hasProperty(row, column);
-      const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column);
-      let cell;
+      const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column) as string|Array<string>;
+      let cell: number|string|Options;
 
       if (typeof columnName === 'string') {
-        cell = safeGet(row, columnName, '');
+        cell = safeGet(row, columnName, '') as number|string|Options;
       } else {
-        const cellList = columnName.map((c: string) => safeGet(row, c, '')).filter((c: string) => c.length > 0);
+        const cellList = columnName.map(c => safeGet(row, c, '') as string).filter(c => c.length > 0);
         cell = cellList.length === 1 ? cellList[0] : '';
       }
 
@@ -408,27 +402,27 @@ class JADNtoHTML extends WriterBase {
         cell = `${row.type}`;
         switch (row.type) {
           case 'ArrayOf':
-            cell += `(${row.options.get('vtype', 'String')})`;
+            cell += `(${row.options.get('vtype', 'String') as string})`;
             break;
           case 'MapOf':
-            cell += `(${row.options.get('ktype', 'String')}, ${row.options.get('vtype', 'String')})`;
+            cell += `(${row.options.get('ktype', 'String') as string}, ${row.options.get('vtype', 'String') as string})`;
             break;
           case 'String':
-            cell += hasProperty(row.options, 'pattern') ? `(%${row.options.pattern}%)` : '';
+            cell += row.options.pattern ? `(%${row.options.pattern}%)` : '';
             break;
           default:
             cell += '';
         }
-        cell += hasProperty(row.options, 'format') ?  ` /${row.options.format}` : '';
+        cell += row.options.format ?  ` /${row.options.format}` : '';
+        fieldRow.push(cell);
       } else if (columnName === 'options' && cell instanceof Options) {
-        cell = cell.multiplicity(1, 1, true);
+        fieldRow.push(cell.multiplicity(1, 1, true));
       }
-      fieldRow.push(cell);
     });
     return fieldRow;
   });
 
-   return this.typeTableTemplate.render({
+   return typeTableTemplate({
      ...options,
      body: tableBody
    });

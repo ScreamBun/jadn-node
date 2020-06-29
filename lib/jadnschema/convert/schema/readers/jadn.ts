@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 // JADN to JADN
 import ReaderBase from './base';
 import { Schema } from '../../../schema';

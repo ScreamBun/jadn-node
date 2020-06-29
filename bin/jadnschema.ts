@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/** @ignore *//** */
 /* eslint no-console: 0 */
 
 // to use V8's code cache to speed up instantiation time
@@ -75,7 +74,7 @@ const onFatalError = (error: Error) => {
   process.on("unhandledRejection", onFatalError);
 
   // Call the CLI
-  process.exitCode = await require("../dist/cli").execute(
+  process.exitCode = await require("../lib/cli").execute(
     process.argv,
     process.argv.includes("--stdin") ? await readStdin() : null
   );

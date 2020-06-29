@@ -1,13 +1,12 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Field/Type Options
-import { invert } from 'lodash';
 import BaseModel from './base';
 
 import { OptionError, ValidationError } from '../exceptions';
 import {
   flattenArray,
   hasProperty,
-  mergeArrayObjects,
+  invertObject,
+  objectFromTuple,
   objectValues,
   safeGet
 } from '../utils';
@@ -57,7 +56,7 @@ export const OptionIds: Record<string, string> = {
   '%': 'pattern',     // Regular expression used to validate a String type
   'q': 'unique'      // If present, an ArrayOf instance must not contain duplicate values
 };
-export const EnumId = invert(OptionIds).enum;
+export const EnumId = invertObject(OptionIds).enum;
 export const ValidFormats: Array<string> = [
   // JSON Formats
   'date-time',              // RFC 3339 § 5.6
@@ -132,7 +131,7 @@ class Options extends BaseModel {
   tfield?: string  // Enumerated
 
   // Helper Vars
-  slots: Array<string> = flattenArray(objectValues(OptionTypes));
+  slots = flattenArray(objectValues(OptionTypes));
 
   /**
     * Initialize an Options object
@@ -147,28 +146,28 @@ class Options extends BaseModel {
   /**
     * initialize the date for the class
     * @param {Record<string, number|string>|Array<string>|Options} data - The Options data to validate
-    * @return {Record<string, number|string>} - validated data
+    * @return {Record<string, boolean|number|string>} - validated data
     */
-  initData(data?: Record<string, number|string>|Array<string>|Options): Record<string, number|string>|Options {
-    let d: Record<string, number|string>;
+  initData(data?: Record<string, number|string>|Array<string>|Options): Record<string, boolean|number|string>|Options {
+    let d: Record<string, boolean|number|string>;
     if (typeof data === 'object' && data instanceof Options) {
       d = data.object();
     } else if (typeof data === 'object' && Array.isArray(data)) {
-      d = mergeArrayObjects(...data.map(o => {
+      d = objectFromTuple(...data.map<[string, boolean|number|string]|[]>(o => {
         const opt = o.slice(0, 1);
         const val = o.slice(1);
         if (opt in OptionIds) {
           const optKey = OptionIds[opt];
-          return { [optKey]: BoolOpts.includes(optKey) ? true : val };
+          return [optKey, BoolOpts.includes(optKey) ? true : val];
         }
-        return { [opt]: val };
+        return [opt, val];
       }));
     } else {
       d = data || {};
     }
 
     Object.keys(d).forEach(key => {
-      const val = safeGet(d, key);
+      const val = d[key];
       switch (key) {
         case 'dir':  // boolean
         case 'id':  // boolean
@@ -178,7 +177,9 @@ class Options extends BaseModel {
         case 'maxv':  // number
         case 'minc':  // number
         case 'maxc':  // number
-          d[key] = parseInt(val, 10);
+          if (typeof val === 'string') {
+            d[key] = parseInt(val, 10);
+          }
           break;
         case 'enum':  // string
         case 'vtype':  // string
@@ -204,10 +205,10 @@ class Options extends BaseModel {
     */
   schema(baseType: string, defName?: string, field?: boolean): Array<string> {
     this.verify(baseType, defName, field);
-    const ids = invert(OptionIds);
+    const ids = invertObject(OptionIds);
     // eslint-disable-next-line array-callback-return
     return this.slots.map(opt => {
-      let val = this.get(opt);
+      let val = this.get(opt) as string;
       if (val !== null && val !== undefined) {
         val = opt === 'vtype' && val.startsWith('_Enum') ? val.replace('_Enum-', EnumId) : val;
         val = opt === 'vtype' && val.endsWith('$Enum') ? `${EnumId}${val.replace('$Enum', '')}` : val;
@@ -246,15 +247,15 @@ class Options extends BaseModel {
     }
 
     const values = field ? ['minc', 'maxc'] : ['minv', 'maxv'];
-    const minimum = safeGet(this, values[0], 1);
-    const maximum = safeGet(this, values[1], Math.max(1, minimum));
+    const minimum = safeGet(this, values[0], 1) as number;
+    const maximum = safeGet(this, values[1], Math.max(1, minimum)) as number;
 
     if (maximum && maximum !== 0 && maximum < minimum) {
       errors.push(new OptionError(`${values[1]} cannot be less than ${values[0]}`));
     }
 
-    const fmt = safeGet(opts, 'format');
-    if (fmt && !ValidFormats.some(f => fmt ? fmt.match(new RegExp(`^${f}$`)) : false)) {
+    const fmt = safeGet(opts, 'format') as null|string;
+    if (fmt && !ValidFormats.some(f => fmt ? RegExp(`^${f}$`).exec(fmt) : false)) {
       errors.push(new OptionError(`${baseType} ${loc} specified unknown format ${fmt}`));
     }
 
@@ -282,12 +283,11 @@ class Options extends BaseModel {
   */
   multiplicity(minDefault?: number, maxDefault?: number, field?: boolean, check?: (x: number, y: number) => boolean): string {
     field = typeof field === 'boolean' ? field : false; // eslint-disable-line no-param-reassign
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     const checkFun: (x: number, y: number) => boolean = ['null', 'undefined'].includes(typeof check) ? (x: number, y: number): boolean => true : check;  // eslint-disable-line no-param-reassign, no-unused-vars, @typescript-eslint/no-unused-vars
     const values = field ? ['minc', 'maxc'] : ['minv', 'maxv'];
-    const minimum = safeGet(this, values[0], minDefault || 0);
-    const maximum = safeGet(this, values[1], maxDefault || 0);
+    const minimum = safeGet(this, values[0], minDefault || 0) as number;
+    const maximum = safeGet(this, values[1], maxDefault || 0) as number;
     if (checkFun(minimum, maximum)) {
       if (minimum === 1 && maximum === 1) {
         return '1';
@@ -302,11 +302,11 @@ class Options extends BaseModel {
     * @return {[Options, Options]} Split option - [Field, Type]
     */
   split(): [Options, Options] {
-    const fieldOpts = mergeArrayObjects(
-      ...OptionTypes.field.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} )
+    const fieldOpts = objectFromTuple(
+      ...OptionTypes.field.map<[string, any]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
     );
-    const typeOpts = mergeArrayObjects(
-      ...OptionTypes.type.map((o: string) => hasProperty(this, o) ? { [o]: safeGet(this, o) } : {} )
+    const typeOpts = objectFromTuple(
+      ...OptionTypes.type.map<[string, any]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
     );
     return [new Options(fieldOpts), new Options(typeOpts)];
   }

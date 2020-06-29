@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import {
   CommentLevels,
   SchemaFormats
@@ -8,12 +7,16 @@ import ReaderBase, * as Readers from './readers';
 import WriterBase, * as Writers from './writers';
 
 import { Schema } from '../../schema';
+import { SchemaSimpleJADN } from '../../schema/interfaces';
 import { safeGet } from '../../utils';
 import { FormatError } from '../../exceptions';
 
 // Conversion Vars
-const ValidReaders: Record<string, typeof ReaderBase> = {};
-const ValidWriters: Record<string, typeof WriterBase> = {};
+type BaseReader = typeof ReaderBase;
+type BaseWriter = typeof WriterBase;
+
+const ValidReaders: Record<string, BaseReader> = {};
+const ValidWriters: Record<string, BaseWriter> = {};
 
 
 // Base Functions
@@ -28,9 +31,10 @@ const ValidWriters: Record<string, typeof WriterBase> = {};
   */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function dump(schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): void {
-  const Writer = safeGet(ValidWriters, (format || ''), null);
+  const Writer = safeGet(ValidWriters, (format || ''), null) as BaseWriter|null;
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
-    const writer = new Writer(schema, comment);
+    const schemaProper: string|SchemaSimpleJADN|Schema= (schema instanceof Object && !(schema instanceof Schema)) ? schema as SchemaSimpleJADN : schema;
+    const writer = new Writer(schemaProper, comment);
     return writer.dump(fname, source, kwargs);
   }
   throw new FormatError(`The format specified is not a known format - '${format || ''}'`);
@@ -46,9 +50,10 @@ function dump(schema: string|Record<string, any>|Schema, fname: string, source?:
  */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): string {
-  const Writer = safeGet(ValidWriters, (format || ''), null);
+  const Writer = safeGet(ValidWriters, (format || ''), null) as BaseWriter|null;
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
-    const writer = new Writer(schema, comment);
+    const schemaProper: string|SchemaSimpleJADN|Schema= (schema instanceof Object && !(schema instanceof Schema)) ? schema as SchemaSimpleJADN : schema;
+    const writer = new Writer(schemaProper, comment);
     return writer.dumps(kwargs);
   }
   throw new FormatError(`The format specified is not a known format - '${format || ''}'`);
@@ -64,7 +69,7 @@ function dumps(schema: string|Record<string, any>|Schema, comment?: CommentLevel
   */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function load(schema: string, format: SchemaFormats, kwargs?: Record<string, any>): Schema {
-  const Reader = safeGet(ValidReaders, (format || ''), null);
+  const Reader = safeGet(ValidReaders, (format || ''), null) as BaseReader|null;
   if (Reader !== null && Reader.prototype instanceof ReaderBase) {
     const reader = new Reader();
     return reader.load(schema, kwargs);
@@ -81,7 +86,7 @@ function load(schema: string, format: SchemaFormats, kwargs?: Record<string, any
  */
 // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
 function loads(schema: string, format: SchemaFormats, kwargs: Record<string, any>): Schema {
-  const Reader = safeGet(ValidReaders, (format || ''), null);
+  const Reader = safeGet(ValidReaders, (format || ''), null) as BaseReader|null;
   if (Reader !== null && Reader.prototype instanceof ReaderBase) {
     const reader = new Reader();
     return reader.loads(schema, kwargs);

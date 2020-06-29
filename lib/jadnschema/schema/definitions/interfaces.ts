@@ -58,7 +58,7 @@ export type SchemaSimpleComplexType = [string, string, string[], string, (Schema
   ]],
 */
 
-export interface  SchemaObjectType {
+export interface SchemaObjectType {
   name: string;
   type: string;
   options: Options;
@@ -82,7 +82,7 @@ export interface  SchemaObjectType {
 }
 
 
-export interface  SchemaObjectComplexType {
+export interface SchemaObjectComplexType {
   name: string;
   type: string;
   options: Options;

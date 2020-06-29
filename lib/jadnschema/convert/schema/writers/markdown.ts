@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 // JADN to JADN
 import fs from 'fs-extra';
 import table from 'markdown-table';
@@ -6,6 +5,7 @@ import table from 'markdown-table';
 import WriterBase from './base';
 import { hasProperty, objectValues, safeGet } from '../../../utils';
 import { EnumeratedField, Field } from '../../../schema/fields';
+import { Config } from '../../../schema/meta';
 import Options from '../../../schema/options';
 import {
   DefinitionBase,
@@ -48,10 +48,10 @@ class JADNtoJADN extends WriterBase {
     */
   dumps(kwargs?: Args): string {
     let schemaMD = this.makeHeader();
-    const structures = this._makeStructures('', kwargs);
+    const structures = this._makeStructures('', kwargs) as Record<string, string>;
 
     schemaMD += this.definitionOrder.map(typeName => {
-      const structDef = safeGet(structures, typeName, null);
+      const structDef = safeGet(structures, typeName, '') as string;
       if (!['', ' ', null, undefined].includes(structDef)) {
         delete structures[typeName];
         return structDef;
@@ -62,7 +62,7 @@ class JADNtoJADN extends WriterBase {
     schemaMD += '\n';
 
     schemaMD += Object.keys(structures).map(typeName => {
-      const structDef = safeGet(structures, typeName, null);
+      const structDef = safeGet(structures, typeName, '') as string;
       if (!['', ' ', null, undefined].includes(structDef)) {
         delete structures[typeName];
         return structDef;
@@ -80,25 +80,30 @@ class JADNtoJADN extends WriterBase {
    */
   makeHeader(): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mkRow = (key: string, v: any): Record<string, string> => {
-      let val = v || '';
-      if (typeof val === 'object') {
-        val = hasProperty(val, 'schema') ? val.schema() : val;
-        if (Array.isArray(val)) {
-          val = val.length > 0 ? val.map(idx => Array.isArray(idx) ? `**${idx[0]}**: ${idx[1]}` : idx).join(', ') : 'N/A/';
-        } else {
-          val = Object.keys(val).map(k => `**${k}**: ${val[k]}`).join(' ');
-        }
+    const mkRow = (v?: string|Array<string>|Record<string, string>|Config): string => {
+      if (v instanceof Config) {
+        const val = v.schema();
+        return Object.keys(val).map(k => `**${k}**: ${val[k]}`).join(', ');
       }
-      return {'.': `**${key}:**`, '..': val};
+      if (v instanceof Object) {
+        if (Array.isArray(v)) {
+          return v.length > 0 ? v.join(', ') : 'N/A/';
+        }
+        return Object.keys(v).map(k => `**${k}**: ${v[k]}`).join(', ');
+      }
+      return v || '';
     };
 
-    const headers = {
+    const metaTable = this._makeTable(
+      {
       '.': 'r',
       '..': ''
-    };
-    let metaTable = this._makeTable(headers, this.metaOrder.map(k => mkRow(k, this.meta.get(k))).filter(idx => idx['..'] !== ''));
-    metaTable = metaTable.replace(' .. ', ' .  ');
+      },
+        this.metaOrder.map(k => ({
+        '.': `**${k}:**`,
+        '..': mkRow(this.meta.get(k))
+      })).filter(idx => idx['..'] !== '')
+    ).replace(' .. ', ' .  ');
     return `## Schema\n${metaTable}\n`;
   }
 
@@ -110,7 +115,7 @@ class JADNtoJADN extends WriterBase {
     * @returns {string} - formatted array
    `*/
   _formatArray(itm: ArrayDef): string {
-    const fmt = hasProperty(itm.options, 'format') ? ` /${itm.options.format}` : '';
+    const fmt = itm.options.format ? ` /${itm.options.format}` : '';
     const arrayMD = `**_Type: ${itm.name} (Array${fmt})_**\n\n`;
 
     const rows = itm.fields.map(f => {
@@ -146,7 +151,7 @@ class JADNtoJADN extends WriterBase {
     * @returns {string} - formatted choice
     */
   _formatChoice(itm: ChoiceDef): string {
-    const fmt = hasProperty(itm.options, 'format') ? ` /${itm.options.format}` : '';
+    const fmt = itm.options.format ? ` /${itm.options.format}` : '';
     const choiceMD = `**_Type: ${itm.name} (Choice${fmt})_**\n\n`;
 
     const headers = {
@@ -284,9 +289,9 @@ class JADNtoJADN extends WriterBase {
     const fieldObject = field.object();
 
     if (field.type === 'MapOf') {
-      fieldObject.type += `(${field.options.get('ktype', 'String')}, ${field.options.get('vtype', 'String')})`;
+      fieldObject.type += `(${field.options.get('ktype', 'String') as string}, ${field.options.get('vtype', 'String') as string})`;
     } else if (field.type === 'ArrayOf') {
-      fieldObject.type += `(${field.options.get('vtype', 'String')})`;
+      fieldObject.type += `(${field.options.get('vtype', 'String') as string})`;
     }
 
     const mltiOptsCheck = ['Integer', 'Number'].includes(field.type) ? undefined : (x: number, y: number): boolean => (x > 0 || y > 0);
@@ -295,8 +300,8 @@ class JADNtoJADN extends WriterBase {
       fieldObject.type += `{${multi}}`;
     }
 
-    fieldObject.type += hasProperty(field.options, 'pattern') ? `(%${field.options.pattern}%)` : '';
-    fieldObject.type += hasProperty(field.options, 'format') ? ` /${field.options.format}` : '';
+    fieldObject.type += field.options.pattern ? `(%${field.options.pattern}%)` : '';
+    fieldObject.type += field.options.format ? ` /${field.options.format}` : '';
     fieldObject.type += safeGet(field.options, 'unique', false) ? ' unique' : '';
 
     return fieldObject;
@@ -314,15 +319,15 @@ class JADNtoJADN extends WriterBase {
       [
         Object.keys(headers),
         ...rows.map(row => {
-          return Object.keys(headers).map(column => {
+          return Object.keys(headers).map<string>(column => {
             const hasColumn = hasProperty(row, column);
-            const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column);
-            let cell;
+            const columnName = hasColumn ? column : safeGet(this.tableFieldHeaders, column, column) as string|Array<string>;
+            let cell: string|Record<string, number|string>|EnumeratedField|Field;
 
             if (typeof columnName === 'string') {
-              cell = safeGet(row, columnName, '');
+              cell = safeGet(row, columnName, '') as Record<string, number|string>|EnumeratedField|Field;
             } else {
-              const cellList = columnName.map((c: string) => safeGet(row, c, '')).filter((c: string) => c.length > 0);
+              const cellList = columnName.map(c => safeGet(row, c, '') as string).filter(c => c.length > 0);
               cell = cellList.length === 1 ? cellList[0] : '';
             }
 
@@ -330,14 +335,14 @@ class JADNtoJADN extends WriterBase {
               // TODO: More options
               cell = cell.multiplicity(1, 1, true);
             } else if (columnName === this.tableFieldHeaders.Name) {
-              cell = `**${cell}**`;
+              cell = `**${String(cell)}**`;
             }
-            return typeof cell === 'string' ? cell.replace('|', '\\|') : cell;
+            return String(cell).replace('|', '\\|');
           });
         })
       ],
       {
-        align: objectValues(headers).map(a => alignments.includes(a) ? a : 'l')
+        align: objectValues(headers).map((a: string) => alignments.includes(a) ? a : 'l')
       }
     );
     return `${tableMD}\n`;

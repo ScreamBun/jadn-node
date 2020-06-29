@@ -1,23 +1,21 @@
-/* eslint lines-between-class-members: 0 */
+/* eslint lines-between-class-members: 0, @typescript-eslint/lines-between-class-members: 0 */
 // JADN Base Model
-
+import { Schema } from '.';
 // Simple Interfaces
 import { SchemaSimpleJADN } from './interfaces';
 import { SchemaSimpleType } from './definitions/interfaces';
-
 import {
   flattenArray,
   hasProperty,
-  mergeArrayObjects,
+  objectFromTuple,
   objectValues,
   safeGet,
   zip
 } from '../utils';
 
-
 /**
   * Validate data against a model
-  * @param {Class} model - model class the data is being validated against
+  * @param {BaseModel} model - model class the data is being validated against
   * @param {SchemaSimpleType|SchemaSimpleJADN|BaseModel|Record<string, any>} inputData - data to validate
   * @param {Record<string, any>} kwargs - extra field values for the class
   * @param {boolean} silent - raise or return errors
@@ -33,29 +31,38 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
   } else {
     data = inputData || {};
   }
-  const baseType = hasProperty(data, 'type') ? data.type : null;
+  const baseType = hasProperty(data, 'type') ? data.type as string : null;
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  const fields: Record<string, any> = kwargs ? mergeArrayObjects( ...Object.keys(kwargs).map(k => /^_[^_]/.exec(k) ? { [k]: kwargs[k] } : {} )) : {};
+  const fields: Record<string, any> = kwargs ? objectFromTuple(
+    ...Object.keys(kwargs).map<[string, any]|[]>(k => /^_[^_]/.exec(k) ? [k, kwargs[k] ] : [] )
+  ) : {};
   const errors: Array<Error> = [];
 
   switch (modelClass) {
     case 'Schema':
       if ('meta' in data && typeof data.meta === 'object') {
-        const Meta = require('./meta').default;  // eslint-disable-line global-require
-        data.meta = new Meta(data.meta);  // eslint-disable-line no-param-reassign
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+        const Meta = require('./meta').default;
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        data.meta = new Meta(data.meta);
       }
 
       if ('types' in data && typeof data.types === 'object' && Array.isArray(data.types)) {
-        const makeDefinition = require('./definitions').makeDefinition;  // eslint-disable-line global-require
-        data.types = mergeArrayObjects(  // eslint-disable-line no-param-reassign
-          ...data.types.map((t: SchemaSimpleType) => ({ [t[0]]: makeDefinition(t, kwargs) }))
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+        const makeDefinition = require('./definitions').makeDefinition;
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment
+        data.types = objectFromTuple(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          ...data.types.map<[string, any]>((t: SchemaSimpleType) => [t[0], makeDefinition(t, kwargs) ])
         );
       }
       break;
     case 'Meta':
       if ('config' in data && typeof data.config === 'object') {
-        const Config = require('./meta').Config;  // eslint-disable-line global-require
-        data.config = new Config(data.config);  // eslint-disable-line no-param-reassign
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+        const Config = require('./meta').Config;
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        data.config = new Config(data.config);
       }
       break;
     case 'Options':
@@ -63,8 +70,10 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
     default:
       if (hasProperty(data, 'options') && typeof data.options === 'object' && Array.isArray(data.options)) {
         try {
-          const Options = require('./options').default;  // eslint-disable-line global-require
-          data.options = new Options(data.options);  // eslint-disable-line no-param-reassign
+          // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+          const Options = require('./options').default;
+          // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+          data.options = new Options(data.options);
         } catch (err) {
           if (silent) {
             errors.push(err);
@@ -75,17 +84,17 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
       }
 
       if (hasProperty(data, 'fields') && typeof data.fields === 'object' && Array.isArray(data.fields)) {
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
         const DefField = baseType === 'Enumerated' ? require('./fields').EnumeratedField : require('./fields').Field;
-        data.fields = data.fields.map(f => new DefField(f, kwargs) );// eslint-disable-line no-param-reassign
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+        data.fields = data.fields.map(f => new DefField(f, kwargs) );
       }
       break;
   }
 
   Object.keys(data).forEach(k => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    fields[k] = data[k];
+    fields[k] = data[k];  // eslint-disable-line @typescript-eslint/no-unsafe-assignment
   });
   return [fields, errors];
 }
@@ -98,7 +107,7 @@ class BaseModel {
   slots: Array<string> = [];
 
   // Helper Variables
-  protected _config: Function = () => null;
+  protected _config = () => new Schema();
   protected readonly jadnTypes = {
     Simple: [
       // Sequence of octets.Length is the number of octets
@@ -159,8 +168,8 @@ class BaseModel {
     * @return {Record<string, any>} - initialized data
     */
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  initData(data: any): any {
-    return data;
+  initData(data?: SchemaSimpleJADN|SchemaSimpleType|BaseModel|Record<string, any>): Record<string, any> {
+    return data || {};
   }
 
   /**
@@ -169,10 +178,11 @@ class BaseModel {
     */
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   object(): Record<string, any> {
-    return mergeArrayObjects(
-      ...this.slots.map((key: string) => {
+    return objectFromTuple(
+      ...this.slots.map<[string, any]|[]>(key => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const val = this.get(key);
-        return val === null || val === undefined ? {} : { [key]: val };
+        return val === null || val === undefined ? [] : [key, val ];
       })
     );
   }
@@ -183,12 +193,12 @@ class BaseModel {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setProperties(props: Record<string, any>): void {
-    Object.keys(props).forEach((key: string) => {
+    Object.keys(props).forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const val = props[key];
       if (val !== null && val !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
-        this[key] = val;
+        this[key] = val;  // eslint-disable-line @typescript-eslint/no-unsafe-assignment
       }
     });
   }
@@ -201,11 +211,16 @@ class BaseModel {
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(attr: string, def?: any): any {
-    let val = def === null || def === undefined ? null : def;
+    const nulls = [null, undefined];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    let val = nulls.includes(def) ? null : def;
     if (this.slots.includes(attr)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       val = safeGet(this, attr, def);
-      val = val === null || val === undefined ? null : val;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      val = nulls.includes(val) ? null : val;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return val;
   }
 }

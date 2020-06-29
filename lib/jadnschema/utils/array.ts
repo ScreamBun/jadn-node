@@ -2,25 +2,22 @@
 
 /**
  * Flatten an array of arrays
- * @param {Array<any>} arr - Array to flatten
- * @returns {Array<any>} Flattened array
+ * @param {Array<ValType>} arr - Array to flatten
+ * @returns {Array<ValType>} Flattened array
  * @public
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function flattenArray(arr: Array<any>): Array<any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return arr.reduce((acc: any, val: Array<any>) => acc.concat(val), []);
+export function flattenArray<ValType>(arr: Array<Array<ValType>>): Array<ValType> {
+  return arr.reduce((acc: Array<ValType>, val: Array<ValType>) => acc.concat(val), []);
 }
 
 /**
  * Merge an array of objects into a single object
- * @param {Array<Record<string, any>>} objs - Array to flatten
- * @returns {Record<string, any>} Flattened Object
+ * @param {Array<Record<string, ValType>>} objs - Array to flatten
+ * @returns {Record<string, ValType>} Flattened Object
  * @public
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mergeArrayObjects(...objs: Array<Record<string, any>>): Record<string, any> {
-  let rtn = {};
+export function mergeArrayObjects<ValType>(...objs: Array<Record<string, ValType>>): Record<string, ValType> {
+  let rtn: Record<string, ValType> = {};
   objs.forEach(o => {
     rtn = {
       ...rtn,
@@ -32,9 +29,9 @@ export function mergeArrayObjects(...objs: Array<Record<string, any>>): Record<s
 
 /**
  * Create an object using the given arrays
- * @param {Array} keys - Array to use as keys
- * @param {Array} values - Array to use as values
- * @returns {Record} Object created from the given arrays
+ * @param {Array<string>} keys - Array to use as keys
+ * @param {Array<any>} values - Array to use as values
+ * @returns {Record<string, any>} Object created from the given arrays
  * @public
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,7 +41,9 @@ export function zip(keys: Array<string>, values: Array<any>): Record<string, any
     throw new RangeError('The keys arrays should have the same or more values than the value array');
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mergeArrayObjects(...values.map((v: any, i: number) => ({
-    [keys[i]]: v
-  })));
+  return mergeArrayObjects(
+    ...values.map((v: any, i: number) => ({
+      [keys[i]]: v
+    })
+  ));
 }

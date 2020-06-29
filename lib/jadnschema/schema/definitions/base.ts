@@ -1,4 +1,3 @@
-/* eslint lines-between-class-members: 0 */
 // JADN Base Definition Structures
 import { DefinitionData } from '.';
 
@@ -51,10 +50,10 @@ class DefinitionBase extends BaseModel {
   constructor(data: SchemaObjectType|SchemaSimpleType|DefinitionData, kwargs?: Record<string, any>) {
     super(data, kwargs);
     // Field Vars
-    this._name = safeGet(this, 'name', '');
-    this.type = safeGet(this, 'type', 'Definition');
-    this.options = safeGet(this, 'options', new Options());
-    this.description = safeGet(this, 'description', '');
+    this._name = safeGet(this, 'name', '') as string;
+    this.type = safeGet(this, 'type', 'Definition') as string;
+    this.options = safeGet(this, 'options', new Options()) as Options;
+    this.description = safeGet(this, 'description', '') as string;
 
     // Definition Config
     const hasFields = hasProperty(this, 'fields') && !(this.fields === null || this.fields === undefined);
@@ -119,7 +118,7 @@ class DefinitionBase extends BaseModel {
     const t: DefinitionBase = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const optionDeps = (typeDef: DefinitionBase|Field): Set<string> => {
       const d: Set<string> = new Set();
-      const type = safeGet(typeDef, 'baseType', typeDef.type);
+      const type = safeGet(typeDef, 'baseType', typeDef.type) as string;
       if (['ArrayOf', 'MapOf'].includes(type)) {
         [typeDef.options.get('ktype'), typeDef.options.get('vtype')].forEach((k: string) => {
           if (k && !t.isBuiltin(k)) {
@@ -254,10 +253,9 @@ class DefinitionBase extends BaseModel {
    * Validate a given instange against the definition
    * Function should be overriden by the subclass
    */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   validate(inst: any): Array<Error> {  // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-    throw new ReferenceError(`${this} does not implement "validate"`);
+    throw new ReferenceError(`${this.constructor.name} does not implement "validate"`);
   }
 
   // Helper Functions
@@ -314,20 +312,20 @@ class DefinitionBase extends BaseModel {
       if (field.length === 1) {
         return field[0];
       }
-      throw new FormatError(`${this} does not have a field by the name of ${name}`);
+      throw new FormatError(`${this.constructor.name} does not have a field by the name of ${name}`);
     }
-    throw new FormatError(`${this} does not have fields`);
+    throw new FormatError(`${this.constructor.name} does not have fields`);
   }
 
   // Extended Helper functions
   processOptions(): void {
-    // eslint-disable-next-line global-require
+    // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
     const EnumeratedDef = require('./enumerated').default;
     const config = this._config();
 
     function enumerated(def: DefinitionBase): typeof EnumeratedDef {
       if (['Binary', 'Boolean', 'Integer', 'Number', 'Null', 'String'].includes(def.type)) {
-        throw new TypeError(`${def} cannot be extended as an enumerated type`);
+        throw new TypeError(`${def.toString()} cannot be extended as an enumerated type`);
       }
 
       if (def.type === 'Enumerated') {
@@ -341,22 +339,31 @@ class DefinitionBase extends BaseModel {
         description: `Derived Enumerated from ${def.name}`,
         fields: (def.fields || []).map(f => (f as Field).enumField() )
       };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       return new EnumeratedDef(data, {_config: def._config});
     }
 
-    if (safeGet(this.options, 'ktype', '').startsWith('$')) {
+    const key = safeGet(this.options, 'ktype', '') as string;
+    if (key.startsWith('$')) {
       const ktype = this.options.ktype || '';
       if (!(ktype in config.derived)) {
-        const typeDef: DefinitionBase = safeGet(config.types, ktype.substring(1), null);
-        config.derived[ktype] = enumerated(typeDef);
+        const typeDef = safeGet(config.types, ktype.substring(1), null) as null|DefinitionBase;
+        if (typeDef) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          config.derived[ktype] = enumerated(typeDef);
+        }
       }
     }
 
-    if (safeGet(this.options, 'vtype', '').startsWith('$')) {
+    const value = safeGet(this.options, 'vtype', '') as string;
+    if (value.startsWith('$')) {
       const vtype = this.options.vtype || '';
       if (!(vtype in config.derived)) {
-        const typeDef: DefinitionBase = safeGet(config.types, vtype.substring(1), null);
-        config.derived[vtype] = enumerated(typeDef);
+        const typeDef = safeGet(config.types, vtype.substring(1), null) as null|DefinitionBase;
+        if (typeDef) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          config.derived[vtype] = enumerated(typeDef);
+        }
       }
     }
   }
