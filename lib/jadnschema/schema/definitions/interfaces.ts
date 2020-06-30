@@ -82,11 +82,7 @@ export interface SchemaObjectType {
 }
 
 
-export interface SchemaObjectComplexType {
-  name: string;
-  type: string;
-  options: Options;
-  description: string;
+export interface SchemaObjectComplexType extends SchemaObjectType {
   fields: Array<SchemaObjectGenField|SchemaObjectEnumField>;
   /*
     {

@@ -1,4 +1,6 @@
 // Array utility functions
+import { objectFromTuple } from './object';
+
 
 /**
  * Flatten an array of arrays
@@ -41,9 +43,7 @@ export function zip(keys: Array<string>, values: Array<any>): Record<string, any
     throw new RangeError('The keys arrays should have the same or more values than the value array');
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mergeArrayObjects(
-    ...values.map((v: any, i: number) => ({
-      [keys[i]]: v
-    })
-  ));
+  return objectFromTuple(
+    ...values.map<[string, any]>((v: any, i: number) => [keys[i], v] )
+  );
 }

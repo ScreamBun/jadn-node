@@ -75,14 +75,19 @@ export function prettyObject(obj: any, indent?: number): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function safeGet(obj: Record<string, any>, key: string, def?: any): any {
-  def = def === null ? null : def; // eslint-disable-line no-param-reassign
+  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment
+  def = def === null ? null : def;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const val = obj[key];
   if (hasProperty(obj, key)) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return val === null || val === undefined ? def : val;
   }
   if (key in obj) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return val === null || val === undefined ? def : val;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return def;
 }
 
@@ -105,53 +110,6 @@ export function invertObject<ValType>(obj: Record<string, ValType>, fun?: KeyFun
 }
 
 /**
- * Deep clone an object
- * @param {any} obj - object to clone
- * @returns {any} cloned object
- * @public
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function cloneObject(obj: any, hash: WeakMap<Record<string, any>, string> = new WeakMap()): any {
-  // https://stackoverflow.com/questions/4459928/how-to-deep-clone-in-javascript
-  if (Object(obj) !== obj) {
-    // primitives
-    return obj;
-  }
-  if (hash.has(obj)) {
-    // cyclic reference
-    return hash.get(obj);
-  }
-
-  let result;
-
-  switch (true) {
-    case (obj instanceof Set):
-      // See note about this!
-      result = new Set(obj);
-      break;
-    case (obj instanceof Map):
-      result = new Map(Array.from(obj, ([key, val]) => [key, cloneObject(val, hash)] ));
-      break;
-    case (obj instanceof Date):
-      result = new Date(obj);
-      break;
-    case (obj instanceof RegExp):
-      result = new RegExp(obj.source, obj.flags);
-      break;
-    // ... add here any specific treatment for other classes ...
-    default:
-      // finally a catch-all:
-      result = obj.constructor ? new obj.constructor() : Object.create(null);
-  }
-
-  hash.set(obj, result);
-  return Object.assign(
-    result,
-    ...Object.keys(obj).map(key => ({ [key]: cloneObject(obj[key], hash) }))
-  );
-}
-
-/**
  * Create an object from the given array of tuples
  * @param {Array<[number|string, ValType]|[]>} tuples - tuples to create an object from
  * @returns {Record<number|string, ValType>} creted object
@@ -164,4 +122,54 @@ export function objectFromTuple<ValType>(...tuples: Array<[number|string, ValTyp
     acc[key] = value;
     return acc;
   }, {});
+}
+
+/**
+ * Deep clone an object
+ * @param {any} obj - object to clone
+ * @returns {any} cloned object
+ * @public
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function cloneObject(obj: any, hash: WeakMap<Record<string, any>, string> = new WeakMap()): any {
+  // https://stackoverflow.com/questions/4459928/how-to-deep-clone-in-javascript
+  let result;
+
+  switch (true) {
+    case (Object(obj) !== obj):  // primitives
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return obj;
+    case (hash.has(obj)):  // cyclic reference
+      return hash.get(obj);
+    case (obj instanceof Set):
+      // See note about this!
+      result = new Set(obj);
+      break;
+    case (obj instanceof Map):
+      const tuples: Array<[any, any]> = [];
+      (obj as Map<any, any>).forEach(([key, val]) => tuples.push([key, cloneObject(val, hash)]) );
+      result = new Map(tuples);
+      break;
+    case (obj instanceof Date):
+      result = new Date(obj);
+      break;
+    case (obj instanceof RegExp):
+      result = new RegExp(obj.source, obj.flags);
+      break;
+    // ... add here any specific treatment for other classes ...
+    default:
+      // finally a catch-all:
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      result = obj.constructor ? new obj.constructor() : Object.create(null);
+  }
+
+  hash.set(obj, result);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return Object.assign(
+    result,
+    objectFromTuple(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      ...Object.keys(obj).map<any>(key => [key, cloneObject(obj[key], hash) ])
+    )
+  );
 }

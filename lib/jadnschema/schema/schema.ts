@@ -655,23 +655,28 @@ class Schema extends BaseModel {
       return {
         meta: simpleSchema.meta,
         types: simpleSchema.types.map((td: SchemaSimpleType|SchemaSimpleComplexType) => {
-          const typeDef = zip(typeKeys, td);
-          typeDef.options = new Options(typeDef.options);
+          const zipType = zip(typeKeys, td);
+          const objType: Record<string, any> = {
+            name: zipType.name as string,
+            type: zipType.type as string,
+            options: new Options(zipType.options as Array<string>),
+            description: zipType.description as string
+          };
 
           // Convert fields if exists
-          const fields = safeGet(typeDef, 'fields', []);
-          if (fields.length > 0) {
-            const fieldKeys = typeDef.type === 'Enumerated' ? enumFieldKeys : genFieldKeys;
-            typeDef.fields = fields.map((f: SchemaSimpleEnumField|SchemaSimpleGenField) => {
-              const field = zip(fieldKeys, f) as SchemaObjectGenField|SchemaObjectEnumField;
-              if ('options' in field) {
-                field.options = new Options(field.options);
+          if ('fields' in zipType) {
+            const fieldKeys = objType.type === 'Enumerated' ? enumFieldKeys : genFieldKeys;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            objType.fields = zipType.fields.map((f: SchemaSimpleEnumField|SchemaSimpleGenField) => {
+              const zipField = zip(fieldKeys, f);
+              if ('options' in zipField) {
+                zipField.options = new Options(zipField.options);
               }
-              return field;
+              return zipField as SchemaObjectGenField|SchemaObjectEnumField;
             });
-            return typeDef as SchemaObjectComplexType;
+            return objType as SchemaObjectComplexType;
           }
-          return typeDef as SchemaObjectType;
+          return objType as SchemaObjectType;
         })
       } as SchemaObjectJADN;
     }
