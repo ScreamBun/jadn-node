@@ -1,7 +1,6 @@
 // Array utility functions
 import { objectFromTuple } from './object';
 
-
 /**
  * Flatten an array of arrays
  * @param {Array<ValType>} arr - Array to flatten

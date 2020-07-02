@@ -111,6 +111,38 @@ export const ValidOptions: Record<string, Array<string>> = {
   Record: ['minv', 'maxv', 'path']
 };
 
+// Helper Functions
+export const opts2obj = (opts: Array<string>): Record<string, boolean|number|string> => {
+  return objectFromTuple(...opts.map<[string, boolean|number|string]|[]>(o => {
+    const opt = o.slice(0, 1);
+    const val = o.slice(1);
+    if (opt in OptionIds) {
+      const optKey = OptionIds[opt];
+      return [optKey, BoolOpts.includes(optKey) ? true : val];
+    }
+    return [opt, val];
+  }));
+};
+
+// Helper Functions
+export const opts2arr = (opts: Record<string, boolean|number|string>): Array<string> => {
+  const ids = invertObject(OptionIds);
+  // eslint-disable-next-line array-callback-return
+  return Object.keys(opts).map(opt => {
+    let val = safeGet(opts, opt) as boolean|number|string;
+    if (val !== null && val !== undefined) {
+      if (opt === 'vtype') {
+        val = val as string;
+        val = val.startsWith('_Enum') ? val.replace('_Enum-', EnumId) : val;
+        val = val.endsWith('$Enum') ? `${EnumId}${val.replace('$Enum', '')}` : val;
+      }
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      return `${ids[opt]}${BoolOpts.includes(opt) ? '' : val}`;
+    }
+    return '';
+  }).filter(t => t.length > 0);
+};
+
 class Options extends BaseModel {
   // Type Structural
   enum?: string
@@ -153,15 +185,7 @@ class Options extends BaseModel {
     if (typeof data === 'object' && data instanceof Options) {
       d = data.object();
     } else if (typeof data === 'object' && Array.isArray(data)) {
-      d = objectFromTuple(...data.map<[string, boolean|number|string]|[]>(o => {
-        const opt = o.slice(0, 1);
-        const val = o.slice(1);
-        if (opt in OptionIds) {
-          const optKey = OptionIds[opt];
-          return [optKey, BoolOpts.includes(optKey) ? true : val];
-        }
-        return [opt, val];
-      }));
+      d = opts2obj(data);
     } else {
       d = data || {};
     }
@@ -205,17 +229,7 @@ class Options extends BaseModel {
     */
   schema(baseType: string, defName?: string, field?: boolean): Array<string> {
     this.verify(baseType, defName, field);
-    const ids = invertObject(OptionIds);
-    // eslint-disable-next-line array-callback-return
-    return this.slots.map(opt => {
-      let val = this.get(opt) as string;
-      if (val !== null && val !== undefined) {
-        val = opt === 'vtype' && val.startsWith('_Enum') ? val.replace('_Enum-', EnumId) : val;
-        val = opt === 'vtype' && val.endsWith('$Enum') ? `${EnumId}${val.replace('$Enum', '')}` : val;
-        return `${ids[opt]}${BoolOpts.includes(opt) ? '' : val}`;
-      }
-      return '';
-    }).filter(t => t.length > 0);
+    return opts2arr(this.object());
   }
 
   /**
