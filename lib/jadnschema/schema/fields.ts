@@ -2,28 +2,16 @@
 // JADN Field Models - Enumerated and General
 import BaseModel from './base';
 import {
-  // Simple Interfaces
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  // Complex Interfaces
-  SchemaObjectEnumField,
-  SchemaObjectGenField,
-  SchemaObjectType
+  SchemaSimpleEnumField, SchemaSimpleGenField, SchemaObjectEnumField, SchemaObjectGenField, SchemaObjectType
 } from './definitions/interfaces';
 import Options from './options';
-
 import { ValidationError } from '../exceptions';
-import {
-  capitalize,
-  safeGet,
-  zip
-} from '../utils';
+import { capitalize, safeGet, zip } from '../utils';
 
 interface DefinitionBase {
   type: string;
   validate: (inst: any) => Array<Error>;
 }
-
 
 const EnumeratedFieldSlots: Array<string> = ['id', 'value', 'description'];
 const FieldSlots: Array<string> = ['id', 'name', 'type', 'options', 'description'];

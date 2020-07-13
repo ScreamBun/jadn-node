@@ -5,22 +5,16 @@ import path from 'path';
 
 import { baseTemplate, headerTemplate, typeTableTemplate } from './templates';
 import WriterBase from '../base';
-import { safeGet, hasProperty } from '../../../../utils';
+import {
+  DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
+} from '../../../../schema/definitions';
 import { Field, EnumeratedField } from '../../../../schema/fields';
 import { Config } from '../../../../schema/meta';
 import Options from '../../../../schema/options';
-import {
-  DefinitionBase,
-  ArrayDef,
-  ArrayOfDef,
-  ChoiceDef,
-  EnumeratedDef,
-  MapDef,
-  MapOfDef,
-  RecordDef
-} from '../../../../schema/definitions';
+import { safeGet, hasProperty } from '../../../../utils';
 
 type StructConvFun = (d: DefinitionBase, i: number) => any;
+
 
 interface Args {
   styles?: string;

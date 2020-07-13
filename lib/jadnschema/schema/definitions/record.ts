@@ -1,12 +1,6 @@
 // JADN Record Structure
 import DefinitionBase from './base';
-import {
-  // Simple Interfaces
-  SchemaSimpleType,
-  // Complex Interfaces
-  SchemaObjectType
-} from './interfaces';
-
+import { SchemaObjectType, SchemaSimpleType } from './interfaces';
 import { Field } from '../fields';
 import { ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';

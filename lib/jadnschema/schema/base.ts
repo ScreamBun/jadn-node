@@ -1,16 +1,10 @@
 /* eslint lines-between-class-members: 0, @typescript-eslint/lines-between-class-members: 0 */
 // JADN Base Model
 import { Schema } from '.';
-// Simple Interfaces
 import { SchemaSimpleJADN } from './interfaces';
 import { SchemaSimpleType } from './definitions/interfaces';
 import {
-  flattenArray,
-  hasProperty,
-  objectFromTuple,
-  objectValues,
-  safeGet,
-  zip
+  flattenArray, hasProperty, objectFromTuple, objectValues, safeGet, zip
 } from '../utils';
 
 /**

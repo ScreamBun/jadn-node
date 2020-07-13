@@ -41,8 +41,9 @@ export function zip(keys: Array<string>, values: Array<any>): Record<string, any
   if (keys.length < values.length) {
     throw new RangeError('The keys arrays should have the same or more values than the value array');
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   return objectFromTuple(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...values.map<[string, any]>((v: any, i: number) => [keys[i], v] )
   );
 }

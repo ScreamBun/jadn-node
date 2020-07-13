@@ -43,14 +43,18 @@ export function prettyObject(obj: any, indent?: number): string {
     case (obj === undefined):
       break;
     case (obj instanceof Array):
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pretty += (obj as Array<any>).join(', ');
         break;
     case (obj instanceof Object):
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (obj.toString !== Object.prototype.toString) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         pretty += obj.toString();
       } else {
         let prettyObj = '';
         Object.keys(obj).forEach(key => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           prettyObj += `${key}: ${prettyObject(obj[key])}\n`;
         });
         pretty += `{\n${prettyObj.replace(/^(.*)/gm, `${' '.repeat(indent)}$1`).replace(/\n.*$/, '')}\n}`;
@@ -91,6 +95,7 @@ export function safeGet(obj: Record<string, any>, key: string, def?: any): any {
   return def;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KeyFun = (val: any) => string;
 /**
  * Invert an objects key/values
@@ -146,7 +151,9 @@ export function cloneObject(obj: any, hash: WeakMap<Record<string, any>, string>
       result = new Set(obj);
       break;
     case (obj instanceof Map):
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tuples: Array<[any, any]> = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (obj as Map<any, any>).forEach(([key, val]) => tuples.push([key, cloneObject(val, hash)]) );
       result = new Map(tuples);
       break;
@@ -154,12 +161,13 @@ export function cloneObject(obj: any, hash: WeakMap<Record<string, any>, string>
       result = new Date(obj);
       break;
     case (obj instanceof RegExp):
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       result = new RegExp(obj.source, obj.flags);
       break;
     // ... add here any specific treatment for other classes ...
     default:
       // finally a catch-all:
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       result = obj.constructor ? new obj.constructor() : Object.create(null);
   }
 
@@ -168,7 +176,7 @@ export function cloneObject(obj: any, hash: WeakMap<Record<string, any>, string>
   return Object.assign(
     result,
     objectFromTuple(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       ...Object.keys(obj).map<any>(key => [key, cloneObject(obj[key], hash) ])
     )
   );

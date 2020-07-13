@@ -5,45 +5,23 @@ import pluralize from 'pluralize';
 
 import BaseModel, { initModel } from './base';
 import { DefinitionBase } from './definitions';
+import ValidationFormats from './formats';
 import Meta from './meta';
 import Options, { EnumId } from './options';
-
+import { SchemaJADN, SchemaSimpleJADN, SchemaObjectJADN } from './interfaces';
+import {
+  SchemaSimpleEnumField, SchemaSimpleGenField, SchemaSimpleType, SchemaSimpleComplexType,
+  SchemaObjectGenField, SchemaObjectEnumField, SchemaObjectType, SchemaObjectComplexType
+} from './definitions/interfaces';
 import { FormatError, SchemaError, ValidationError } from '../exceptions';
 import {
-  // General Interfaces
-  SchemaJADN,
-  // Simple Interfaces
-  SchemaSimpleJADN,
-  // Complex Interfaces
-  SchemaObjectJADN
-} from './interfaces';
-import {
-  // Simple Interfaces
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField,
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  // Complex Interfaces
-  SchemaObjectGenField,
-  SchemaObjectEnumField,
-  SchemaObjectType,
-  SchemaObjectComplexType
-} from './definitions/interfaces';
-import {
-  cloneObject,
-  flattenArray,
-  mergeArrayObjects,
-  objectValues,
-  prettyObject,
-  safeGet,
-  zip,
-  // General
-  capitalize
+  capitalize, cloneObject, flattenArray, mergeArrayObjects, objectValues, prettyObject, safeGet, zip
 } from '../utils';
 
 // Format valiator
-export type GeneralValidator = (inst: any) => Array<Error>;
-export type UnsignedValidator = (n: number, inst: any) => Array<Error>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type GeneralValidator = (val: any) => Array<Error>;
+export type UnsignedValidator = (n: number, val: number|string) => Array<Error>;
 
 class Schema extends BaseModel {
   // Fields Variables
@@ -54,7 +32,7 @@ class Schema extends BaseModel {
   slots: Array<string> = ['meta', 'types'];
   derived: Record<string, DefinitionBase>;
   protected schemaTypes: Set<string>;
-  protected validators: Record<string, GeneralValidator|UnsignedValidator> = {} // = ValidationFormats;
+  protected validators: Record<string, GeneralValidator|UnsignedValidator> = ValidationFormats;
   protected definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
     'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr',
     'IPv4-Net', 'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI',
@@ -96,7 +74,7 @@ class Schema extends BaseModel {
   }
 
   get validationFormats(): Record<string, GeneralValidator|UnsignedValidator> {
-    return cloneObject(this.validators) as Record<string, GeneralValidator|UnsignedValidator>;
+    return { ...this.validators } as Record<string, GeneralValidator|UnsignedValidator>;
   }
 
   /**
@@ -468,9 +446,9 @@ class Schema extends BaseModel {
 
     const exports: Array<string> = this.meta.exports || [];
     // eslint-disable-next-line guard-for-in, no-restricted-syntax, @typescript-eslint/no-for-in-array
-    for (const exp in exports) {
+    for (const exp of exports) {
       const rtn = this.validateAs(inst, exp);
-      if ( rtn.length === 0) {
+      if (rtn.length === 0) {
         return null;
       }
       errors.push(...rtn);
@@ -489,15 +467,15 @@ class Schema extends BaseModel {
    * @param {boolean} silent - raise or return errors
    * @return {Array<Error>} List of errors raises
    */
-  // @ts-ignore
   validateAs(inst: Record<string, any>, type: string, silent? : boolean): Array<Error> {  // eslint-disable-line @typescript-eslint/no-explicit-any
     silent = silent || true; // eslint-disable-line no-param-reassign
+    const exports: Array<string> = this.meta.exports || [];
     const errors: Array<Error> = [];
 
-    if (this.meta.exports?.includes(type)) {
-      const rtn: Array<Error> = this.types[type].validate(inst);
+    if (exports.includes(type)) {
+      const rtn = this.types[type].validate(inst);
       if (rtn && rtn.length !== 0) {
-        errors.push(...(rtn || []));
+        errors.push(...(rtn));
       }
     } else {
       errors.push(new ValidationError(`invalid export type, ${type}`));
@@ -584,6 +562,8 @@ class Schema extends BaseModel {
           }
           return `[${lines.join(', ')}]`;
         }
+
+        // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access
         const lines = Object.keys(obj).map(k => `${ind}"${k}": ${this._dumps(obj[k], indSpace, indLvl+1)}`).join(',\n');
         return `{\n${lines}\n${indE}}`;
 
@@ -656,6 +636,7 @@ class Schema extends BaseModel {
         meta: simpleSchema.meta,
         types: simpleSchema.types.map((td: SchemaSimpleType|SchemaSimpleComplexType) => {
           const zipType = zip(typeKeys, td);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const objType: Record<string, any> = {
             name: zipType.name as string,
             type: zipType.type as string,
@@ -666,7 +647,7 @@ class Schema extends BaseModel {
           // Convert fields if exists
           if ('fields' in zipType) {
             const fieldKeys = objType.type === 'Enumerated' ? enumFieldKeys : genFieldKeys;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             objType.fields = zipType.fields.map((f: SchemaSimpleEnumField|SchemaSimpleGenField) => {
               const zipField = zip(fieldKeys, f);
               if ('options' in zipField) {

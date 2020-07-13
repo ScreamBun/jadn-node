@@ -1,35 +1,18 @@
 // JADN Base Definition Structures
 import { DefinitionData } from '.';
-
+import {
+  SchemaSimpleType, SchemaSimpleComplexType, SchemaObjectType, SchemaObjectComplexType, SchemaSimpleEnumField, SchemaSimpleGenField
+} from './interfaces';
 import BaseModel from '../base';
 import { Field, EnumeratedField } from '../fields';
-import {
-  // Simple Interfaces
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  // Complex Interfaces
-  SchemaObjectType,
-  SchemaObjectComplexType,
-  SchemaSimpleEnumField,
-  SchemaSimpleGenField
-} from './interfaces';
 import Options from '../options';
-
+import { DuplicateError, FormatError, ValidationError } from '../../exceptions';
 import {
-  DuplicateError,
-  FormatError,
-  ValidationError
-} from '../../exceptions';
-import {
-  flattenArray,
-  hasProperty,
-  objectValues,
-  safeGet,
-  zip
+  flattenArray, hasProperty, objectValues, safeGet, zip
 } from '../../utils';
 
-
 export const Slots: Array<string> = ['name', 'type', 'options', 'description', 'fields'];
+
 
 class DefinitionBase extends BaseModel {
   _name: string

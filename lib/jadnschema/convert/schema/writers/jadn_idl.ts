@@ -1,23 +1,13 @@
 // JADN to JADN
 import fs from 'fs-extra';
-import {
-  getBorderCharacters,
-  table
-} from 'table';
+import { getBorderCharacters, table } from 'table';
 
 import WriterBase from './base';
 import { Field, EnumeratedField } from '../../../schema';
-import { Config } from '../../../schema/meta';
 import {
-  DefinitionBase,
-  ArrayDef,
-  ArrayOfDef,
-  ChoiceDef,
-  EnumeratedDef,
-  MapDef,
-  MapOfDef,
-  RecordDef
+  DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';
+import { Config } from '../../../schema/meta';
 import { hasProperty, objectValues, safeGet } from '../../../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

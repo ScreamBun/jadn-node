@@ -7,27 +7,13 @@ import * as InterfaceJSON from './json_interface';
 import { CommentLevels } from '../enums';
 import { FormatError } from '../../../exceptions';
 import {
-  hasProperty,
-  mergeArrayObjects,
-  objectFromTuple,
-  objectValues,
-  safeGet
-} from '../../../utils';
-import {
-  // EnumeratedField,
-  Field, EnumeratedField
-} from '../../../schema/fields';
-import Options, { EnumId } from '../../../schema/options';
-import {
-  DefinitionBase,
-  ArrayDef,
-  ArrayOfDef,
-  ChoiceDef,
-  EnumeratedDef,
-  MapDef,
-  MapOfDef,
-  RecordDef
+  DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';
+import Options, { EnumId } from '../../../schema/options';
+import { Field, EnumeratedField } from '../../../schema/fields';
+import {
+  hasProperty, mergeArrayObjects, objectFromTuple, objectValues, safeGet
+} from '../../../utils';
 
 type Args = {
   indent?: number;

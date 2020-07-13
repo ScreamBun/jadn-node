@@ -1,16 +1,10 @@
 /* eslint max-classes-per-file: 0 */
 // JADN Config
 import BaseModel from './base';
+import { SchemaMetaJADN } from './interfaces';
 import { ValidationError } from '../exceptions';
 import {
-  // Simple Interfaces
-  SchemaMetaJADN
-} from './interfaces';
-import {
-  hasProperty,
-  objectFromTuple,
-  prettyObject,
-  safeGet
+  hasProperty, objectFromTuple, prettyObject, safeGet
 } from '../utils';
 
 /**

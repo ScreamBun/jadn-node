@@ -1,13 +1,6 @@
-/**
-  * JADN Interfaces
-  */
+// JADN Interfaces
  import {
-  // Definition Types (Simple)
-  SchemaSimpleType,
-  SchemaSimpleComplexType,
-  // Definition Types (Object)
-  SchemaObjectType,
-  SchemaObjectComplexType
+  SchemaSimpleType, SchemaSimpleComplexType, SchemaObjectType, SchemaObjectComplexType
  } from './definitions/interfaces';
 
 // Schema Definitions

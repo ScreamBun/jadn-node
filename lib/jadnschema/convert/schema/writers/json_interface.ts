@@ -30,7 +30,6 @@ export interface TypeDefinition {
   properties?: Record<string, PrimitiveDefinition>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   patternProperty?: Record<string, any>;
-
 }
 
 export interface Meta {

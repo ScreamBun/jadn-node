@@ -1,14 +1,8 @@
 // JADN Field/Type Options
 import BaseModel from './base';
-
 import { OptionError, ValidationError } from '../exceptions';
 import {
-  flattenArray,
-  hasProperty,
-  invertObject,
-  objectFromTuple,
-  objectValues,
-  safeGet
+  flattenArray, hasProperty, invertObject, objectFromTuple, objectValues, safeGet
 } from '../utils';
 
 // Helper Vars
@@ -167,20 +161,20 @@ class Options extends BaseModel {
 
   /**
     * Initialize an Options object
-    * @param {Record<string, number|string>|Array<string>|Options} data - options data
+    * @param {Record<string, boolean|number|string>|Array<string>|Options} data - options data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
-  constructor(data?: Record<string, number|string>|Array<string>|Options, kwargs?: Record<string, any> ) {
+  constructor(data?: Record<string, boolean|number|string>|Array<string>|Options, kwargs?: Record<string, any> ) {
     super(data, kwargs);
   }
 
   /**
     * initialize the date for the class
-    * @param {Record<string, number|string>|Array<string>|Options} data - The Options data to validate
+    * @param {Record<string, boolean|number|string>|Array<string>|Options} data - The Options data to validate
     * @return {Record<string, boolean|number|string>} - validated data
     */
-  initData(data?: Record<string, number|string>|Array<string>|Options): Record<string, boolean|number|string>|Options {
+  initData(data?: Record<string, boolean|number|string>|Array<string>|Options): Record<string, boolean|number|string>|Options {
     let d: Record<string, boolean|number|string>;
     if (typeof data === 'object' && data instanceof Options) {
       d = data.object();
@@ -317,10 +311,10 @@ class Options extends BaseModel {
     */
   split(): [Options, Options] {
     const fieldOpts = objectFromTuple(
-      ...OptionTypes.field.map<[string, any]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
+      ...OptionTypes.field.map<[string, boolean|number|string]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
     );
     const typeOpts = objectFromTuple(
-      ...OptionTypes.type.map<[string, any]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
+      ...OptionTypes.type.map<[string, boolean|number|string]|[]>(o => hasProperty(this, o) ? [o, safeGet(this, o) ] : [] )
     );
     return [new Options(fieldOpts), new Options(typeOpts)];
   }

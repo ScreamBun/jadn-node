@@ -1,19 +1,10 @@
 // JADN Array Structure
 import DefinitionBase from './base';
-import {
-  // Simple Interfaces
-  SchemaSimpleType,
-  // Complex Interfaces
-  SchemaObjectType
-} from './interfaces';
-
-import { ValidationError } from '../../exceptions';
+import { SchemaObjectType, SchemaSimpleType } from './interfaces';
 import { Field } from '../fields';
 import { GeneralValidator } from '../schema';
-import {
-  hasProperty,
-  safeGet
-} from '../../utils';
+import { ValidationError } from '../../exceptions';
+import { hasProperty, safeGet } from '../../utils';
 
 
 /**
@@ -46,7 +37,7 @@ class ArrayDef extends DefinitionBase {
     const config = this._config();
 
     if (hasProperty(this.options, 'format')) {
-      const fmtFun = safeGet(config.validationFormats, this.options.get('format', '')) as GeneralValidator;
+      const fmtFun = safeGet(config.validationFormats, this.options.get('format', '').replace('-', '_')) as GeneralValidator;
       if (fmtFun) {
         errors.push(...fmtFun(inst));
       }

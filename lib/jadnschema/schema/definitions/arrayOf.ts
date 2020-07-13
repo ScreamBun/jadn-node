@@ -1,17 +1,8 @@
 // JADN ArrayOf Structure
 import DefinitionBase from './base';
-import {
-  // Simple Interfaces
-  SchemaSimpleType,
-  // Complex Interfaces
-  SchemaObjectType
-} from './interfaces';
-
+import { SchemaObjectType, SchemaSimpleType } from './interfaces';
 import { Field } from '../fields';
-import {
-  SchemaError,
-  ValidationError
-} from '../../exceptions';
+import { SchemaError, ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';
 
 

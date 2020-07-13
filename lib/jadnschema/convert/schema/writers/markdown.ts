@@ -3,20 +3,13 @@ import fs from 'fs-extra';
 import table from 'markdown-table';
 
 import WriterBase from './base';
-import { hasProperty, objectValues, safeGet } from '../../../utils';
+import {
+  DefinitionBase, ArrayDef,  ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
+} from '../../../schema/definitions';
 import { EnumeratedField, Field } from '../../../schema/fields';
 import { Config } from '../../../schema/meta';
 import Options from '../../../schema/options';
-import {
-  DefinitionBase,
-  ArrayDef,
-  ArrayOfDef,
-  ChoiceDef,
-  EnumeratedDef,
-  MapDef,
-  MapOfDef,
-  RecordDef
-} from '../../../schema/definitions';
+import { hasProperty, objectValues, safeGet } from '../../../utils';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Args = Record<string, any>

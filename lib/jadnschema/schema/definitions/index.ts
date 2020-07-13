@@ -8,13 +8,7 @@ import MapDef from './map';
 import MapOfDef from './mapOf';
 import RecordDef from './record';
 import CustomDef from './custom';
-
-import {
-  // Simple Interfaces
-  SchemaSimpleType,
-  // Complex Interfaces
-  SchemaObjectType
-} from './interfaces';
+import { SchemaObjectType, SchemaSimpleType } from './interfaces';
 import { zip } from '../../utils';
 
 export type DefinitionData = ArrayDef|ArrayOfDef|ChoiceDef|EnumeratedDef|MapDef|MapOfDef|RecordDef|CustomDef;

@@ -5,14 +5,20 @@ const schema = 'tests/schema/oc2ls-v1.0-wd14_update.jadn';
 const cmd = {
     "action": "allow",
     "target": {
-        // "idn_email_addr": "用户@例子.广告"  # (Chinese, Unicode)
-        // "idn_email_addr": "अजय@डाटा.भारत"  # (Hindi, Unicode)
-        // "idn_email_addr": "квіточка@пошта.укр"  # (Ukrainian, Unicode)
-        // "idn_email_addr": "θσερ@εχαμπλε.ψομ"  # (Greek, Unicode)
-        // "idn_email_addr": "Dörte@Sörensen.example.com"  # (German, Unicode)
-        // "idn_email_addr": "коля@пример.рф"  # (Russian, Unicode)
+        // "idn_email_addr": "用户@例子.广告"  // (Chinese, Unicode)
+        // "idn_email_addr": "अजय@डाटा.भारत"  // (Hindi, Unicode)
+        // "idn_email_addr": "квіточка@пошта.укр"  // (Ukrainian, Unicode)
+        // "idn_email_addr": "θσερ@εχαμπλε.ψομ"  // (Greek, Unicode)
+        // "idn_email_addr": "Dörte@Sörensen.example.com"  // (German, Unicode)
+        // "idn_email_addr": "коля@пример.рф"  // (Russian, Unicode)
         // "ipv4_connection": {"src_addr": "172.20.0.100", "src_port": 65539}  // Invalid port
-        "device": {"hostname": "test.example.com", "device_id": "device"}
+        // "ipv4_connection": {"src_addr": "172.20.0.100", "src_port": 8080}
+        "ipv4_connection": {"src_addr": "172.20.0.100/33", "src_port": 65539}  // Invalid src_addr & port
+        // "ipv4_net": "172.20.0.100/24"
+        // "ipv6_net": "fd5b:6aef:acfd:75e0::/64"
+        // "device": {"hostname": "test.example.com", "device_id": "device"}
+        // "mac_addr": "FD:F1:2A:D6:54:C8" // EUI-48
+        // "mac_addr": "a5:dc:b4:00:00:04:01:f2" // EUI-64
     },
     "args": {
         "start_time": 1533144553,  // 2018-08-01T17:29:13.150Z
@@ -43,22 +49,28 @@ console.log('\n\n');
 const cmdSpecific = schemaObj.validateAs(cmd, 'OpenC2-Command');
 const rspSpecific = schemaObj.validateAs(rsp, 'OpenC2-Response');
 const cmdGeneric = schemaObj.validate(cmd);
-const rspGeenric = schemaObj.validate(rsp);
+const rspGeneric = schemaObj.validate(rsp);
 
 const results = `
 Validate (specific)
 "OpenC2-Command" - ${JSON.stringify(cmd, null, 2)}
 Command is ${cmdSpecific.length === 0 ? 'Valid' : 'Invalid'}
+Errors:
+${cmdSpecific.length > 0 ? '--> ' : ''}${cmdSpecific.join('\n--> ')}
 
 "OpenC2-Response" - ${JSON.stringify(rsp, null, 2)}
 Response is ${rspSpecific.length === 0 ? 'Valid' : 'Invalid'}
+Errors:
+${rspSpecific.length > 0 ? '--> ' : ''}${rspSpecific.join('\n--> ')}
 --------------------------------------------------
 Validate (generic)
 ${JSON.stringify(cmd, null, 2)}
-Message is ${cmdGeneric ? 'Valid' : 'Invalid'}
+Message is ${cmdGeneric === null ? 'Valid' : 'Invalid'}
+Errors: ${cmdGeneric ? cmdGeneric :''}
 
 ${JSON.stringify(rsp, null, 2)}
-Message is ${rspGeenric ? 'Valid' : 'Invalid'}
+Message is ${rspGeneric === null ? 'Valid' : 'Invalid'}
+Error: ${rspGeneric ? rspGeneric :''}
 `;
 console.log(results);
 // console.log(schemaObj.dumps())

@@ -4,21 +4,16 @@ import { CommentLevels } from '../enums';
 
 import { SchemaError } from '../../../exceptions';
 import { Schema } from '../../../schema';
+import { DefinitionBase } from '../../../schema/definitions';
 import Meta from '../../../schema/meta';
 import Options from '../../../schema/options';
-import { DefinitionBase } from '../../../schema/definitions';
 import {
-  // General
-  hasProperty,
-  mergeArrayObjects,
-  objectValues,
-  safeGet
+  hasProperty, mergeArrayObjects, objectValues, safeGet
 } from '../../../utils';
-// Simple Interface
 import { SchemaSimpleJADN } from '../../../schema/interfaces';
 
-
 type StructConvFun = (d: DefinitionBase, a?: Record<string, any>) => any;
+
 
 /**
   * @class WriterBase
