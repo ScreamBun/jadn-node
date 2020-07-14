@@ -1,4 +1,4 @@
-[jadnschema - v0.1.3](../globals.md) › ["convert/index"](_convert_index_.md) › ["convert/schema/index"](_convert_index_._convert_schema_index_.md)
+[jadnschema - v0.1.7](../globals.md) › ["convert/index"](_convert_index_.md) › ["convert/schema/index"](_convert_index_._convert_schema_index_.md)
 
 # Module: "convert/schema/index"
 
@@ -28,9 +28,9 @@
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `format?`: [SchemaFormats](../enums/_convert_index_._convert_schema_index_.schemaformats.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `format?`: [SchemaFormats](../enums/_convert_index_._convert_schema_index_.schemaformats.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:30
+Defined in jadnschema/convert/schema/index.ts:36
 
 Write the schema to a file in the specified format
 
@@ -38,7 +38,7 @@ Write the schema to a file in the specified format
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) | JADN Schema to convert |
+`schema` | SchemaArg | JADN Schema to convert |
 `fname` | string | file to create and write |
 `source?` | string &#124; null | name of original schema file |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) | - |
@@ -51,9 +51,9 @@ ___
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `format?`: [SchemaFormats](../enums/_convert_index_._convert_schema_index_.schemaformats.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `format?`: [SchemaFormats](../enums/_convert_index_._convert_schema_index_.schemaformats.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:48
+Defined in jadnschema/convert/schema/index.ts:55
 
 Return the schema string in the specified format
 
@@ -61,7 +61,7 @@ Return the schema string in the specified format
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) | JADN Schema to convert |
+`schema` | SchemaArg | JADN Schema to convert |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) | - |
 `format?` | [SchemaFormats](../enums/_convert_index_._convert_schema_index_.schemaformats.md) | - |
 `kwargs?` | Record‹string, any› | extra field values for the function |
@@ -76,7 +76,7 @@ ___
 
 ▸ **load**(`schema`: string, `format`: [SchemaFormats](../enums/schemaformats.md), `kwargs?`: Record‹string, any›): *[Schema](../classes/schema.md)*
 
-Defined in jadnschema/convert/schema/index.ts:66
+Defined in jadnschema/convert/schema/index.ts:74
 
 Load the schema file from the specified format
 
@@ -98,7 +98,7 @@ ___
 
 ▸ **loads**(`schema`: string, `format`: [SchemaFormats](../enums/schemaformats.md), `kwargs`: Record‹string, any›): *[Schema](../classes/schema.md)*
 
-Defined in jadnschema/convert/schema/index.ts:83
+Defined in jadnschema/convert/schema/index.ts:91
 
 Load the schema string from the specified format
 
@@ -120,13 +120,13 @@ Name | Type | Description |
 
 ### ▪ **html**: *object*
 
-Defined in jadnschema/convert/schema/index.ts:96
+Defined in jadnschema/convert/schema/index.ts:104
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:99
+Defined in jadnschema/convert/schema/index.ts:107
 
 Converts to HTML tables and writes to the given file, see [dump](_convert_index_._convert_schema_index_.md#dump) for param specifics
 
@@ -134,7 +134,7 @@ Converts to HTML tables and writes to the given file, see [dump](_convert_index_
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `fname` | string |
 `source?` | string &#124; null |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
@@ -144,9 +144,9 @@ Name | Type |
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:102
+Defined in jadnschema/convert/schema/index.ts:110
 
 Converts to HTML tables and returns the string value, see [dumps](_convert_index_._convert_schema_index_.md#dumps) for param specifics
 
@@ -154,7 +154,7 @@ Converts to HTML tables and returns the string value, see [dumps](_convert_index
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
 `kwargs?` | Record‹string, any› |
 
@@ -166,13 +166,13 @@ ___
 
 ### ▪ **jadn**: *object*
 
-Defined in jadnschema/convert/schema/index.ts:108
+Defined in jadnschema/convert/schema/index.ts:116
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:111
+Defined in jadnschema/convert/schema/index.ts:119
 
 Converts to JADN format and writes to the given file, see [dump](_convert_index_._convert_schema_index_.md#dump) for param specifics
 
@@ -180,7 +180,7 @@ Converts to JADN format and writes to the given file, see [dump](_convert_index_
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `fname` | string |
 `source?` | string &#124; null |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
@@ -190,9 +190,9 @@ Name | Type |
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:114
+Defined in jadnschema/convert/schema/index.ts:122
 
 Converts to JADN format and returns the string value, see [dumps](_convert_index_._convert_schema_index_.md#dumps) for param specifics
 
@@ -200,7 +200,7 @@ Converts to JADN format and returns the string value, see [dumps](_convert_index
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
 `kwargs?` | Record‹string, any› |
 
@@ -210,7 +210,7 @@ Name | Type |
 
 ▸ **load**(`schema`: string, `kwargs?`: Record‹string, any›): *[Schema](../classes/schema.md)*
 
-Defined in jadnschema/convert/schema/index.ts:117
+Defined in jadnschema/convert/schema/index.ts:125
 
 Loads the JADN formated schema file, see [load](_convert_index_._convert_schema_index_.md#load) for param specifics
 
@@ -227,7 +227,7 @@ Name | Type |
 
 ▸ **loads**(`schema`: string, `kwargs?`: Record‹string, any›): *[Schema](../classes/schema.md)*
 
-Defined in jadnschema/convert/schema/index.ts:120
+Defined in jadnschema/convert/schema/index.ts:128
 
 Loads the JADN formated schema string, see [loads](_convert_index_._convert_schema_index_.md#loads) for param specifics
 
@@ -246,13 +246,13 @@ ___
 
 ### ▪ **jidl**: *object*
 
-Defined in jadnschema/convert/schema/index.ts:126
+Defined in jadnschema/convert/schema/index.ts:134
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:129
+Defined in jadnschema/convert/schema/index.ts:137
 
 Converts to JIDL format and writes to the given file, see [dump](_convert_index_._convert_schema_index_.md#dump) for param specifics
 
@@ -260,7 +260,7 @@ Converts to JIDL format and writes to the given file, see [dump](_convert_index_
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `fname` | string |
 `source?` | string &#124; null |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
@@ -270,9 +270,9 @@ Name | Type |
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:132
+Defined in jadnschema/convert/schema/index.ts:140
 
 Converts to JADN format and returns the string value, see [dumps](_convert_index_._convert_schema_index_.md#dumps) for param specifics
 
@@ -280,7 +280,7 @@ Converts to JADN format and returns the string value, see [dumps](_convert_index
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
 `kwargs?` | Record‹string, any› |
 
@@ -292,13 +292,13 @@ ___
 
 ### ▪ **json**: *object*
 
-Defined in jadnschema/convert/schema/index.ts:138
+Defined in jadnschema/convert/schema/index.ts:146
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:141
+Defined in jadnschema/convert/schema/index.ts:149
 
 Converts to JSON format and writes to the given file, see [dump](_convert_index_._convert_schema_index_.md#dump) for param specifics
 
@@ -306,7 +306,7 @@ Converts to JSON format and writes to the given file, see [dump](_convert_index_
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `fname` | string |
 `source?` | string &#124; null |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
@@ -316,9 +316,9 @@ Name | Type |
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:144
+Defined in jadnschema/convert/schema/index.ts:152
 
 Converts to JSON format and returns the string value, see [dumps](_convert_index_._convert_schema_index_.md#dumps) for param specifics
 
@@ -326,7 +326,7 @@ Converts to JSON format and returns the string value, see [dumps](_convert_index
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
 `kwargs?` | Record‹string, any› |
 
@@ -338,13 +338,13 @@ ___
 
 ### ▪ **md**: *object*
 
-Defined in jadnschema/convert/schema/index.ts:149
+Defined in jadnschema/convert/schema/index.ts:157
 
 ###  dump
 
-▸ **dump**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
+▸ **dump**(`schema`: SchemaArg, `fname`: string, `source?`: string | null, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *void*
 
-Defined in jadnschema/convert/schema/index.ts:152
+Defined in jadnschema/convert/schema/index.ts:160
 
 Converts to JSON format and writes to the given file, see [dump](_convert_index_._convert_schema_index_.md#dump) for param specifics
 
@@ -352,7 +352,7 @@ Converts to JSON format and writes to the given file, see [dump](_convert_index_
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `fname` | string |
 `source?` | string &#124; null |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
@@ -362,9 +362,9 @@ Name | Type |
 
 ###  dumps
 
-▸ **dumps**(`schema`: string | Record‹string, any› | [Schema](../classes/schema.md), `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
+▸ **dumps**(`schema`: SchemaArg, `comment?`: [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md), `kwargs?`: Record‹string, any›): *string*
 
-Defined in jadnschema/convert/schema/index.ts:155
+Defined in jadnschema/convert/schema/index.ts:163
 
 Converts to MarkDown format and returns the string value, see [dumps](_convert_index_._convert_schema_index_.md#dumps) for param specifics
 
@@ -372,7 +372,7 @@ Converts to MarkDown format and returns the string value, see [dumps](_convert_i
 
 Name | Type |
 ------ | ------ |
-`schema` | string &#124; Record‹string, any› &#124; [Schema](../classes/schema.md) |
+`schema` | SchemaArg |
 `comment?` | [CommentLevels](../enums/_convert_index_._convert_schema_index_.commentlevels.md) |
 `kwargs?` | Record‹string, any› |
 

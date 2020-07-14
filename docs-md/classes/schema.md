@@ -1,4 +1,4 @@
-[jadnschema - v0.1.3](../globals.md) › [Schema](schema.md)
+[jadnschema - v0.1.7](../globals.md) › [Schema](schema.md)
 
 # Class: Schema
 
@@ -22,11 +22,12 @@
 * [schemaTypes](schema.md#protected-schematypes)
 * [slots](schema.md#slots)
 * [types](schema.md#types)
-* [validationFormats](schema.md#protected-validationformats)
+* [validators](schema.md#protected-validators)
 
 ### Accessors
 
 * [formats](schema.md#formats)
+* [validationFormats](schema.md#validationformats)
 
 ### Methods
 
@@ -66,7 +67,7 @@
 
 *Overrides void*
 
-Defined in jadnschema/schema/schema.ts:60
+Defined in jadnschema/schema/schema.ts:41
 
 Initialize a Schema object
 
@@ -90,7 +91,7 @@ Name | Type | Description |
     'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Versions', 'Version',
     'Profiles', 'Rate-Limit', 'Binary', 'Command-ID']
 
-Defined in jadnschema/schema/schema.ts:55
+Defined in jadnschema/schema/schema.ts:36
 
 ___
 
@@ -98,7 +99,7 @@ ___
 
 • **derived**: *Record‹string, DefinitionBase›*
 
-Defined in jadnschema/schema/schema.ts:52
+Defined in jadnschema/schema/schema.ts:33
 
 ___
 
@@ -106,7 +107,7 @@ ___
 
 • **meta**: *Meta*
 
-Defined in jadnschema/schema/schema.ts:47
+Defined in jadnschema/schema/schema.ts:28
 
 ___
 
@@ -116,7 +117,7 @@ ___
 
 *Overrides void*
 
-Defined in jadnschema/schema/schema.ts:53
+Defined in jadnschema/schema/schema.ts:34
 
 ___
 
@@ -126,7 +127,7 @@ ___
 
 *Overrides void*
 
-Defined in jadnschema/schema/schema.ts:51
+Defined in jadnschema/schema/schema.ts:32
 
 ___
 
@@ -134,15 +135,15 @@ ___
 
 • **types**: *Record‹string, DefinitionBase›*
 
-Defined in jadnschema/schema/schema.ts:48
+Defined in jadnschema/schema/schema.ts:29
 
 ___
 
-### `Protected` validationFormats
+### `Protected` validators
 
-• **validationFormats**: *Record‹string, Function›*
+• **validators**: *Record‹string, GeneralValidator | UnsignedValidator›* = ValidationFormats
 
-Defined in jadnschema/schema/schema.ts:54
+Defined in jadnschema/schema/schema.ts:35
 
 ## Accessors
 
@@ -150,21 +151,31 @@ Defined in jadnschema/schema/schema.ts:54
 
 • **get formats**(): *Array‹string›*
 
-Defined in jadnschema/schema/schema.ts:91
+Defined in jadnschema/schema/schema.ts:72
 
 **Returns:** *Array‹string›*
+
+___
+
+###  validationFormats
+
+• **get validationFormats**(): *Record‹string, GeneralValidator | UnsignedValidator›*
+
+Defined in jadnschema/schema/schema.ts:76
+
+**Returns:** *Record‹string, GeneralValidator | UnsignedValidator›*
 
 ## Methods
 
 ### `Protected` _config
 
-▸ **_config**(): *null*
+▸ **_config**(): *[Schema](schema.md)‹›*
 
 *Inherited from [Schema](schema.md).[_config](schema.md#protected-_config)*
 
-Defined in jadnschema/schema/base.ts:101
+Defined in jadnschema/schema/base.ts:104
 
-**Returns:** *null*
+**Returns:** *[Schema](schema.md)‹›*
 
 ___
 
@@ -172,7 +183,7 @@ ___
 
 ▸ **_convertTypes**(`schema`: SchemaJADN): *SchemaJADN*
 
-Defined in jadnschema/schema/schema.ts:606
+Defined in jadnschema/schema/schema.ts:596
 
 **Parameters:**
 
@@ -188,7 +199,7 @@ ___
 
 ▸ **_dumps**(`obj`: any, `indent?`: undefined | number, `level?`: undefined | number): *string*
 
-Defined in jadnschema/schema/schema.ts:551
+Defined in jadnschema/schema/schema.ts:539
 
 Properly format a JADN schema
 
@@ -210,7 +221,7 @@ ___
 
 ▸ **_getConfig**(): *[Schema](schema.md)*
 
-Defined in jadnschema/schema/schema.ts:505
+Defined in jadnschema/schema/schema.ts:493
 
 **Returns:** *[Schema](schema.md)*
 
@@ -220,7 +231,7 @@ ___
 
 ▸ **_setSchema**(`data`: SchemaSimpleJADN | [Schema](schema.md)): *void*
 
-Defined in jadnschema/schema/schema.ts:514
+Defined in jadnschema/schema/schema.ts:502
 
 Set the Schema object with the given data
 
@@ -236,9 +247,9 @@ ___
 
 ###  addFormat
 
-▸ **addFormat**(`fmt`: string, `fun`: Function, `override?`: undefined | false | true): *void*
+▸ **addFormat**(`fmt`: string, `fun`: GeneralValidator | UnsignedValidator, `override?`: undefined | false | true): *void*
 
-Defined in jadnschema/schema/schema.ts:595
+Defined in jadnschema/schema/schema.ts:585
 
 Add a format validation function
 
@@ -247,7 +258,7 @@ Add a format validation function
 Name | Type | Description |
 ------ | ------ | ------ |
 `fmt` | string | -format to validate |
-`fun` | Function | function that performs the validation |
+`fun` | GeneralValidator &#124; UnsignedValidator | function that performs the validation |
 `override?` | undefined &#124; false &#124; true | override the format if it exists  |
 
 **Returns:** *void*
@@ -258,7 +269,7 @@ ___
 
 ▸ **analyze**(): *Record‹string, string | Array‹string››*
 
-Defined in jadnschema/schema/schema.ts:99
+Defined in jadnschema/schema/schema.ts:84
 
 Analyze the given schema for unreferenced and undefined types
 
@@ -272,7 +283,7 @@ ___
 
 ▸ **dependencies**(): *Record‹string, Set‹string››*
 
-Defined in jadnschema/schema/schema.ts:116
+Defined in jadnschema/schema/schema.ts:104
 
 Determine the dependencies for each type within the schema
 
@@ -286,7 +297,7 @@ ___
 
 ▸ **dump**(`fname`: string, `indent?`: undefined | number, `strip?`: undefined | false | true): *void*
 
-Defined in jadnschema/schema/schema.ts:393
+Defined in jadnschema/schema/schema.ts:382
 
 Write the JADN to a file
 
@@ -306,7 +317,7 @@ ___
 
 ▸ **dumps**(`indent?`: undefined | number, `strip?`: undefined | false | true): *string*
 
-Defined in jadnschema/schema/schema.ts:405
+Defined in jadnschema/schema/schema.ts:394
 
 Properly format a JADN schema to a string
 
@@ -329,7 +340,7 @@ ___
 
 *Inherited from [Schema](schema.md).[get](schema.md#get)*
 
-Defined in jadnschema/schema/base.ts:203
+Defined in jadnschema/schema/base.ts:207
 
 Replicates Python dictionary get method
 
@@ -348,11 +359,11 @@ ___
 
 ###  initData
 
-▸ **initData**(`data`: any): *any*
+▸ **initData**(`data?`: SchemaSimpleJADN | SchemaSimpleType | BaseModel | Record‹string, any›): *Record‹string, any›*
 
 *Inherited from [Schema](schema.md).[initData](schema.md#initdata)*
 
-Defined in jadnschema/schema/base.ts:162
+Defined in jadnschema/schema/base.ts:165
 
 Initialize base data
 
@@ -360,9 +371,9 @@ Initialize base data
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`data` | any | Base data |
+`data?` | SchemaSimpleJADN &#124; SchemaSimpleType &#124; BaseModel &#124; Record‹string, any› | Base data |
 
-**Returns:** *any*
+**Returns:** *Record‹string, any›*
 
 - initialized data
 
@@ -372,7 +383,7 @@ ___
 
 ▸ **load**(`fname`: string): *void*
 
-Defined in jadnschema/schema/schema.ts:361
+Defined in jadnschema/schema/schema.ts:350
 
 Load a JADN schema from a file
 
@@ -390,7 +401,7 @@ ___
 
 ▸ **loads**(`schema`: string | SchemaSimpleJADN): *void*
 
-Defined in jadnschema/schema/schema.ts:374
+Defined in jadnschema/schema/schema.ts:363
 
 Load a JADN schema from a string or object
 
@@ -410,7 +421,7 @@ ___
 
 *Inherited from [Schema](schema.md).[object](schema.md#object)*
 
-Defined in jadnschema/schema/base.ts:171
+Defined in jadnschema/schema/base.ts:174
 
 Create a dictionary of the current object
 
@@ -424,7 +435,7 @@ ___
 
 ▸ **schema**(`strip?`: undefined | false | true): *SchemaSimpleJADN*
 
-Defined in jadnschema/schema/schema.ts:142
+Defined in jadnschema/schema/schema.ts:132
 
 Format this schema into valid JADN format
 
@@ -444,7 +455,7 @@ ___
 
 ▸ **schemaPretty**(`strip?`: undefined | false | true, `indent?`: undefined | number): *string*
 
-Defined in jadnschema/schema/schema.ts:165
+Defined in jadnschema/schema/schema.ts:155
 
 Format this schema into valid pretty JADN format
 
@@ -467,7 +478,7 @@ ___
 
 *Inherited from [Schema](schema.md).[setProperties](schema.md#setproperties)*
 
-Defined in jadnschema/schema/base.ts:185
+Defined in jadnschema/schema/base.ts:189
 
 Set the given key/value pairs as properties of the current class
 
@@ -485,7 +496,7 @@ ___
 
 ▸ **simplify**(`simple?`: undefined | false | true, `schema?`: SchemaSimpleJADN, `anon?`: undefined | false | true, `multi?`: undefined | false | true, `derived?`: undefined | false | true, `mapOf?`: undefined | false | true): *SchemaSimpleJADN | [Schema](schema.md)*
 
-Defined in jadnschema/schema/schema.ts:181
+Defined in jadnschema/schema/schema.ts:171
 
 Given a schema, return a simplified schema with schema extensions removed
 
@@ -510,7 +521,7 @@ ___
 
 ▸ **toString**(): *string*
 
-Defined in jadnschema/schema/schema.ts:83
+Defined in jadnschema/schema/schema.ts:64
 
 **Returns:** *string*
 
@@ -520,7 +531,7 @@ ___
 
 ▸ **validate**(`inst`: Record‹string, any›, `silent?`: undefined | false | true): *null | Error*
 
-Defined in jadnschema/schema/schema.ts:454
+Defined in jadnschema/schema/schema.ts:443
 
 Verify the given instance against the current schema
 
@@ -541,7 +552,7 @@ ___
 
 ▸ **validateAs**(`inst`: Record‹string, any›, `type`: string, `silent?`: undefined | false | true): *Array‹Error›*
 
-Defined in jadnschema/schema/schema.ts:483
+Defined in jadnschema/schema/schema.ts:470
 
 Verify the given instance against the current schema as a specific exported type
 
@@ -563,7 +574,7 @@ ___
 
 ▸ **verifySchema**(`silent?`: undefined | false | true): *void | Array‹Error›*
 
-Defined in jadnschema/schema/schema.ts:417
+Defined in jadnschema/schema/schema.ts:406
 
 Verify the schema is proper
 
@@ -585,7 +596,7 @@ List of errors raises
 
 *Inherited from [Schema](schema.md).[jadnTypes](schema.md#protected-jadntypes)*
 
-Defined in jadnschema/schema/base.ts:102
+Defined in jadnschema/schema/base.ts:105
 
 ###  Compound
 
@@ -602,7 +613,7 @@ Defined in jadnschema/schema/base.ts:102
       'Record'
     ]
 
-Defined in jadnschema/schema/base.ts:123
+Defined in jadnschema/schema/base.ts:126
 
 ###  Selector
 
@@ -613,7 +624,7 @@ Defined in jadnschema/schema/base.ts:123
       'Enumerated'
     ]
 
-Defined in jadnschema/schema/base.ts:117
+Defined in jadnschema/schema/base.ts:120
 
 ###  Simple
 
@@ -632,4 +643,4 @@ Defined in jadnschema/schema/base.ts:117
       'String'
       ]
 
-Defined in jadnschema/schema/base.ts:103
+Defined in jadnschema/schema/base.ts:106

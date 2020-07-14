@@ -1,4 +1,4 @@
-[jadnschema - v0.1.3](globals.md)
+[jadnschema - v0.1.7](globals.md)
 
-# jadnschema - v0.1.3
+# jadnschema - v0.1.7
 

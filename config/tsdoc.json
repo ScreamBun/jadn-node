@@ -1,7 +1,5 @@
 {
   "tsconfig": "./tsconfig.json",
-  "exclude": [
-  ],
   "excludeExternals": false,
   "excludePrivate": false,
   "excludeProtected": false,
