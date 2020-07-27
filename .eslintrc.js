@@ -22,7 +22,6 @@ module.exports = {
     'eslint-comments',
     'eslint-plugin',
     'import',
-    'prettier',
     'promise'
   ],
   settings: {
@@ -36,7 +35,7 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
       },
       webpack: {
-        config: require.resolve('./config/webpack.config.eslint.js')
+        config: require.resolve('./config/config.eslint.js')
       }
     }
   },

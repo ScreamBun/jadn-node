@@ -1,6 +1,6 @@
 {
   "name": "jadnschema",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "",
   "author": "",
   "license": "ISC",
@@ -8,19 +8,19 @@
   "bin": "./bin/jadnschema.js",
   "scripts": {
     "bin": "ts-node -r @babel/register ./bin/jadnschema.ts",
-    "build": "yon run tsc",
+    "build": "npm run tsc",
     "clean": "ts-clean -d bin, lib -e .js,.d.ts",
     "docs-html": "rimraf docs-html && typedoc --options ./config/tsdoc.json --out docs-html lib/api.ts",
     "docs-md": "rimraf docs-md && typedoc --options ./config/tsdoc.json  --out docs-md --plugin typedoc-plugin-markdown lib/api.ts",
     "lint": "eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "lint-errors": "eslint . --cache --quiet --ext .js,.jsx,.ts,.tsx",
-    "prepare": "yon run tsc",
-    "prepublish": "yon run tsc",
+    "prepare": "npm run tsc",
+    "prepublish": "npm run tsc",
     "prod": "tsc && node ./bin/jadnschema.js",
-    "test": "yon run test-translate && yon run test-validate",
+    "test": "npm run test-translate && npm run test-validate",
     "test-translate": "ts-node -r @babel/register ./tests/schema-translators.ts",
     "test-validate": "ts-node -r @babel/register ./tests/schema-validator.ts",
-    "tsc": "yon run clean && tsc"
+    "tsc": "npm run clean && tsc"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -33,44 +33,46 @@
     "validator": "^13.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.10.5",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
-    "@babel/plugin-proposal-decorators": "^7.10.4",
-    "@babel/plugin-transform-runtime": "^7.10.4",
-    "@babel/plugin-transform-typescript": "^7.10.4",
+    "@babel/plugin-proposal-decorators": "^7.10.5",
+    "@babel/plugin-transform-runtime": "^7.10.5",
+    "@babel/plugin-transform-typescript": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
     "@babel/preset-typescript": "^7.10.4",
-    "@babel/register": "^7.10.4",
+    "@babel/register": "^7.10.5",
     "@types/debug": "^4.1.5",
     "@types/fs-extra": "^9.0.1",
     "@types/markdown-table": "^2.0.0",
-    "@types/node": "^14.0.23",
+    "@types/node": "^14.0.26",
     "@types/pluralize": "0.0.29",
     "@types/table": "^5.0.0",
     "@types/validator": "^13.1.0",
-    "@typescript-eslint/eslint-plugin": "^3.6.1",
-    "@typescript-eslint/parser": "^3.6.1",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-dev-expression": "^0.2.2",
     "cross-env": "^7.0.2",
-    "eslint": "^7.4.0",
-    "eslint-config-prettier": "^6.11.0",
+    "eslint": "^7.5.0",
     "eslint-import-resolver-webpack": "^0.12.2",
     "eslint-plugin-compat": "^3.8.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-eslint-plugin": "^2.3.0",
     "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-promise": "^4.2.1",
     "rimraf": "^3.0.2",
     "ts-clean": "^1.0.3",
     "ts-node": "^8.10.2",
-    "typedoc": "^0.17.0-3",
+    "typedoc": "0.17.0-3",
     "typedoc-plugin-markdown": "^2.3.1",
-    "typescript": "^3.9.6",
-    "yarn-or-npm": "^3.0.1"
+    "typescript": "^3.9.7"
   },
+  "keywords": [
+    "jadn",
+    "schema",
+    "validation"
+  ],
   "directories": {
     "bin": "bin",
     "lib": "lib"
@@ -80,10 +82,5 @@
     "bin/**.d.ts",
     "lib/**/*.js",
     "lib/**/*.d.ts"
-  ],
-  "keywords": [
-    "jadn",
-    "schema",
-    "validation"
   ]
 }
