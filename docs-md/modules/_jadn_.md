@@ -1,4 +1,4 @@
-[jadnschema - v0.1.7](../globals.md) › ["jadn"](_jadn_.md)
+[jadnschema - v0.1.8](../globals.md) › ["jadn"](_jadn_.md)
 
 # Module: "jadn"
 

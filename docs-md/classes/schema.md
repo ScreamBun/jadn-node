@@ -1,4 +1,4 @@
-[jadnschema - v0.1.7](../globals.md) › [Schema](schema.md)
+[jadnschema - v0.1.8](../globals.md) › [Schema](schema.md)
 
 # Class: Schema
 
