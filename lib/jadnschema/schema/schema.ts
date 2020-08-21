@@ -291,6 +291,7 @@ class Schema extends BaseModel {
                   })
                 });
               }
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               typeDef.options[optName] = newName;
             }
@@ -317,7 +318,13 @@ class Schema extends BaseModel {
             delete td.options.ktype;
             delete td.options.vtype;
             td.fields = (keyType[0] as SchemaObjectComplexType).fields.map(f => {
-              return {id: f.id, name: safeGet(f, 'value', 'NAME') as string, type: valueType, options: new Options(), description: f.description} as SchemaObjectGenField;
+              return {
+                id: f.id,
+                name: safeGet(f, 'value', 'NAME') as string,
+                type: valueType,
+                options: new Options(),
+                description: f.description
+              } as SchemaObjectGenField;
             });
           }
           return td;
@@ -496,7 +503,7 @@ class Schema extends BaseModel {
 
   /**
     * Set the Schema object with the given data
-    * @param {Object|'Schema'} data - data to set schema object
+    * @param {SchemaSimpleJADN|Schema} data - data to set schema object
     */
   // eslint-disable-next-line no-underscore-dangle
   _setSchema(data: SchemaSimpleJADN|Schema): void {
@@ -664,7 +671,8 @@ class Schema extends BaseModel {
 
     if (schema.types.every(t => typeof t === 'object' && !Array.isArray(t))) {
       return toSimple(schema as SchemaObjectJADN);
-    } else if (schema.types.every(t => typeof t === 'object' && Array.isArray(t))) {
+    }
+    if (schema.types.every(t => typeof t === 'object' && Array.isArray(t))) {
       return toComplex(schema as SchemaSimpleJADN);
     }
     return schema;

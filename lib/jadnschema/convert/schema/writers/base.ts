@@ -91,8 +91,9 @@ class WriterBase {
     * @param {string} source - source schema file
     * @param {Record<string, any>} kwargs - extra field values for the function
     */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-   dump(fname: string, source?: string|null, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  dump(fname: string, source?: string|null, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this.constructor.name} does not implement "dump"`);
   }
 
@@ -100,8 +101,9 @@ class WriterBase {
     * Parse the given schema to a JADN schema
     * @param {Record<string, any>} kwargs - extra field values for the function
     */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-   dumps(kwargs?: Record<string, any>): string { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  dumps(kwargs?: Record<string, any>): string { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this.constructor.name} does not implement "dumps"`);
   }
 
@@ -143,7 +145,8 @@ class WriterBase {
     const escapeChars = this.escapeChars.filter(c => c.length > 0);
     if (str === '*') {
       return 'unknown';
-    } else if (escapeChars.length > 0) {
+    }
+    if (escapeChars.length > 0) {
       const reg = new RegExp(`[${escapeChars.join('')}]`);
       return str.replace(reg, '_');
     }

@@ -42,6 +42,7 @@ class ChoiceDef extends DefinitionBase {
     if (keyCount !== 1) {
       errors.push(new ValidationError(`${this.toString()} - invalid, only one key/value allowed, given ${keyCount}`));
     } else if (this.fields.map(f => f[valueKey]).includes(key)) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const typeDef = safeGet(config.types, this.getField(key).type, null) as null|DefinitionBase;
       if (typeDef) {

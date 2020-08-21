@@ -291,6 +291,7 @@ class Options extends BaseModel {
   */
   multiplicity(minDefault?: number, maxDefault?: number, field?: boolean, check?: (x: number, y: number) => boolean): string {
     field = typeof field === 'boolean' ? field : false; // eslint-disable-line no-param-reassign
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const checkFun: (x: number, y: number) => boolean = ['null', 'undefined'].includes(typeof check) ? (x: number, y: number): boolean => true : check;  // eslint-disable-line no-param-reassign, no-unused-vars, @typescript-eslint/no-unused-vars
     const values = field ? ['minc', 'maxc'] : ['minv', 'maxv'];

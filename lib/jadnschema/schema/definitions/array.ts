@@ -42,7 +42,6 @@ class ArrayDef extends DefinitionBase {
         errors.push(...fmtFun(inst));
       }
     } else {
-      console.log(`Array: [${inst.join(', ')}]`);
       const keyCount = inst.length;
       const minKeys = this.options.get('minv', 0) as number;
       let maxKeys = this.options.get('maxv', 0) as number;

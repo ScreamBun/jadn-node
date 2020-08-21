@@ -566,7 +566,7 @@ class JADNtoJSON extends WriterBase {
     }
 
     if (/^MapOf\(.*?\)$/.exec(fieldType)) {
-      console.log(`Derived MapOf - ${fieldType}`);
+      console.warn(`Derived MapOf - ${fieldType}`);
     }
 
     console.warn(`unknown type: ${fieldType}`);

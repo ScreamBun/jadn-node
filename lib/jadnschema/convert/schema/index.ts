@@ -55,7 +55,7 @@ function dump(schema: SchemaArg, fname: string, source?: string|null, comment?: 
 function dumps(schema: SchemaArg, comment?: CommentLevels, format?: SchemaFormats, kwargs?: Record<string, any>): string {
   const Writer = safeGet(ValidWriters, (format || ''), null) as BaseWriter|null;
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
-    const schemaProper: string|SchemaSimpleJADN|Schema= (schema instanceof Object && !(schema instanceof Schema)) ? schema as SchemaSimpleJADN : schema;
+    const schemaProper: string|SchemaSimpleJADN|Schema = (schema instanceof Object && !(schema instanceof Schema)) ? schema as SchemaSimpleJADN : schema;
     const writer = new Writer(schemaProper, comment);
     return writer.dumps(kwargs);
   }

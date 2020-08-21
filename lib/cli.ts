@@ -1,4 +1,4 @@
-/* eslint lines-between-class-members: 0 */
+/* eslint lines-between-class-members: 0, no-console: 0 */
 /*
  * The CLI object should *not* call process.exit() directly. It should only return
  * exit codes. This allows other programs to use the CLI object and still control

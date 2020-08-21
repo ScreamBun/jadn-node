@@ -25,17 +25,19 @@ class JADNtoJADN extends WriterBase {
       contents = `<!-- Generated from ${source}, ${now.toLocaleString()} -->\n${contents}`;
     }
     fs.outputFileSync(fname, contents);
-   }
+  }
 
-   /**
+  /**
     * Converts the JADN schema to JADN
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-   dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
+  dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
     return this.schema.schemaPretty(this.comments === CommentLevels.NONE);
-   }
+  }
 }
 
 export default JADNtoJADN;

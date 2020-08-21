@@ -43,7 +43,7 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
 
       if ('types' in data && typeof data.types === 'object' && Array.isArray(data.types)) {
         // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
-        const makeDefinition = require('./definitions').makeDefinition;
+        const { makeDefinition } = require('./definitions');
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment
         data.types = objectFromTuple(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -54,7 +54,7 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
     case 'Meta':
       if ('config' in data && typeof data.config === 'object') {
         // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
-        const Config = require('./meta').Config;
+        const { Config } = require('./meta');
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         data.config = new Config(data.config);
       }
@@ -87,8 +87,8 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
   }
 
   Object.keys(data).forEach(k => {
-    // @ts-ignore
-    fields[k] = data[k];  // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    fields[k] = data[k];
   });
   return [fields, errors];
 }
@@ -176,7 +176,7 @@ class BaseModel {
       ...this.slots.map<[string, any]|[]>(key => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const val = this.get(key);
-        return val === null || val === undefined ? [] : [key, val ];
+        return val === null || val === undefined ? [] : [key, val];
       })
     );
   }
@@ -191,8 +191,13 @@ class BaseModel {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const val = props[key];
       if (val !== null && val !== undefined) {
-        // @ts-ignore
-        this[key] = val;  // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+        Object.defineProperty(this, key, {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          value: val
+        });
       }
     });
   }

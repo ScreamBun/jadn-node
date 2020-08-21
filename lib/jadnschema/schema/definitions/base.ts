@@ -236,6 +236,7 @@ class DefinitionBase extends BaseModel {
    * Validate a given instange against the definition
    * Function should be overriden by the subclass
    */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   validate(inst: any): Array<Error> {  // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
     throw new ReferenceError(`${this.constructor.name} does not implement "validate"`);

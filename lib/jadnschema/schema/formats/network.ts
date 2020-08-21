@@ -93,11 +93,11 @@ export function eui(val: string): Array<Error> {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function ip_net(net: [string, string], version?: 4|6): Array<Error> {
   const [ip, mask] = net;
-  version = version || (ip.includes('.') ? 4 : 6);
-  const maskArgs = version === 4 ? { min: 1, max: 32 } : { min: 1, max: 128 };
+  const ver = version || (ip.includes('.') ? 4 : 6);
+  const maskArgs = ver === 4 ? { min: 1, max: 32 } : { min: 1, max: 128 };
 
-  if (!validator.isIP(ip, version)) {
-    return [new ValidationError(`IPv${version} of ${ip} is not valid`)];
+  if (!validator.isIP(ip, ver)) {
+    return [new ValidationError(`IPv${ver} of ${ip} is not valid`)];
   }
   if (mask && !validator.isInt(mask, maskArgs)) {
     return [new ValidationError(`Network Mask of ${mask} is not valid, must be between 1-${maskArgs.max}`)];

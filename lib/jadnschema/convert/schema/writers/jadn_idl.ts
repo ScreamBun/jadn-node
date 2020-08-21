@@ -38,8 +38,9 @@ class JADNtoIDL extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-   dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
+  dumps(kwargs?: Args): string {  // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
     let schemaJIDL = this.makeHeader();
     const structures: Record<string, string> = this._makeStructures('');
 

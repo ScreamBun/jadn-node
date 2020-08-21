@@ -62,7 +62,7 @@ export function prettyObject(obj: any, indent?: number): string {
       break;
     default:
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      console.log(`-- ${typeof obj}: ${obj}`);
+      console.warn(`-- Unknown: ${typeof obj}: ${obj}`);
       pretty += prettyObject(obj);
       break;
   }

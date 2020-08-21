@@ -42,6 +42,7 @@ class ReaderBase {
     * @param {Record<string, any>} kwargs - extra field values for the function
     * @returns {Schema} JADN schema
     */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   parse(schema: string, kwargs?: Record<string, any>): Schema { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${ this.constructor.name } does not implement "parse"`);

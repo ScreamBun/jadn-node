@@ -74,7 +74,6 @@ class EnumeratedField extends BaseModel {
     try {
         return [this.id, this.value, strip ? '' : this.description];
     } catch (err) {
-      console.log(err);
       return [0, 'error', strip ? '' : 'Error has occured'];
     }
   }
@@ -87,7 +86,6 @@ class EnumeratedField extends BaseModel {
     try {
         return [this.id, this.value, ''];
     } catch (err) {
-      console.log(err);
       return [0, 'error', 'Error has occured'];
     }
   }
@@ -184,7 +182,6 @@ class Field extends BaseModel {
     try {
       return [this.id, this.name, this.type, this.options.schema(this.type, this.name, true), strip ? '' : this.description];
     } catch (err) {
-      console.log(err);
       return [0, 'error', 'string', [], strip ? '' : 'Error has occured'];
     }
   }
@@ -215,7 +212,7 @@ class Field extends BaseModel {
         const tmpDef = this.object();
         delete tmpDef.id;
         tmpDef.name = capitalize((tmpDef.name as string).replace('_', '-'));
-        const CustomDef = require('./definitions').CustomDef; // eslint-disable-line global-require, @typescript-eslint/no-unsafe-assignment
+        const { CustomDef } = require('./definitions'); // eslint-disable-line global-require, @typescript-eslint/no-unsafe-assignment
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         config.types[`_${this.name}`] = new CustomDef(tmpDef as SchemaObjectType, {_config: this._config});
       }

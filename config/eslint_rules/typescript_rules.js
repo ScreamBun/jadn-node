@@ -1,7 +1,7 @@
 // Typescript Rules
 module.exports = {
   '@typescript-eslint/adjacent-overload-signatures': 2,
-  '@typescript-eslint/ban-ts-comment': 1,
+  '@typescript-eslint/ban-ts-comment': 2,
   '@typescript-eslint/ban-types': 2,
   '@typescript-eslint/brace-style': [0, '1tbs', {
     allowSingleLine: true
@@ -171,4 +171,4 @@ module.exports = {
   '@typescript-eslint/triple-slash-reference': 2,
   '@typescript-eslint/type-annotation-spacing': 0,
   '@typescript-eslint/unbound-method': 1
-}
+};

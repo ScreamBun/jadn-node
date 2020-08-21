@@ -264,6 +264,7 @@ config
 tests
 
 # Assorted
+.eslintrc.js
 babel.config.js
 docs
 lib/**/*.js
