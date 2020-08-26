@@ -261,6 +261,7 @@ $RECYCLE.BIN/
 # Non-packaged files
 bin
 config
+test
 tests
 
 # Assorted

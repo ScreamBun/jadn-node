@@ -129,7 +129,7 @@ class JADNtoJSON extends WriterBase {
   dumps(kwargs?: Args): string {
     const args = kwargs || {}; // eslint-disable-lne no-param-reassign
     const indent = safeGet(args, 'indent', 2) as number;
-    const exports = (this.meta.exports || []).map((exp: string) => {
+    const exports = (this.info.exports || []).map((exp: string) => {
       const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
       if (expDefs.length === 1) {
         return {
@@ -170,13 +170,13 @@ class JADNtoJSON extends WriterBase {
     * @returns {InterfaceJSON.Meta} - header for schema
    */
   makeHeader(): InterfaceJSON.Meta {
-    const module = this.meta.get('module', '') as string;
+    const module = this.info.get('module', '') as string;
     const schemaID = `${module.startsWith('http') ? '' : 'http://'}${module}`;
     return this._cleanEmpty({
       $schema: 'http://json-schema.org/draft-07/schema#',
       $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
-      title: this.meta.title ? this.meta.title : (module + (this.meta.patch ? ` v.${this.meta.patch}` : '')),
-      description: this._cleanComment(this.meta.get('description', ''))
+      title: this.info.title ? this.info.title : (module + (this.info.version ? ` v.${this.info.version}` : '')),
+      description: this._cleanComment(this.info.get('description', ''))
     }) as InterfaceJSON.Meta;
   }
 
@@ -222,7 +222,7 @@ class JADNtoJSON extends WriterBase {
     const vtype = itm.options.get('vtype', 'String') as string;
     const maxv = safeGet(itm.options, 'maxv', 0) as number;
     // eslint-disable-next-line no-param-reassign
-    itm.options.maxv = maxv === 0 ? this.schema.meta.config.MaxElements : maxv;
+    itm.options.maxv = maxv === 0 ? this.schema.info.config.MaxElements : maxv;
 
     const arrayOfJSON: InterfaceJSON.TypeDefinition = {
       title: this.formatTitle(itm.name),

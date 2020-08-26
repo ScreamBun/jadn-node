@@ -161,7 +161,7 @@ class Field extends BaseModel {
     */
   set name(val: string) {
     const config = this._config();
-    const FieldName = new RegExp(config.meta.config.FieldName);
+    const FieldName = new RegExp(config.info.config.FieldName);
     if (!FieldName.exec(val)) {
       throw new ValidationError(`Name invalid - ${val}`);
     }

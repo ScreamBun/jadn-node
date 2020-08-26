@@ -81,11 +81,11 @@ export function load(fname: string): Schema {
 
 /**
  * load a JADN schema from a string
- * @param {string} schema - JADN schema to load
+ * @param {string|SchemaSimpleJADN} schema - JADN schema to load
  * @returns {Schema} Loaded schema
  * @public
  */
-export function loads(schema: string): Schema {
+export function loads(schema: string|SchemaSimpleJADN): Schema {
   const schemaObj = new Schema();
   schemaObj.loads(schema);
   return schemaObj;

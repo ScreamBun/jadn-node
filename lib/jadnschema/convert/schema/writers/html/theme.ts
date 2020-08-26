@@ -58,7 +58,7 @@ table table th {
 #schema {
     max-width: 1200px;
 }
-#meta tr td:first-child {
+#info tr td:first-child {
     font-weight: bold;
     text-align: right;
 }

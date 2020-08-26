@@ -45,7 +45,7 @@ class ArrayDef extends DefinitionBase {
       const keyCount = inst.length;
       const minKeys = this.options.get('minv', 0) as number;
       let maxKeys = this.options.get('maxv', 0) as number;
-      maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
+      maxKeys = maxKeys <= 0 ? config.info.config.MaxElements : maxKeys;
 
       if (minKeys > keyCount) {
         errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));

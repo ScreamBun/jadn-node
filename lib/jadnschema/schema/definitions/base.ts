@@ -1,8 +1,11 @@
 // JADN Base Definition Structures
 import { DefinitionData } from '.';
 import {
-  SchemaSimpleType, SchemaSimpleComplexType, SchemaObjectType, SchemaObjectComplexType, SchemaSimpleEnumField, SchemaSimpleGenField
+  SchemaSimpleType, SchemaObjectType
 } from './interfaces';
+import {
+  isBuiltin, isCompound, isPrimitive, isStructure, JADNTypes
+} from './utils';
 import BaseModel from '../base';
 import { Field, EnumeratedField } from '../fields';
 import Options from '../options';
@@ -19,7 +22,7 @@ class DefinitionBase extends BaseModel {
   type: string
   options: Options
   description: string
-  fields?: Array<Field|EnumeratedField>
+  fields: Array<Field|EnumeratedField>
 
   // Helper Variables
   slots: Array<string> = Slots;
@@ -37,19 +40,20 @@ class DefinitionBase extends BaseModel {
     this.type = safeGet(this, 'type', 'Definition') as string;
     this.options = safeGet(this, 'options', new Options()) as Options;
     this.description = safeGet(this, 'description', '') as string;
+    this.fields = safeGet(this, 'fields', []) as Array<Field|EnumeratedField>;
 
     // Definition Config
     const hasFields = hasProperty(this, 'fields') && !(this.fields === null || this.fields === undefined);
 
-    if (flattenArray(objectValues(this.jadnTypes)).includes(safeGet(this, 'name'))) {
+    if (flattenArray(objectValues(JADNTypes)).includes(safeGet(this, 'name'))) {
       throw new FormatError(`${this.name}(${this.type}) cannot be the name of a JADN type`);
     }
 
-    if (this.isCompound() &&  !hasFields) {
+    if (this.isCompound() && !hasFields) {
       throw new FormatError(`${this.name}(${this.type}) must have defined fields`);
     }
 
-    if (!this.isCompound() && hasFields) {
+    if (!this.isCompound() && this.fields.length > 0) {
       throw new FormatError(`${this.name}(${this.type}) improperly formatted`);
     }
 
@@ -98,13 +102,12 @@ class DefinitionBase extends BaseModel {
     * @return {Set<string>} dependency names of the current definition
     */
   get dependencies(): Set<string> {
-    const t: DefinitionBase = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const optionDeps = (typeDef: DefinitionBase|Field): Set<string> => {
       const d: Set<string> = new Set();
       const type = safeGet(typeDef, 'baseType', typeDef.type) as string;
       if (['ArrayOf', 'MapOf'].includes(type)) {
         [typeDef.options.get('ktype'), typeDef.options.get('vtype')].forEach((k: string) => {
-          if (k && !t.isBuiltin(k)) {
+          if (k && !isBuiltin(k)) {
             d.add(k);
           }
         });
@@ -118,7 +121,7 @@ class DefinitionBase extends BaseModel {
       (this.fields || []).forEach(f => {
         const field = f as Field;
         deps = new Set([ ...deps, ...optionDeps(field)]);
-        if (!this.isBuiltin(field.type)) {
+        if (!isBuiltin(field.type)) {
           if (field.type !== this.name) {
             deps.add(field.type);
           }
@@ -138,7 +141,7 @@ class DefinitionBase extends BaseModel {
     if (this.isCompound() && this.baseType !== 'Enumerated') {
       (this.fields || []).forEach(f => {
         const field = f as Field;
-        if (!this.isBuiltin(field.type)) {
+        if (!isBuiltin(field.type)) {
           types.add(field.type);
         }
       });
@@ -152,8 +155,8 @@ class DefinitionBase extends BaseModel {
     */
   set name(val: string) {
     const config = this._config();
-    // TODO: Read TypeName regex from schema.meta.config
-    const TypeName = new RegExp(config.meta.config.TypeName);
+    // TODO: Read TypeName regex from schema.info.config
+    const TypeName = new RegExp(config.info.config.TypeName);
     if (!TypeName.exec(val)) {
       throw new ValidationError(`Name invalid - ${val}`);
     }
@@ -167,14 +170,13 @@ class DefinitionBase extends BaseModel {
   /**
     * Format this definition into valid JADN format
     * @param {boolean} strip - strip comments from schema
-    * @return {SchemaSimpleType|SchemaSimpleComplexType} JADN formatted definition
+    * @return {SchemaSimpleType} JADN formatted definition
     */
-  schema(strip?: boolean): SchemaSimpleType|SchemaSimpleComplexType {
+  schema(strip?: boolean): SchemaSimpleType {
     strip = typeof strip === 'boolean' ? strip : false; // eslint-disable-line no-param-reassign
-    const rtn: SchemaSimpleType = [this.name, this.type, this.options.schema(this.type, this.name), strip ? '' : this.description];
+    const rtn: SchemaSimpleType = [this.name, this.type, this.options.schema(this.type, this.name), strip ? '' : this.description, []];
     if (this.isCompound()) {
-      const fields: Array<SchemaSimpleEnumField|SchemaSimpleGenField> = (this.fields || []).map(f => f.schema(strip));
-      return [...rtn, fields] as SchemaSimpleComplexType;
+      rtn[4] = (this.fields || []).map(f => f.schema(strip));
     }
     return rtn;
   }
@@ -245,32 +247,26 @@ class DefinitionBase extends BaseModel {
   // Helper Functions
   /**
     * Determine if the type is a JADN builtin type
-    * @param {string} vtype - Type to check as a built in
     * @return {boolean} is builtin type
     */
-   isBuiltin(vtype?: string): boolean {
-    vtype = vtype || this.baseType;  // eslint-disable-line no-param-reassign
-    return this.isPrimitive(vtype) || this.isStructure(vtype);
+  isBuiltin(): boolean {
+    return isBuiltin(this.baseType);
   }
 
   /**
     * Determine if the given type is a JADN builtin primitive
-    * @param {string} vtype - Type to check as a primitive
     * @return {boolean} is builtin primitive
     */
-  isPrimitive(vtype?: string): boolean {
-    vtype = vtype || this.baseType;  // eslint-disable-line no-param-reassign
-    return this.jadnTypes.Simple.includes(vtype);
+  isPrimitive(): boolean {
+    return isPrimitive(this.baseType);
   }
 
   /**
     * Determine if the given type is a JADN builtin structure
-    * @param {string} vtype - Type to check as a structure
     * @return {boolean} is builtin structure
     */
-   isStructure(vtype?: string): boolean {
-    vtype = vtype || this.baseType;  // eslint-disable-line no-param-reassign
-    return this.jadnTypes.Compound.includes(vtype) || this.jadnTypes.Selector.includes(vtype);
+   isStructure(): boolean {
+    return isStructure(this.baseType);
   }
 
   /**
@@ -278,9 +274,8 @@ class DefinitionBase extends BaseModel {
     * @param {string} vtype - Type to check as a compound
     * @return {boolean} is builtin cpmpound
     */
-   isCompound(vtype?: string): boolean {
-    vtype = vtype || this.baseType;  // eslint-disable-line no-param-reassign
-    return ['Array', 'Choice', 'Enumerated', 'Map', 'Record'].includes(vtype);
+   isCompound(): boolean {
+    return isCompound(this.baseType);
   }
 
   /**
@@ -316,12 +311,12 @@ class DefinitionBase extends BaseModel {
         return def;
       }
 
-      const data: SchemaObjectComplexType = {
+      const data: SchemaObjectType = {
         name: `Enum-${def.name}`,
         type: 'Enumerated',
         options: new Options(),
         description: `Derived Enumerated from ${def.name}`,
-        fields: (def.fields || []).map(f => (f as Field).enumField() )
+        fields: def.fields.map(f => (f as Field).enumField() )
       };
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       return new EnumeratedDef(data, {_config: def._config});

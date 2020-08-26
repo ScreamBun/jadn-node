@@ -1,7 +1,6 @@
 // JADN ArrayOf Structure
 import DefinitionBase from './base';
 import { SchemaObjectType, SchemaSimpleType } from './interfaces';
-import { Field } from '../fields';
 import { SchemaError, ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';
 
@@ -12,8 +11,6 @@ import { safeGet } from '../../utils';
   * @extend DefinitionBase
   */
 class ArrayOfDef extends DefinitionBase {
-  fields: Array<Field>
-
   /**
     * Create a ArrayOfDef Definition
     * @param {SchemaObjectType|SchemaSimpleType|ArrayOfDef} data - Base data
@@ -22,7 +19,7 @@ class ArrayOfDef extends DefinitionBase {
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(data: SchemaObjectType|SchemaSimpleType|ArrayOfDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []) as Array<Field>;
+    this.fields = [];
   }
 
   /**
@@ -38,7 +35,7 @@ class ArrayOfDef extends DefinitionBase {
     const keyCount = Object.keys(inst).length;
     const minKeys = this.options.get('minv', 0) as number;
     let maxKeys = this.options.get('maxv', 0) as number;
-    maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
+    maxKeys = maxKeys <= 0 ? config.info.config.MaxElements : maxKeys;
 
     if (minKeys > keyCount) {
       errors.push(new ValidationError(`${this.toString()} - minimum field count not met; min of ${minKeys}, given ${keyCount}`));

@@ -9,7 +9,7 @@ import {
   DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../../schema/definitions';
 import { Field, EnumeratedField } from '../../../../schema/fields';
-import { Config } from '../../../../schema/meta';
+import { Config } from '../../../../schema/info';
 import Options from '../../../../schema/options';
 import { safeGet, hasProperty } from '../../../../utils';
 
@@ -61,10 +61,10 @@ class JADNtoHTML extends WriterBase {
     const styles = safeGet(args, 'styles', '') as string;
 
     const html = baseTemplate({
-      module: this.meta.get('module', 'JADN Schema Convert') as string,
-      version: this.meta.get('version', '0.0') as string,
+      module: this.info.get('module', 'JADN Schema Convert') as string,
+      version: this.info.get('version', '0.0') as string,
       styles: this._loadStyles(styles),
-      meta: this.makeHeader(),
+      info: this.makeHeader(),
       structures: this.makeStructures()
     });
 
@@ -91,13 +91,16 @@ class JADNtoHTML extends WriterBase {
     };
 
     return headerTemplate({
-      title: this.meta.title || '',
-      module: this.meta.module,
-      patch: this.meta.patch || '',
-      description: this.meta.description || '',
-      exports: (this.meta.exports || []).join(', '),
-      imports: mkRow(this.meta.imports),
-      config: mkRow(this.meta.config)
+      title: this.info.title || '',
+      module: this.info.module,
+      version: this.info.version || '',
+      description: this.info.description || '',
+      comment: this.info.comment || '',
+      copyright: this.info.copyright || '',
+      license: this.info.license || '',
+      exports: (this.info.exports || []).join(', '),
+      imports: mkRow(this.info.imports),
+      config: mkRow(this.info.config)
     });
   }
 
@@ -411,6 +414,8 @@ class JADNtoHTML extends WriterBase {
         fieldRow.push(cell);
       } else if (columnName === 'options' && cell instanceof Options) {
         fieldRow.push(cell.multiplicity(1, 1, true));
+      } else {
+        fieldRow.push(`${cell as number|string}`);
       }
     });
     return fieldRow;

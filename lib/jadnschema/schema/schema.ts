@@ -6,13 +6,14 @@ import pluralize from 'pluralize';
 import BaseModel, { initModel } from './base';
 import { DefinitionBase } from './definitions';
 import ValidationFormats from './formats';
-import Meta from './meta';
+import Info from './info';
 import Options, { EnumId } from './options';
 import { SchemaJADN, SchemaSimpleJADN, SchemaObjectJADN } from './interfaces';
 import {
-  SchemaSimpleEnumField, SchemaSimpleGenField, SchemaSimpleType, SchemaSimpleComplexType,
-  SchemaObjectGenField, SchemaObjectEnumField, SchemaObjectType, SchemaObjectComplexType
+  SchemaSimpleType,
+  SchemaObjectGenField, SchemaObjectEnumField, SchemaObjectType, SchemaObjectField, SchemaSimpleField
 } from './definitions/interfaces';
+import { JADNTypes } from './definitions/utils';
 import { FormatError, SchemaError, ValidationError } from '../exceptions';
 import {
   capitalize, cloneObject, flattenArray, mergeArrayObjects, objectValues, prettyObject, safeGet, zip
@@ -25,11 +26,11 @@ export type UnsignedValidator = (n: number, val: number|string) => Array<Error>;
 
 class Schema extends BaseModel {
   // Fields Variables
-  meta: Meta;
+  info: Info;
   types: Record<string, DefinitionBase>;
 
   // Helper Variables
-  slots: Array<string> = ['meta', 'types'];
+  slots: Array<string> = ['info', 'types'];
   derived: Record<string, DefinitionBase>;
   protected schemaTypes: Set<string>;
   protected validators: Record<string, GeneralValidator|UnsignedValidator> = ValidationFormats;
@@ -49,7 +50,7 @@ class Schema extends BaseModel {
   constructor(schema?: SchemaSimpleJADN|Schema, kwargs?: Record<string, any> ) {
     super({}, kwargs);
     // Fields Variables
-    this.meta = safeGet(this, 'meta', new Meta()) as Meta;
+    this.info = safeGet(this, 'info', new Info()) as Info;
     this.types = safeGet(this, 'types', {}) as Record<string, DefinitionBase>;
 
     // Helper Variables
@@ -63,7 +64,7 @@ class Schema extends BaseModel {
 
   toString(): string {
     const value = {
-      meta: this.meta,
+      info: this.info,
       types: this.types
     };
     return `Schema ${prettyObject(value)}`;
@@ -85,13 +86,13 @@ class Schema extends BaseModel {
     const typeDeps = this.dependencies();
     const refs = new Set([
       ...objectValues(typeDeps).reduce((acc: Array<string>, val: Set<string>) => [...acc, ...val], []),
-      ...this.meta.get('exports', []) as Array<string>
+      ...this.info.get('exports', []) as Array<string>
     ]);
     const types = new Set([...Object.keys(typeDeps), ...Object.keys(this.derived)]);
 
     return {
-      module: `${this.meta.get('module', '') as string}${this.meta.get('patch', '') as string}`,
-      exports: this.meta.get('exports', []) as Array<string>,
+      module: `${this.info.get('module', '') as string}${this.info.get('version', '') as string}`,
+      exports: this.info.get('exports', []) as Array<string>,
       unreferenced: [...types].filter(d => !refs.has(d)).filter(d => !Object.keys(this.derived).includes(d)),
       undefined: [...refs].filter(d => !types.has(d))
     };
@@ -102,7 +103,7 @@ class Schema extends BaseModel {
     * @return {Record<string, Set<string>>} record of dependencies
     */
   dependencies(): Record<string, Set<string>> {
-    const nsids = Object.keys(this.meta.get('imports', {}));
+    const nsids = Object.keys(this.info.get('imports', {}));
     const typeDeps = mergeArrayObjects(
       ...nsids.map((imp: string) => ({[imp]: new Set<string>() }))
     );
@@ -132,16 +133,16 @@ class Schema extends BaseModel {
   schema(strip?: boolean): SchemaSimpleJADN {
     strip = typeof strip === 'boolean' ? strip : false; // eslint-disable-line no-param-reassign
     const typeKeys = Object.keys(this.types);
-    const schemaTypes: Array<SchemaSimpleType|SchemaSimpleComplexType> = [
+    const schemaTypes: Array<SchemaSimpleType> = [
       ...this.definitionOrder.map(def => {
         return typeKeys.includes(def) ? this.types[def].schema(strip) : [];
-      }) as Array<SchemaSimpleType|SchemaSimpleComplexType>,
+      }) as Array<SchemaSimpleType>,
       ...typeKeys.map(def => {
         return this.definitionOrder.includes(def) ? [] : this.types[def].schema(strip);
-      }) as Array<SchemaSimpleType|SchemaSimpleComplexType>
+      }) as Array<SchemaSimpleType>
     ].filter(d => d.length > 1);
     return {
-      meta: this.meta.schema(),
+      info: this.info.schema(),
       types: schemaTypes
     };
   }
@@ -177,22 +178,23 @@ class Schema extends BaseModel {
     mapOf = typeof mapOf === 'boolean' ? mapOf : true; // eslint-disable-line no-param-reassign
 
     const removeAnonymousType = (sch: SchemaObjectJADN): SchemaObjectJADN => {
-      const newTypes: Array<SchemaObjectType|SchemaObjectComplexType> = [];
+      const newTypes: Array<SchemaObjectType> = [];
       // eslint-disable-next-line no-param-reassign
-      sch.types = (sch.types || []).map((td: SchemaObjectType|SchemaObjectComplexType) => {
-        const typeDef: SchemaObjectType|SchemaObjectComplexType = { ...td };
+      sch.types = sch.types.map(td => {
+        const typeDef: SchemaObjectType = { ...td };
         if ('fields' in typeDef) {
           typeDef.fields = (typeDef.fields || []).map((fd: SchemaObjectGenField|SchemaObjectEnumField) => {
             const fieldDef: SchemaObjectGenField|SchemaObjectEnumField = { ...fd };
             if ('options' in fieldDef) {
               const [fieldOpts, typeOpts] = fieldDef.options.split();
               if (Object.keys(typeOpts.object()).length > 0) {
-                const newName = `${fieldDef.type}${this.meta.config.Sys}${fieldDef.name}`.replace('_', '-');
+                const newName = `${fieldDef.type}${this.info.config.Sys}${fieldDef.name}`.replace('_', '-');
                 newTypes.push({
                   name: newName,
                   type: fieldDef.type,
                   options: typeOpts,
-                  description: fieldDef.description
+                  description: fieldDef.description,
+                  fields: []
                 });
                 fieldDef.type = newName;
                 fieldDef.options = fieldOpts;
@@ -210,8 +212,8 @@ class Schema extends BaseModel {
     const removeMultiplicity = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType> = [];
       // eslint-disable-next-line no-param-reassign
-      sch.types = (sch.types || []).map((td: SchemaObjectType|SchemaObjectComplexType) => {
-        const typeDef: SchemaObjectType|SchemaObjectComplexType = { ...td };
+      sch.types = sch.types.map(td => {
+        const typeDef: SchemaObjectType = { ...td };
         if ('fields' in typeDef) {
           typeDef.fields = (typeDef.fields || []).map((fd: SchemaObjectGenField|SchemaObjectEnumField) => {
             const fieldDef: SchemaObjectGenField|SchemaObjectEnumField = { ...fd };
@@ -238,7 +240,8 @@ class Schema extends BaseModel {
                     name: newName,
                     type: 'ArrayOf',
                     options: typeOpts,
-                    description: fieldDef.description
+                    description: fieldDef.description,
+                    fields: []
                   });
                   fieldDef.type = newName;
                   fieldDef.options = fieldOpts;
@@ -255,7 +258,7 @@ class Schema extends BaseModel {
     };
 
     const removeDerivedEnum = (sch: SchemaObjectJADN): SchemaObjectJADN => {
-      const newTypes: Array<SchemaObjectType|SchemaObjectComplexType> = [];
+      const newTypes: Array<SchemaObjectType> = [];
       const derivable = ['ArrayOf', 'Enumerated', 'MapOf'];
       const optChecks: Record<string, (v: string) => boolean> = {
         enum: () => true,
@@ -264,8 +267,8 @@ class Schema extends BaseModel {
       };
 
       // eslint-disable-next-line no-param-reassign
-      sch.types = (sch.types || []).map((td: SchemaObjectType|SchemaObjectComplexType) => {
-        const typeDef: SchemaObjectType|SchemaObjectComplexType = { ...td };
+      sch.types = (sch.types || []).map((td: SchemaObjectType) => {
+        const typeDef: SchemaObjectType = { ...td };
         if (derivable.includes(typeDef.type)) {
           Object.keys(optChecks).forEach((optName: string) => {
             const optCheck = optChecks[optName];
@@ -273,19 +276,19 @@ class Schema extends BaseModel {
 
             if (opt && optCheck(opt)) {
               opt = opt.startsWith(EnumId) ? opt.substring(1) : opt;
-              const origTypes: Array<SchemaObjectType|SchemaObjectComplexType> = sch.types.filter(t => t.name === opt);
+              const origTypes: Array<SchemaObjectType> = sch.types.filter(t => t.name === opt);
               if (origTypes.length !== 1) {
                 throw new TypeError(`Type of ${opt} does not exist within the schema`);
               }
-              const origType = origTypes[0] as SchemaObjectComplexType;
-              const newName = `${opt}${this.meta.config.Sys}Enum`.replace('_', '-');
+              const origType = origTypes[0] as SchemaObjectType;
+              const newName = `${opt}${this.info.config.Sys}Enum`.replace('_', '-');
               if (sch.types.filter(t => t.name === newName).length === 0 && newTypes.filter(t => t.name === newName).length) {
                 newTypes.push({
                   name: newName,
                   type: 'Enumerated',
                   options: new Options(),
                   description: `Derived enumeration of ${opt}`,
-                  fields: (origType.fields || []).map(f => {
+                  fields: origType.fields.map(f => {
                     f = f as SchemaObjectGenField;  // eslint-disable-line no-param-reassign
                     return {id: f.id, value: f.name, description: f.description} as SchemaObjectEnumField;
                   })
@@ -304,9 +307,9 @@ class Schema extends BaseModel {
     };
 
     const removeMapOfEnum = (sch: SchemaObjectJADN): SchemaObjectJADN => {
-      sch.types = (sch.types || []).map((typeDef: SchemaObjectType|SchemaObjectComplexType) => {  // eslint-disable-line no-param-reassign
+      sch.types = sch.types.map(typeDef => {  // eslint-disable-line no-param-reassign
         if (typeDef.type === 'MapOf') {
-          const td = {...typeDef, fields: []} as SchemaObjectComplexType;
+          const td = {...typeDef, fields: []} as SchemaObjectType;
           const keyType = (sch.types || []).filter(t => t.name === td.options.ktype);
           const valueType = td.options.vtype;
           if (keyType.length !== 1) {
@@ -317,7 +320,7 @@ class Schema extends BaseModel {
             td.type = 'Map';
             delete td.options.ktype;
             delete td.options.vtype;
-            td.fields = (keyType[0] as SchemaObjectComplexType).fields.map(f => {
+            td.fields = (keyType[0] as SchemaObjectType).fields.map(f => {
               return {
                 id: f.id,
                 name: safeGet(f, 'value', 'NAME') as string,
@@ -415,7 +418,7 @@ class Schema extends BaseModel {
     const errors: Array<Error> = [];
     // const schemaTypes: ReadonlySet<string> = this.schemaTypes;
 
-    if (Object.keys(this.meta).length < 2 || Object.keys(this.types).length === 0) {
+    if (Object.keys(this.info).length < 2 || Object.keys(this.types).length === 0) {
       const err = new SchemaError('Schema not properly defined');
       if (silent) {
         return [err];
@@ -451,7 +454,7 @@ class Schema extends BaseModel {
     silent = silent || true; // eslint-disable-line no-param-reassign
     const errors: Array<Error> = [];
 
-    const exports: Array<string> = this.meta.exports || [];
+    const exports: Array<string> = this.info.exports || [];
     // eslint-disable-next-line guard-for-in, no-restricted-syntax, @typescript-eslint/no-for-in-array
     for (const exp of exports) {
       const rtn = this.validateAs(inst, exp);
@@ -476,7 +479,7 @@ class Schema extends BaseModel {
    */
   validateAs(inst: Record<string, any>, type: string, silent? : boolean): Array<Error> {  // eslint-disable-line @typescript-eslint/no-explicit-any
     silent = silent || true; // eslint-disable-line no-param-reassign
-    const exports: Array<string> = this.meta.exports || [];
+    const exports: Array<string> = this.info.exports || [];
     const errors: Array<Error> = [];
 
     if (exports.includes(type)) {
@@ -510,7 +513,7 @@ class Schema extends BaseModel {
     if ( typeof data !== 'object' || typeof data !== typeof this) {
       throw new SchemaError('Cannot load schema, incorrect type');
     }
-    this.meta = new Meta(safeGet(data, 'meta', {}));
+    this.info = new Info(safeGet(data, 'info', {}));
 
     const simpleSchema: SchemaSimpleJADN = data instanceof Schema ? data.schema() : data;
     // eslint-disable-next-line no-param-reassign
@@ -525,7 +528,7 @@ class Schema extends BaseModel {
     this.setProperties(values);
 
     // update Schema Types
-    this.schemaTypes = new Set(flattenArray(objectValues(this.jadnTypes)));
+    this.schemaTypes = new Set(flattenArray(objectValues(JADNTypes)));
 
     Object.keys(this.types).forEach((typeName: string) => {
       const typeDef: DefinitionBase = this.types[typeName];
@@ -613,8 +616,8 @@ class Schema extends BaseModel {
     function toSimple(complexSchema: SchemaObjectJADN): SchemaSimpleJADN {
       // Convert Record types to Array
       return {
-        meta: complexSchema.meta,
-        types: complexSchema.types.map((td: SchemaObjectType|SchemaObjectComplexType) => {
+        info: complexSchema.info,
+        types: complexSchema.types.map(td => {
           const simpleDef = [td.name, td.type, td.options.schema(td.type, td.name, false), td.description];
           // Convert fields if exists
           if ('fields' in td) {
@@ -629,8 +632,8 @@ class Schema extends BaseModel {
                 ...field,
                 ...opts
               });
-            }) as (SchemaSimpleGenField|SchemaSimpleEnumField)[];
-            return [...simpleDef, fields] as SchemaSimpleComplexType;
+            }) as Array<SchemaSimpleField>;
+            return [...simpleDef, fields] as SchemaSimpleType;
           }
           return simpleDef as SchemaSimpleType;
         })
@@ -640,8 +643,8 @@ class Schema extends BaseModel {
     function toComplex(simpleSchema: SchemaSimpleJADN): SchemaObjectJADN {
       // Convert Array types to Record
       return {
-        meta: simpleSchema.meta,
-        types: simpleSchema.types.map((td: SchemaSimpleType|SchemaSimpleComplexType) => {
+        info: simpleSchema.info,
+        types: simpleSchema.types.map(td => {
           const zipType = zip(typeKeys, td);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const objType: Record<string, any> = {
@@ -655,14 +658,14 @@ class Schema extends BaseModel {
           if ('fields' in zipType) {
             const fieldKeys = objType.type === 'Enumerated' ? enumFieldKeys : genFieldKeys;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            objType.fields = zipType.fields.map((f: SchemaSimpleEnumField|SchemaSimpleGenField) => {
+            objType.fields = zipType.fields.map((f: SchemaSimpleField) => {
               const zipField = zip(fieldKeys, f);
               if ('options' in zipField) {
                 zipField.options = new Options(zipField.options);
               }
-              return zipField as SchemaObjectGenField|SchemaObjectEnumField;
+              return zipField as SchemaObjectField;
             });
-            return objType as SchemaObjectComplexType;
+            return objType as SchemaObjectType;
           }
           return objType as SchemaObjectType;
         })

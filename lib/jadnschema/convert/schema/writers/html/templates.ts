@@ -5,7 +5,7 @@ export interface BaseProps {
   module?: string;
   version?: string;
   styles?: string;
-  meta: string;
+  info: string;
   structures: string;
 }
 
@@ -26,7 +26,7 @@ export function baseTemplate(props: BaseProps): string {
     <body>
       <div id="schema">
         <h1>Schema</h1>
-        <div id="meta">${ props.meta }</div>
+        <div id="info">${ props.info }</div>
         <div id="types">${ props.structures }</div>
       </div>
     </body>
@@ -36,8 +36,11 @@ export function baseTemplate(props: BaseProps): string {
 export interface HeaderProps {
   title?: string;
   module: string;
-  patch?: string;
+  version?: string;
   description?: string;
+  comment?: string;
+  copyright?: string;
+  license?: string;
   exports?: string;
   imports?: string;
   config?: string;

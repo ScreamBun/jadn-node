@@ -39,7 +39,7 @@ class MapDef extends DefinitionBase {
     const keyCount = Object.keys(inst).length;
     const minKeys = this.options.get('minv', 0) as number;
     let maxKeys = this.options.get('maxv', 0) as number;
-    maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
+    maxKeys = maxKeys <= 0 ? config.info.config.MaxElements : maxKeys;
 
     const fields = this.fields.map(f => f.name);
     const extraFields = Object.keys(inst).filter(f => !fields.includes(f));

@@ -7,7 +7,7 @@ import {
   DefinitionBase, ArrayDef,  ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';
 import { EnumeratedField, Field } from '../../../schema/fields';
-import { Config } from '../../../schema/meta';
+import { Config } from '../../../schema/info';
 import Options from '../../../schema/options';
 import { hasProperty, objectValues, safeGet } from '../../../utils';
 
@@ -15,7 +15,7 @@ import { hasProperty, objectValues, safeGet } from '../../../utils';
 type Args = Record<string, any>
 
 
-class JADNtoJADN extends WriterBase {
+class JADNtoMarkDown extends WriterBase {
   format = 'md';
 
   /**
@@ -87,17 +87,17 @@ class JADNtoJADN extends WriterBase {
       return v || '';
     };
 
-    const metaTable = this._makeTable(
+    const infoTable = this._makeTable(
       {
       '.': 'r',
       '..': ''
       },
-        this.metaOrder.map(k => ({
+        this.infoOrder.map(k => ({
         '.': `**${k}:**`,
-        '..': mkRow(this.meta.get(k))
+        '..': mkRow(this.info.get(k))
       })).filter(idx => idx['..'] !== '')
     ).replace(' .. ', ' .  ');
-    return `## Schema\n${metaTable}\n`;
+    return `## Schema\n${infoTable}\n`;
   }
 
   // Structure Formats
@@ -342,4 +342,4 @@ class JADNtoJADN extends WriterBase {
   }
 }
 
-export default JADNtoJADN;
+export default JADNtoMarkDown;

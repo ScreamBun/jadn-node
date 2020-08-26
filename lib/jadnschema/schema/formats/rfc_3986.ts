@@ -1,6 +1,7 @@
 /*
  * JADN RFC3987 Formats
  */
+import Url from 'url-parse';
 import { URL_3986 } from './constants';
 import { ValidationError } from '../../exceptions';
 
@@ -17,7 +18,7 @@ import { ValidationError } from '../../exceptions';
 
   const errors: Array<Error> = [];
   try {
-    const result = new URL(val);
+    const result = new Url(val);
     if (![result.protocol, result.href, result.pathname].every(p => p !== null) || urlMatch) {
         errors.push(new TypeError('URI given is not expected valid'));
     }

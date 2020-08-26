@@ -5,7 +5,7 @@ import { CommentLevels } from '../enums';
 import { SchemaError } from '../../../exceptions';
 import { Schema } from '../../../schema';
 import { DefinitionBase } from '../../../schema/definitions';
-import Meta from '../../../schema/meta';
+import Info from '../../../schema/info';
 import Options from '../../../schema/options';
 import {
   hasProperty, mergeArrayObjects, objectValues, safeGet
@@ -31,7 +31,7 @@ class WriterBase {
   'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Version', 'Versions',
   'Namespace', 'Profiles', 'Rate-Limit', 'Command-ID'];
   protected indent: string = ' '.repeat(2);
-  protected metaOrder: Array<string> = ['title', 'module', 'patch', 'description', 'exports', 'imports', 'config'];
+  protected infoOrder: Array<string> = ['title', 'module', 'version', 'description', 'comment', 'copyright', 'license', 'exports', 'imports', 'config'];
   protected titleOverrides: Record<string, string> = {
     Addr: 'Address',
     IDN: 'Internationalized',
@@ -51,7 +51,7 @@ class WriterBase {
   // Helper Vars
   protected comments: CommentLevels = CommentLevels.ALL;
   protected schema: Schema
-  protected meta: Meta
+  protected info: Info
   protected imports: Record<string, string>
   protected types: Array<DefinitionBase>
   protected customFields: Record<string, string>
@@ -74,13 +74,13 @@ class WriterBase {
     } else {
       throw new SchemaError('Schema is not proper type');
     }
-    if (comments !== null && comments !== undefined) {
-      this.comments = comments in CommentLevels ? comments : CommentLevels.ALL;
+    if (comments !== undefined) {
+      this.comments = Object.values(CommentLevels).includes(comments) ? comments : CommentLevels.ALL;
     }
 
     // Helper Vars
-    this.meta = this.schema.meta;
-    this.imports = this.meta.get('imports', {}) as Record<string, string>;
+    this.info = this.schema.info;
+    this.imports = this.info.get('imports', {}) as Record<string, string>;
     this.types = objectValues(this.schema.types);
     this.customFields = mergeArrayObjects( ...this.types.map(t => ({ [t.name]: t.type}) ));
   }

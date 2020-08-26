@@ -1,14 +1,14 @@
 /* eslint max-classes-per-file: 0 */
 // JADN Config
 import BaseModel from './base';
-import { SchemaMetaJADN } from './interfaces';
+import { SchemaInfoJADN } from './interfaces';
 import { ValidationError } from '../exceptions';
 import {
   hasProperty, objectFromTuple, prettyObject, safeGet
 } from '../utils';
 
 /**
- * Class representing JADN Schema's Meta-Config
+ * Class representing JADN Schema's Info-Config
  * @extends BaseModel
  */
 class Config extends BaseModel {
@@ -58,7 +58,7 @@ class Config extends BaseModel {
 
   /**
     * Format this config into valid JADN format
-    * @returns {Record<string, string>} JADN formatted meta
+    * @returns {Record<string, string>} JADN formatted config
     */
   schema(): Record<string, string> {
     return objectFromTuple(
@@ -162,30 +162,33 @@ class Config extends BaseModel {
 }
 
 /**
- * Class representing JADN Schema's Meta information
+ * Class representing JADN Schema's Info
  * @extends BaseModel
  */
-class Meta extends BaseModel {
-  // Meta Values
+class Info extends BaseModel {
+  // Info Values
   module: string;
-  patch?: string;
+  version?: string;
   title?: string;
   description?: string;
+  comment?: string;
+  copyright?: string;
+  license?: string;
   imports?: Record<string, string>;
   exports?: Array<string>;
   config: Config;
 
   // Helper Variables
-  slots: Array<string> = ['module', 'patch', 'title', 'description', 'imports', 'exports', 'config'];
+  slots: Array<string> = ['module', 'version', 'title', 'description', 'comment', 'copyright', 'license', 'imports', 'exports', 'config'];
   private configSet: boolean;
 
   /**
-    * Initialize a Meta object
-    * @param {SchemaMetaJADN|Meta} schema - The JADN meta to utilize
+    * Initialize an Info object
+    * @param {SchemaInfoJADN|Info} schema - The JADN meta to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
-  constructor(data?: SchemaMetaJADN|Meta, kwargs?: Record<string, any> ) {
+  constructor(data?: SchemaInfoJADN|Info, kwargs?: Record<string, any> ) {
     super(data, kwargs);
     const keys = Object.keys(data || {});
 
@@ -203,35 +206,32 @@ class Meta extends BaseModel {
         return hasProperty(this, k) ? [k, safeGet(this, k) ] : [];
       })
     );
-    return `Meta ${prettyObject(value)}`;
+    return `Info ${prettyObject(value)}`;
   }
 
   /**
     * Initialize the date for the class
-    * @param {SchemaMetaJADN|Meta} data - The meta data to validate
-    * @return {SchemaMetaJADN} - validated data
+    * @param {SchemaInfoJADN|Info} data - The meta data to validate
+    * @return {SchemaInfoJADN} - validated data
     */
-  initData(data?: SchemaMetaJADN|Meta): SchemaMetaJADN {
-    let d: SchemaMetaJADN;
-    if (typeof data === 'object' && data instanceof Meta) {
+  initData(data?: SchemaInfoJADN|Info): SchemaInfoJADN {
+    let d: SchemaInfoJADN;
+    if (typeof data === 'object' && data instanceof Info) {
       d = data.schema(); // eslint-disable-line no-param-reassign
     } else {
-      d = data || {module: ''};
+      d = {
+        module: '',
+        ...data
+      };
     }
     if (!('module' in d)) {
-      throw new ValidationError('Meta property \'module\' is required');
+      throw new ValidationError('Info property \'module\' is required');
     }
     Object.keys(d).forEach(key => {
       // const val = d[key];
       switch (key) {
         case 'module':
         // TODO: URL Validation
-        case 'patch':
-        case 'title':
-        case 'description':
-        case 'imports':
-        case 'exports':
-        case 'config':
         default:
           break;
       }
@@ -240,17 +240,17 @@ class Meta extends BaseModel {
   }
 
    /**
-    * Format this meta into valid JADN format
-    * @returns {SchemaMetaJADN} JADN formatted meta
+    * Format this info into valid JADN format
+    * @returns {SchemaInfoJADN} JADN formatted info
     */
-  schema(): SchemaMetaJADN {
+  schema(): SchemaInfoJADN {
     const tmp = objectFromTuple(
       ...this.slots.map<[string, any]|[]>(k => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const v = safeGet(this, k);
         return v ? [k, v ] : [];
       })
-    ) as SchemaMetaJADN;
+    ) as SchemaInfoJADN;
 
     if (this.configSet) {
       if ('config' in tmp) {
@@ -263,7 +263,7 @@ class Meta extends BaseModel {
   }
 }
 
-export default Meta;
+export default Info;
 export {
   Config
 };

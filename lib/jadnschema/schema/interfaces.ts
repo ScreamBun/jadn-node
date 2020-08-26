@@ -1,28 +1,31 @@
 // JADN Interfaces
  import {
-  SchemaSimpleType, SchemaSimpleComplexType, SchemaObjectType, SchemaObjectComplexType
+  SchemaSimpleType, SchemaObjectType
  } from './definitions/interfaces';
 
 // Schema Definitions
-export interface SchemaMetaJADN {
+export interface SchemaInfoJADN {
   module: string;
-  patch?: string;
+  version?: string;
   title?: string;
   description?: string;
+  comment?: string;
+  copyright?: string;
+  license?: string;
   imports?: Record<string, string>;
   exports?: Array<string>;
   config?: Record<string, number|string>;
 }
 
 export interface SchemaJADN {
-  meta: SchemaMetaJADN;
-  types: Array<SchemaSimpleType|SchemaSimpleComplexType|SchemaObjectType|SchemaObjectComplexType>;
+  info?: SchemaInfoJADN;
+  types: Array<SchemaSimpleType|SchemaObjectType>;
 }
 
 export interface SchemaSimpleJADN extends SchemaJADN {
-  types: Array<SchemaSimpleType|SchemaSimpleComplexType>;
+  types: Array<SchemaSimpleType>;
 }
 
 export interface SchemaObjectJADN extends SchemaJADN {
-  types: Array<SchemaObjectType|SchemaObjectComplexType>;
+  types: Array<SchemaObjectType>;
 }

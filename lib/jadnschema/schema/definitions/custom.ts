@@ -11,8 +11,6 @@ import { safeGet } from '../../utils';
   * @extend DefinitionBase
   */
 class CustomDef extends DefinitionBase {
-  fields: undefined
-
   /**
     * Create a Enumerated Definition
     * @param {SchemaObjectType|SchemaSimpleType|CustomDef} data - Base data
@@ -21,7 +19,7 @@ class CustomDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|CustomDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = undefined;
+    this.fields = [];
   }
 
   toString(): string {
@@ -68,7 +66,7 @@ class CustomDef extends DefinitionBase {
       const instLen = (inst as string).length;
       const minLen = safeGet(this.options, 'minv', 0) as number;
       let maxLen = safeGet(this.options, 'maxv', 0) as number;
-      maxLen = maxLen <= 0 ? safeGet(config.meta.config, `Max${this.type}`) as number : maxLen;
+      maxLen = maxLen <= 0 ? safeGet(config.info.config, `Max${this.type}`) as number : maxLen;
 
       if (minLen > instLen) {
         errors.push( new ValidationError(`${this.toString()} is invalid, minimum length of ${minLen} bytes/characters not met`));

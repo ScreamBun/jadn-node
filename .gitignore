@@ -370,7 +370,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # Test Files
-tests/schema_gen
+tests/
 
 # Docs
 docs-html

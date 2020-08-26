@@ -1,7 +1,6 @@
 // JADN MapOf Structure
 import DefinitionBase from './base';
 import { SchemaObjectType, SchemaSimpleType } from './interfaces';
-import { Field } from '../fields';
 import { ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';
 
@@ -12,8 +11,6 @@ import { safeGet } from '../../utils';
   * @extend DefinitionBase
   */
 class MapOfDef extends DefinitionBase {
-  fields: Array<Field>
-
   /**
     * Create a MapOf Definition
     * @param {SchemaObjectType|SchemaSimpleType|MapOfDef} data - Base data
@@ -22,7 +19,7 @@ class MapOfDef extends DefinitionBase {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(data: SchemaObjectType|SchemaSimpleType|MapOfDef, kwargs?: Record<string, any>) {
     super(data, kwargs);
-    this.fields = safeGet(this, 'fields', []) as Array<Field>;
+    this.fields = [];
   }
 
   /**
@@ -39,7 +36,7 @@ class MapOfDef extends DefinitionBase {
     const keyCount = Object.keys(inst).length;
     const minKeys = this.options.get('minv', 0) as number;
     let maxKeys = this.options.get('maxv', 0) as number;
-    maxKeys = maxKeys <= 0 ? config.meta.config.MaxElements : maxKeys;
+    maxKeys = maxKeys <= 0 ? config.info.config.MaxElements : maxKeys;
 
     const keyName = safeGet(this.options, 'ktype', '') as string;
     const keyCls = safeGet(config.types, keyName) as null|DefinitionBase;

@@ -3,6 +3,7 @@
 import { Schema } from '.';
 import { SchemaSimpleJADN } from './interfaces';
 import { SchemaSimpleType } from './definitions/interfaces';
+import { JADNTypes } from './definitions/utils';
 import {
   flattenArray, hasProperty, objectFromTuple, objectValues, safeGet, zip
 } from '../utils';
@@ -34,11 +35,11 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
 
   switch (modelClass) {
     case 'Schema':
-      if ('meta' in data && typeof data.meta === 'object') {
+      if ('info' in data && typeof data.info === 'object') {
         // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
-        const Meta = require('./meta').default;
+        const Info = require('./info').default;
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        data.meta = new Meta(data.meta);
+        data.info = new Info(data.info);
       }
 
       if ('types' in data && typeof data.types === 'object' && Array.isArray(data.types)) {
@@ -51,10 +52,10 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
         );
       }
       break;
-    case 'Meta':
+    case 'Info':
       if ('config' in data && typeof data.config === 'object') {
         // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
-        const { Config } = require('./meta');
+        const { Config } = require('./info');
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         data.config = new Config(data.config);
       }
@@ -102,41 +103,7 @@ class BaseModel {
 
   // Helper Variables
   protected _config = () => new Schema();
-  protected readonly jadnTypes = {
-    Simple: [
-      // Sequence of octets.Length is the number of octets
-      'Binary',
-      // Element with one of two values: true or false
-      'Boolean',
-      // Positive or negative whole number
-      'Integer',
-      // Real number
-      'Number',
-      // Unspecified or non - existent value
-      'Null',
-      // Sequence of characters, each of which has a Unicode codepoint.Length is the number of characters
-      'String'
-      ],
-    Selector: [
-      // One key and value selected from a set of named or labeled fields.The key has an id and name or label, and is mapped to a type
-      'Choice',
-      // One value selected from a set of named or labeled integers
-      'Enumerated'
-    ],
-    Compound: [
-      // Ordered list of labeled fields with positionally - defined semantics.Each field has a position, label, and type
-      'Array',
-      // Ordered list of fields with the same semantics.Each field has a position and type vtype
-      'ArrayOf',
-      // Unordered map from a set of specified keys to values with semantics bound to each key.Each key has an id and name or label, and is mapped to a type
-      'Map',
-      // Unordered map from a set of keys of the same type to values with the same semantics.Each key has key type ktype, and is mapped to value type vtype
-      'MapOf',
-      // Ordered map from a list of keys with positions to values with positionally - defined semantics.Each key has a position and name, and is mapped to a type.Represents a row in a spreadsheet or database table
-      'Record'
-    ]
-  };
-  protected schemaTypes = new Set(flattenArray(objectValues(this.jadnTypes)));
+  protected schemaTypes = new Set(flattenArray(objectValues(JADNTypes)));
 
   /**
     * Create a Base Model

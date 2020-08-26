@@ -1,7 +1,5 @@
 /* eslint import/no-unresolved: off, import/no-self-import: off */
-require('@babel/register');
-import webpack from 'webpack';
-import path from 'path';
+const path = require('path');
 
 const NODE_ENV = 'production';
 const ROOT_DIR = path.join(__dirname, '..');
@@ -24,12 +22,6 @@ module.exports = {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
     modules: [SRC_DIR, 'node_modules']
   },
-  plugins: [
-    new webpack.EnvironmentPlugin({
-      NODE_ENV
-    }),
-    new webpack.NamedModulesPlugin()
-  ],
   optimization: {
     mergeDuplicateChunks: true,
     runtimeChunk: false,

@@ -5,5 +5,6 @@ export {
   // Message Conversion
   // message
   // Schema Conversion
+  // eslint-disable-next-line import/prefer-default-export
   schema
 };
