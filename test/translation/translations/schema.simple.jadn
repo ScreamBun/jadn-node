@@ -82,7 +82,8 @@
       [1, "versions", "ArrayOf$versions", [], "List of OpenC2 language versions supported by this Actuator"],
       [2, "profiles", "ArrayOf$profiles", [], "List of profiles supported by this Actuator"],
       [3, "pairs", "Action-Targets", [], "List of targets applicable to each supported Action"],
-      [4, "rate_limit", "Number", [], "Maximum number of requests per minute supported by design or policy"]
+      [4, "rate_limit", "Number", [], "Maximum number of requests per minute supported by design or policy"],
+      [5, "args", "ArrayOf$args", [], "List of supported Command Arguments"]
     ]],
     ["Artifact", "Record", ["{1"], "", [
       [1, "mime_type", "String", ["[0"], "Permitted values specified in the IANA Media Types registry, [[RFC6838]](#rfc6838)"],
@@ -199,6 +200,7 @@
     ["Version", "String", [], "Major.Minor version number", []],
     ["ArrayOf$versions", "ArrayOf", ["*Version", "{1"], "List of OpenC2 language versions supported by this Actuator", []],
     ["ArrayOf$profiles", "ArrayOf", ["*Nsid", "{0", "}1"], "List of profiles supported by this Actuator", []],
+    ["ArrayOf$args", "ArrayOf", ["*$Args", "{0"], "List of supported Command Arguments", []],
     ["Binary$md5", "Binary", ["/x"], "MD5 hash as defined in [RFC1321]", []],
     ["Binary$sha1", "Binary", ["/x"], "SHA1 hash as defined in [RFC6234]", []],
     ["Binary$sha256", "Binary", ["/x"], "SHA256 hash as defined in [RFC6234]", []]

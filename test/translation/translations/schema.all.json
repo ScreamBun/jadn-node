@@ -326,7 +326,8 @@
         "versions",
         "profiles",
         "pairs",
-        "rate_limit"
+        "rate_limit",
+        "args"
       ],
       "properties": {
         "versions": {
@@ -344,6 +345,10 @@
         "rate_limit": {
           "type": "number",
           "description": "Maximum number of requests per minute supported by design or policy"
+        },
+        "args": {
+          "$ref": "#/definitions/ArrayOf$args",
+          "description": "List of supported Command Arguments"
         }
       }
     },
@@ -833,6 +838,21 @@
       "maxItems": 1,
       "items": {
         "$ref": "#/definitions/Nsid"
+      }
+    },
+    "ArrayOf$args": {
+      "title": "ArrayOf$args",
+      "type": "array",
+      "description": "List of supported Command Arguments",
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "enum": [
+          "start_time",
+          "stop_time",
+          "duration",
+          "response_requested"
+        ]
       }
     },
     "Binary$md5": {

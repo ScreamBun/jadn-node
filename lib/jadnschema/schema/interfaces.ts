@@ -1,4 +1,5 @@
 // JADN Interfaces
+import Resolver from './resolver';
  import {
   SchemaSimpleType, SchemaObjectType
  } from './definitions/interfaces';
@@ -28,4 +29,9 @@ export interface SchemaSimpleJADN extends SchemaJADN {
 
 export interface SchemaObjectJADN extends SchemaJADN {
   types: Array<SchemaObjectType>;
+}
+
+export interface SchemaKwargs {
+  resolveDir?: string;
+  resolver?: Resolver;
 }

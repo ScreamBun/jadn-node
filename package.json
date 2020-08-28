@@ -1,6 +1,6 @@
 {
   "name": "jadnschema",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "",
   "author": "",
   "license": "ISC",
@@ -17,10 +17,7 @@
     "prepare": "npm run tsc",
     "prepublish": "npm run tsc",
     "prod": "tsc && node ./bin/jadnschema.js",
-    "test": "npm run test:translate && npm run test:validate",
-    "test:jest": "cross-env NODE_ENV=test jest",
-    "test:translate": "ts-node -r @babel/register ./tests/schema-translators.ts",
-    "test:validate": "ts-node -r @babel/register ./tests/schema-validator.ts",
+    "test": "cross-env NODE_ENV=test jest",
     "tsc": "npm run clean && tsc"
   },
   "dependencies": {

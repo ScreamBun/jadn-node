@@ -82,7 +82,8 @@
       [1, "versions", "ArrayOf$versions", [], ""],
       [2, "profiles", "ArrayOf$profiles", [], ""],
       [3, "pairs", "Action-Targets", [], ""],
-      [4, "rate_limit", "Number", [], ""]
+      [4, "rate_limit", "Number", [], ""],
+      [5, "args", "ArrayOf$args", [], ""]
     ]],
     ["Artifact", "Record", ["{1"], "", [
       [1, "mime_type", "String", ["[0"], ""],
@@ -178,6 +179,7 @@
     ["Version", "String", [], "", []],
     ["ArrayOf$versions", "ArrayOf", ["*Version", "{1"], "", []],
     ["ArrayOf$profiles", "ArrayOf", ["*Nsid", "{0", "}1"], "", []],
+    ["ArrayOf$args", "ArrayOf", ["*$Args", "{0"], "", []],
     ["Binary$md5", "Binary", ["/x"], "", []],
     ["Binary$sha1", "Binary", ["/x"], "", []],
     ["Binary$sha256", "Binary", ["/x"], "", []]

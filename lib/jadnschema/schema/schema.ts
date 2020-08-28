@@ -280,7 +280,7 @@ class Schema extends BaseModel {
               if (origTypes.length !== 1) {
                 throw new TypeError(`Type of ${opt} does not exist within the schema`);
               }
-              const origType = origTypes[0] as SchemaObjectType;
+              const origType = origTypes[0];
               const newName = `${opt}${this.info.config.Sys}Enum`.replace('_', '-');
               if (sch.types.filter(t => t.name === newName).length === 0 && newTypes.filter(t => t.name === newName).length) {
                 newTypes.push({
@@ -320,7 +320,7 @@ class Schema extends BaseModel {
             td.type = 'Map';
             delete td.options.ktype;
             delete td.options.vtype;
-            td.fields = (keyType[0] as SchemaObjectType).fields.map(f => {
+            td.fields = keyType[0].fields.map(f => {
               return {
                 id: f.id,
                 name: safeGet(f, 'value', 'NAME') as string,

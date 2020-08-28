@@ -108,6 +108,7 @@
 |  2 | **profiles**   | ArrayOf$profiles |  1 | List of profiles supported by this Actuator                         |
 |  3 | **pairs**      | Action-Targets   |  1 | List of targets applicable to each supported Action                 |
 |  4 | **rate_limit** | Number{0..*}     |  1 | Maximum number of requests per minute supported by design or policy |
+|  5 | **args**       | ArrayOf$args     |  1 | List of supported Command Arguments                                 |
 
 **_Type: Artifact (Record{1..*})_**
 
@@ -329,6 +330,11 @@
 | Type Name            | Type Definition     | Description                                 |
 | :------------------- | :------------------ | :------------------------------------------ |
 | **ArrayOf$profiles** | ArrayOf(Nsid){0..1} | List of profiles supported by this Actuator |
+
+
+| Type Name        | Type Definition | Description                         |
+| :--------------- | :-------------- | :---------------------------------- |
+| **ArrayOf$args** | ArrayOf($Args)  | List of supported Command Arguments |
 
 
 | Type Name      | Type Definition | Description                      |

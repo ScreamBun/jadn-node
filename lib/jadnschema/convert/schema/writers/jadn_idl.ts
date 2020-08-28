@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import { getBorderCharacters, table } from 'table';
 
 import WriterBase from './base';
-import { Field, EnumeratedField } from '../../../schema';
+import { Field } from '../../../schema';
 import {
   DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';
@@ -92,10 +92,9 @@ class JADNtoIDL extends WriterBase {
    `*/
    _formatArray(itm: ArrayDef): string {
     const fmt = itm.options.format ? ` /${itm.options.format}` : '';
-    let arrayIDL = `${itm.name} = Array${fmt} {`;
+    let arrayIDL = `${itm.name} = Array${fmt}`;
 
-    const fieldCount = itm.fields.length;
-    const itmFields: Array<[number, string, string]> = itm.fields.map((f: Field, idx: number) => {
+    const itmFields: Array<[number, string, string]> = itm.fields.map(f => {
       let fieldType = `${f.type}`;
       if (f.type === 'ArrayOf') {
         fieldType += `(${f.options.get('vtype', 'String') as string})`;
@@ -106,9 +105,8 @@ class JADNtoIDL extends WriterBase {
       const array = this._isArray(f.options) ? `[${f.options.multiplicity()}]` : '';
       const fldFmt = f.options.format ? ` /${f.options.format}` : '';
       const opt = this._isOptional(f.options) ? ' optional' : '';
-      const cont = idx+1 !== fieldCount ? ',' : '';
       const desc = f.description && this.comments === CommentLevels.ALL ? `// ${f.name}:: ${f.description}` : ' ';
-      return [f.id, `${fieldType}${array}${fldFmt}${array ? '' : opt}${cont}`, desc];
+      return [f.id, `${fieldType}${array}${fldFmt}${array ? '' : opt}`, desc];
     });
 
     const fieldTable = this._makeTable(itmFields);
@@ -122,7 +120,7 @@ class JADNtoIDL extends WriterBase {
     }
 
     arrayIDL += `\n${fieldTable}`;
-    return `${arrayIDL}}\n`;
+    return `${arrayIDL}`;
   }
 
   /**
@@ -140,7 +138,7 @@ class JADNtoIDL extends WriterBase {
     * @returns {string} - formatted choice
     */
   _formatChoice(itm: ChoiceDef): string {
-    let choiceIDL = `${itm.name} = Choice {`;
+    let choiceIDL = `${itm.name} = Choice`;
     const itmFields = this._makeFields(itm.fields);
 
     if (itm.description && this.comments === CommentLevels.ALL) {
@@ -153,7 +151,7 @@ class JADNtoIDL extends WriterBase {
     }
 
     choiceIDL += `\n${itmFields}`;
-    return `${choiceIDL}}\n`;
+    return `${choiceIDL}`;
   }
 
   /**
@@ -163,16 +161,15 @@ class JADNtoIDL extends WriterBase {
    */
   _formatEnumerated(itm: EnumeratedDef): string {
     const useID = hasProperty(itm.options, 'id');
-    let enumIDL = `${itm.name} = Enumerated${useID ? '.ID' : ''} {`;
+    let enumIDL = `${itm.name} = Enumerated${useID ? '.ID' : ''}`;
 
-    const fieldCount = itm.fields.length;
-    const itmFields: Array<[number, string]|[number, string, string]> = itm.fields.map((f: EnumeratedField, idx: number) => {
+    const itmFields: Array<[number, string]|[number, string, string]> = itm.fields.map(f => {
       if (useID) {
         const desc = this.comments === CommentLevels.ALL ? `// ${f.value}:: ${f.description}` : ' ';
         return [f.id, desc];
       }
       const desc = f.description && this.comments === CommentLevels.ALL ? `// ${f.description}` : ' ';
-      return [f.id, `${f.value}${idx+1 !== fieldCount ? ',' : ''}`, desc];
+      return [f.id, `${f.value}`, desc];
     });
 
     const fieldTable = this._makeTable(itmFields, ['r']);
@@ -186,7 +183,7 @@ class JADNtoIDL extends WriterBase {
     }
 
     enumIDL += `\n${fieldTable}`;
-    return `${enumIDL}}\n`;
+    return `${enumIDL}`;
   }
 
   /**
@@ -197,7 +194,7 @@ class JADNtoIDL extends WriterBase {
   _formatMap(itm: MapDef): string {
     const check = (x: number, y: number): boolean => (x > 0 || y > 0);
     const multi = itm.options.multiplicity(0, 0, false, check);
-    let mapIDL = `${itm.name} = Map${multi ? `{${multi}}` : ''} {`;
+    let mapIDL = `${itm.name} = Map${multi ? `{${multi}}` : ''}`;
 
     const itmFields = this._makeFields(itm.fields);
 
@@ -211,7 +208,7 @@ class JADNtoIDL extends WriterBase {
     }
 
     mapIDL += `\n${itmFields}`;
-    return `${mapIDL}}\n`;
+    return `${mapIDL}`;
   }
 
   /**
@@ -231,7 +228,7 @@ class JADNtoIDL extends WriterBase {
   _formatRecord(itm: RecordDef): string {
     const check = (x: number, y: number): boolean => (x > 0 || y > 0);
     const multi = itm.options.multiplicity(0, 0, false, check);
-    let recordIDL = `${itm.name} = Record${multi ? `{${multi}}` : ''} {`;
+    let recordIDL = `${itm.name} = Record${multi ? `{${multi}}` : ''}`;
 
     const itmFields = this._makeFields(itm.fields);
 
@@ -245,7 +242,7 @@ class JADNtoIDL extends WriterBase {
     }
 
     recordIDL += `\n${itmFields}`;
-    return `${recordIDL}}\n`;
+    return `${recordIDL}`;
   }
 
   /**
@@ -290,7 +287,7 @@ class JADNtoIDL extends WriterBase {
       return '';
     }
 
-    const tmpFields: Array<[number, string, string, string]> = fields.map((f: Field, idx: number) => {
+    const tmpFields: Array<[number, string, string, string]> = fields.map(f => {
       let fieldType = `${f.type}`;
 
       if (f.type === 'ArrayOf') {
@@ -320,10 +317,9 @@ class JADNtoIDL extends WriterBase {
       const pattern = f.options.pattern ? `(%${f.options.pattern}%)` : '';
       const unq = safeGet(f.options, 'unique', false) ? ' unique' : '';
       const opt = this._isOptional(f.options) ? ' optional' : '';
-      const cont = idx+1 !== fieldCount ? ',' : '';
 
       const desc = f.description && this.comments === CommentLevels.ALL ? `// ${f.description}` : ' ';
-      return [f.id, f.name, `${fieldType}${fmt}${pattern}${unq}${opt}${cont}`, desc];
+      return [f.id, f.name, `${fieldType}${fmt}${pattern}${unq}${opt}`, desc];
     });
     return this._makeTable(tmpFields, ['r']);
   }

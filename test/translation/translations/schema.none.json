@@ -263,7 +263,8 @@
         "versions",
         "profiles",
         "pairs",
-        "rate_limit"
+        "rate_limit",
+        "args"
       ],
       "properties": {
         "versions": {
@@ -277,6 +278,9 @@
         },
         "rate_limit": {
           "type": "number"
+        },
+        "args": {
+          "$ref": "#/definitions/ArrayOf$args"
         }
       }
     },
@@ -697,6 +701,20 @@
       "maxItems": 1,
       "items": {
         "$ref": "#/definitions/Nsid"
+      }
+    },
+    "ArrayOf$args": {
+      "title": "ArrayOf$args",
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "enum": [
+          "start_time",
+          "stop_time",
+          "duration",
+          "response_requested"
+        ]
       }
     },
     "Binary$md5": {

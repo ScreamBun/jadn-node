@@ -3,75 +3,69 @@
  description:  This schema is intended to validate all possible derived content for the OpenC2 Language Specification version 1.0. It is meant to be used as a template that can be more strictly tuned when creating actuator profile specific schema
      exports:  ['OpenC2-Command', 'OpenC2-Response']
 
-OpenC2-Command = Record {
- 1  action      Action,
- 2  target      Target,
- 3  args        Args optional,
- 4  actuator    Actuator optional,
+OpenC2-Command = Record
+ 1  action      Action
+ 2  target      Target
+ 3  args        Args optional
+ 4  actuator    Actuator optional
  5  command_id  String optional
-}
 
-OpenC2-Response = Map {
- 1  status       Status-Code,
- 2  status_text  String optional,
+OpenC2-Response = Map
+ 1  status       Status-Code
+ 2  status_text  String optional
  3  results      Results
-}
 
-Action = Enumerated {
-  1  scan,
-  2  locate,
-  3  query,
-  6  deny,
-  7  contain,
-  8  allow,
-  9  start,
- 10  stop,
- 11  restart,
- 14  cancel,
- 15  set,
- 16  update,
- 18  redirect,
- 19  create,
- 20  delete,
- 22  detonate,
- 23  restore,
- 28  copy,
- 30  investigate,
+Action = Enumerated
+  1  scan
+  2  locate
+  3  query
+  6  deny
+  7  contain
+  8  allow
+  9  start
+ 10  stop
+ 11  restart
+ 14  cancel
+ 15  set
+ 16  update
+ 18  redirect
+ 19  create
+ 20  delete
+ 22  detonate
+ 23  restore
+ 28  copy
+ 30  investigate
  32  remediate
-}
 
-Target = Choice {
-  1  artifact         Artifact,
-  2  command          String,
-  3  device           Device,
-  7  domain_name      Domain-Name,
-  8  email_addr       Email-Addr,
-  9  features         Features,
- 10  file             File,
- 11  idn_domain_name  IDN-Domain-Name,
- 12  idn_email_addr   IDN-Email-Addr,
- 13  ipv4_net         IPv4-Net,
- 14  ipv6_net         IPv6-Net,
- 15  ipv4_connection  IPv4-Connection,
- 16  ipv6_connection  IPv6-Connection,
- 20  iri              IRI,
- 17  mac_addr         MAC-Addr,
- 18  process          Process,
- 25  properties       Properties,
+Target = Choice
+  1  artifact         Artifact
+  2  command          String
+  3  device           Device
+  7  domain_name      Domain-Name
+  8  email_addr       Email-Addr
+  9  features         Features
+ 10  file             File
+ 11  idn_domain_name  IDN-Domain-Name
+ 12  idn_email_addr   IDN-Email-Addr
+ 13  ipv4_net         IPv4-Net
+ 14  ipv6_net         IPv6-Net
+ 15  ipv4_connection  IPv4-Connection
+ 16  ipv6_connection  IPv6-Connection
+ 20  iri              IRI
+ 17  mac_addr         MAC-Addr
+ 18  process          Process
+ 25  properties       Properties
  19  uri              URI
-}
 
-Actuator = Choice {
-}
+Actuator = Choice
 
-Args = Map{1..*} {
- 1  start_time          Date-Time,
- 2  stop_time           Date-Time,
- 3  duration            Duration,
+Args = Map{1..*}
+ 1  start_time          Date-Time
+ 2  stop_time           Date-Time
+ 3  duration            Duration
  4  response_requested  Response-Type
-}
 
-Status-Code = Enumerated.ID {
+Status-Code = Enumerated.ID
  102
  200
  400
@@ -81,26 +75,23 @@ Status-Code = Enumerated.ID {
  500
  501
  503
-}
 
-Results = Map{1..*} {
- 1  versions    ArrayOf$versions,
- 2  profiles    ArrayOf$profiles,
- 3  pairs       Action-Targets,
+Results = Map{1..*}
+ 1  versions    ArrayOf$versions
+ 2  profiles    ArrayOf$profiles
+ 3  pairs       Action-Targets
  4  rate_limit  Number
-}
+ 5  args        ArrayOf$args
 
-Artifact = Record{1..*} {
- 1  mime_type  String optional,
- 2  payload    Payload optional,
+Artifact = Record{1..*}
+ 1  mime_type  String optional
+ 2  payload    Payload optional
  3  hashes     Hashes optional
-}
 
-Device = Map{1..*} {
- 1  hostname      Hostname optional,
- 2  idn_hostname  IDN-Hostname optional,
+Device = Map{1..*}
+ 1  hostname      Hostname optional
+ 2  idn_hostname  IDN-Hostname optional
  3  device_id     String optional
-}
 
 Domain-Name = String /hostname
 
@@ -108,54 +99,48 @@ Email-Addr = String /email
 
 Features = ArrayOf(Feature){0..10} unique
 
-File = Map{1..*} {
- 1  name    String optional,
- 2  path    String optional,
+File = Map{1..*}
+ 1  name    String optional
+ 2  path    String optional
  3  hashes  Hashes optional
-}
 
 IDN-Domain-Name = String /idn-hostname
 
 IDN-Email-Addr = String /idn-email
 
-IPv4-Net = Array /ipv4-net {
- 1  IPv4-Addr,
+IPv4-Net = Array /ipv4-net
+ 1  IPv4-Addr
  2  Integer optional
-}
 
-IPv4-Connection = Record{1..*} {
- 1  src_addr  IPv4-Net optional,
- 2  src_port  Port optional,
- 3  dst_addr  IPv4-Net optional,
- 4  dst_port  Port optional,
+IPv4-Connection = Record{1..*}
+ 1  src_addr  IPv4-Net optional
+ 2  src_port  Port optional
+ 3  dst_addr  IPv4-Net optional
+ 4  dst_port  Port optional
  5  protocol  L4-Protocol optional
-}
 
-IPv6-Net = Array /ipv6-net {
- 1  IPv6-Addr,
+IPv6-Net = Array /ipv6-net
+ 1  IPv6-Addr
  2  Integer optional
-}
 
-IPv6-Connection = Record{1..*} {
- 1  src_addr  IPv6-Net optional,
- 2  src_port  Port optional,
- 3  dst_addr  IPv6-Net optional,
- 4  dst_port  Port optional,
+IPv6-Connection = Record{1..*}
+ 1  src_addr  IPv6-Net optional
+ 2  src_port  Port optional
+ 3  dst_addr  IPv6-Net optional
+ 4  dst_port  Port optional
  5  protocol  L4-Protocol optional
-}
 
 IRI = String /iri
 
 MAC-Addr = Binary /eui
 
-Process = Map{1..*} {
- 1  pid           Integer optional,
- 2  name          String optional,
- 3  cwd           String optional,
- 4  executable    File optional,
- 5  parent        Process optional,
+Process = Map{1..*}
+ 1  pid           Integer optional
+ 2  name          String optional
+ 3  cwd           String optional
+ 4  executable    File optional
+ 5  parent        Process optional
  6  command_line  String optional
-}
 
 Properties = ArrayOf(String)
 
@@ -169,18 +154,16 @@ Date-Time = Integer{0..*}
 
 Duration = Integer{0..*}
 
-Feature = Enumerated {
- 1  versions,
- 2  profiles,
- 3  pairs,
+Feature = Enumerated
+ 1  versions
+ 2  profiles
+ 3  pairs
  4  rate_limit
-}
 
-Hashes = Map{1..*} {
- 1  md5     Binary$md5 optional,
- 2  sha1    Binary$sha1 optional,
+Hashes = Map{1..*}
+ 1  md5     Binary$md5 optional
+ 2  sha1    Binary$sha1 optional
  3  sha256  Binary$sha256 optional
-}
 
 Hostname = String /hostname
 
@@ -190,34 +173,33 @@ IPv4-Addr = Binary /ipv4-addr
 
 IPv6-Addr = Binary /ipv6-addr
 
-L4-Protocol = Enumerated {
-   1  icmp,
-   6  tcp,
-  17  udp,
+L4-Protocol = Enumerated
+   1  icmp
+   6  tcp
+  17  udp
  132  sctp
-}
 
 Nsid = String{1..16}
 
-Payload = Choice {
- 1  bin  Binary,
+Payload = Choice
+ 1  bin  Binary
  2  url  URI
-}
 
 Port = Integer{0..65535}
 
-Response-Type = Enumerated {
- 0  none,
- 1  ack,
- 2  status,
+Response-Type = Enumerated
+ 0  none
+ 1  ack
+ 2  status
  3  complete
-}
 
 Version = String
 
 ArrayOf$versions = ArrayOf(Version){1..*}
 
 ArrayOf$profiles = ArrayOf(Nsid){0..1}
+
+ArrayOf$args = ArrayOf($Args)
 
 Binary$md5 = Binary /x
 
