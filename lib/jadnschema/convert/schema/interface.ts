@@ -1,12 +1,13 @@
 // Conversion interfaces
 import { CommentLevels } from './enums';
 import { Schema } from '../../schema';
+import { SchemaSimpleJADN } from '../../schema/interfaces';
 
 export interface ConversionDumpLib {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dump: (schema: string|Record<string, any>|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>) => void;
+  dump: (schema: string|SchemaSimpleJADN|Schema, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: Record<string, any>) => void;
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
-  dumps: (schema: string|Record<string, any>|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => string;
+  dumps: (schema: string|SchemaSimpleJADN|Schema, comment?: CommentLevels, kwargs?: Record<string, any>) => string;
 }
 
 export interface ConversionLoadLib {

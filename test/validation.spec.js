@@ -5,7 +5,7 @@ import { jadn } from '../lib/api';
 import validationTest from './validation';
 
 // Schema
-const schemaFile = path.join(__dirname, 'schema.json')
+const schemaFile = path.join(__dirname, 'oc2ls-v1.0-lang.jadn')
 const schema = fs.readJSONSync(schemaFile);
 
 // Test Setup

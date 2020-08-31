@@ -271,3 +271,6 @@ docs
 lib/**/*.js
 lib/**/*.d.ts
 lib/@types
+
+# In Development
+lib/jadnschema/schema/resolver.ts

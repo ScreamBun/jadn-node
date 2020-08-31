@@ -49,7 +49,9 @@ class Config extends BaseModel {
     if (typeof data === 'object' && data instanceof Config) {
       d = data.schema();
     } else {
-      d = data || {};
+      d = {
+        ...data
+      };
     }
     return objectFromTuple(
       ...Object.keys(d).map<[string, any]>(k => [k.replace(/^\$/, ''), safeGet(d, k) ])
@@ -184,7 +186,7 @@ class Info extends BaseModel {
 
   /**
     * Initialize an Info object
-    * @param {SchemaInfoJADN|Info} schema - The JADN meta to utilize
+    * @param {SchemaInfoJADN|Info} schema - The JADN info to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
@@ -211,7 +213,7 @@ class Info extends BaseModel {
 
   /**
     * Initialize the date for the class
-    * @param {SchemaInfoJADN|Info} data - The meta data to validate
+    * @param {SchemaInfoJADN|Info} data - The info data to validate
     * @return {SchemaInfoJADN} - validated data
     */
   initData(data?: SchemaInfoJADN|Info): SchemaInfoJADN {
@@ -227,15 +229,7 @@ class Info extends BaseModel {
     if (!('module' in d)) {
       throw new ValidationError('Info property \'module\' is required');
     }
-    Object.keys(d).forEach(key => {
-      // const val = d[key];
-      switch (key) {
-        case 'module':
-        // TODO: URL Validation
-        default:
-          break;
-      }
-    });
+    // TODO: Validation
     return d;
   }
 
@@ -248,7 +242,7 @@ class Info extends BaseModel {
       ...this.slots.map<[string, any]|[]>(k => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const v = safeGet(this, k);
-        return v ? [k, v ] : [];
+        return v ? [k, v] : [];
       })
     ) as SchemaInfoJADN;
 

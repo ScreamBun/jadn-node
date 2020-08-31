@@ -267,7 +267,7 @@ class Schema extends BaseModel {
       };
 
       // eslint-disable-next-line no-param-reassign
-      sch.types = (sch.types || []).map((td: SchemaObjectType) => {
+      sch.types = sch.types.map((td: SchemaObjectType) => {
         const typeDef: SchemaObjectType = { ...td };
         if (derivable.includes(typeDef.type)) {
           Object.keys(optChecks).forEach((optName: string) => {
@@ -441,6 +441,7 @@ class Schema extends BaseModel {
       }
       throw errs[0];
     }
+    return undefined;
   }
 
   /**
@@ -485,7 +486,7 @@ class Schema extends BaseModel {
     if (exports.includes(type)) {
       const rtn = this.types[type].validate(inst);
       if (rtn && rtn.length !== 0) {
-        errors.push(...(rtn));
+        errors.push(...rtn);
       }
     } else {
       errors.push(new ValidationError(`invalid export type, ${type}`));
@@ -510,16 +511,16 @@ class Schema extends BaseModel {
     */
   // eslint-disable-next-line no-underscore-dangle
   _setSchema(data: SchemaSimpleJADN|Schema): void {
-    if ( typeof data !== 'object' || typeof data !== typeof this) {
+    if ( typeof data !== 'object') {
       throw new SchemaError('Cannot load schema, incorrect type');
     }
-    this.info = new Info(safeGet(data, 'info', {}));
+    const schema: SchemaSimpleJADN = data instanceof Schema ? data.schema() : data;
+    this.info = new Info(safeGet(schema, 'info', {}));
 
-    const simpleSchema: SchemaSimpleJADN = data instanceof Schema ? data.schema() : data;
     // eslint-disable-next-line no-param-reassign
-    data = this.simplify(true, simpleSchema, true, true, false, false);
+    const simpleSchema = this.simplify(true, schema, true, true, false, false);
 
-    const [values, errs] = initModel(this, data, {_config: this._getConfig.bind(this)});
+    const [values, errs] = initModel(this, simpleSchema, {_config: this._getConfig.bind(this)});
     if (errs.length > 0) {
       throw errs[0];
     }

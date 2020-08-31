@@ -30,7 +30,7 @@ class WriterBase {
   'Action-Targets', 'Targets', 'Date-Time', 'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr',
   'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Version', 'Versions',
   'Namespace', 'Profiles', 'Rate-Limit', 'Command-ID'];
-  protected indent: string = ' '.repeat(2);
+  protected indent = '  ';
   protected infoOrder: Array<string> = ['title', 'module', 'version', 'description', 'comment', 'copyright', 'license', 'exports', 'imports', 'config'];
   protected titleOverrides: Record<string, string> = {
     Addr: 'Address',
