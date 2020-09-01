@@ -39,9 +39,11 @@ class JADNtoMarkDown extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - MarkDown Tables
     */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   dumps(kwargs?: Args): string {
     let schemaMD = this.makeHeader();
-    const structures = this._makeStructures('', kwargs) as Record<string, string>;
+    const structures = this._makeStructures('') as Record<string, string>;
 
     schemaMD += this.definitionOrder.map(typeName => {
       const structDef = safeGet(structures, typeName, '') as string;
