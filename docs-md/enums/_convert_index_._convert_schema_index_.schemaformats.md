@@ -1,4 +1,4 @@
-[jadnschema - v0.1.8](../globals.md) › ["convert/index"](../modules/_convert_index_.md) › ["convert/schema/index"](../modules/_convert_index_._convert_schema_index_.md) › [SchemaFormats](_convert_index_._convert_schema_index_.schemaformats.md)
+[jadnschema - v0.1.9](../globals.md) › ["convert/index"](../modules/_convert_index_.md) › ["convert/schema/index"](../modules/_convert_index_._convert_schema_index_.md) › [SchemaFormats](_convert_index_._convert_schema_index_.schemaformats.md)
 
 # Enumeration: SchemaFormats
 

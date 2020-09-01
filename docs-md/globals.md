@@ -1,6 +1,6 @@
-[jadnschema - v0.1.8](globals.md)
+[jadnschema - v0.1.9](globals.md)
 
-# jadnschema - v0.1.8
+# jadnschema - v0.1.9
 
 ## Index
 

@@ -1,4 +1,4 @@
-[jadnschema - v0.1.8](../globals.md) › ["jadn"](_jadn_.md)
+[jadnschema - v0.1.9](../globals.md) › ["jadn"](_jadn_.md)
 
 # Module: "jadn"
 
@@ -123,7 +123,7 @@ ___
 
 ###  loads
 
-▸ **loads**(`schema`: string): *[Schema](../classes/schema.md)*
+▸ **loads**(`schema`: string | SchemaSimpleJADN): *[Schema](../classes/schema.md)*
 
 Defined in jadnschema/jadn.ts:88
 
@@ -133,7 +133,7 @@ load a JADN schema from a string
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`schema` | string | JADN schema to load |
+`schema` | string &#124; SchemaSimpleJADN | JADN schema to load |
 
 **Returns:** *[Schema](../classes/schema.md)*
 
