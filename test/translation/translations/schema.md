@@ -5,7 +5,7 @@
 |      **module:** | oasis-open.org/openc2/oc2ls/v1.0                                                                                                                                                                                                        |
 | **description:** | This schema is intended to validate all possible derived content for the OpenC2 Language Specification version 1.0. It is meant to be used as a template that can be more strictly tuned when creating actuator profile specific schema |
 |     **exports:** | OpenC2-Command, OpenC2-Response                                                                                                                                                                                                         |
-|      **config:** | **$FS**:":", **$FieldName**: "^[a-z][-_a-z0-9]{0,31}$"                                                                                                                                                                                  |
+|      **config:** | **$FS**: :, **$FieldName**: ^[a-z][-_a-z0-9]{0,31}$                                                                                                                                                                                     |
 
 **_Type: OpenC2-Command (Record)_**
 

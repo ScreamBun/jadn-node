@@ -358,11 +358,11 @@ class Schema extends BaseModel {
     * @param {string::Path} fname - JADN schema file to load
     */
   load(fname: string): void {
-    fname = path.resolve(fname); // eslint-disable-line no-param-reassign
-    if (fs.pathExistsSync(fname)) {
-      this._setSchema(fs.readJsonSync(fname));
+    const resolved = path.resolve(fname);
+    if (fs.pathExistsSync(resolved)) {
+      this._setSchema(fs.readJsonSync(resolved));
     } else {
-      throw new SchemaError(`Schema does not exist at ${fname}`);
+      throw new SchemaError(`Schema does not exist at ${resolved}`);
     }
   }
 

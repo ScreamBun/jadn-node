@@ -13,7 +13,9 @@ import { safeGet } from '../../utils';
 
 // Types
 type SchemaArg = string|SchemaSimpleJADN|Schema;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DumpArgs = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LoadArgs = Record<string, any>;
 
 // Conversion Vars
@@ -34,6 +36,7 @@ const ValidWriters: Record<string, BaseWriter> = {};
   * @param {SchemaFormats} format: format of the desired output schema
   * @param {DumpArgs} kwargs - extra field values for the function
   */
+// eslint-disable-next-line max-len
 function dump(schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, format?: SchemaFormats, kwargs?: DumpArgs): void {
   const Writer = safeGet(ValidWriters, (format || ''), null) as BaseWriter|null;
   if (Writer !== null && Writer.prototype instanceof WriterBase) {
@@ -99,6 +102,7 @@ function loads(schema: string, format: SchemaFormats, kwargs: LoadArgs): Schema 
 ValidWriters[SchemaFormats.HTML] = Writers.JADNtoHTML;
 const html: ConversionDumpLib = {
   /** Converts to HTML tables and writes to the given file, see {@link dump} for param specifics */
+  // eslint-disable-next-line max-len
   dump: (schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: DumpArgs): void => dump(schema, fname, source, comment, SchemaFormats.HTML, kwargs),
   /** Converts to HTML tables and returns the string value, see {@link dumps} for param specifics */
   dumps: (schema: SchemaArg, comment?: CommentLevels, kwargs?: DumpArgs) => dumps(schema, comment, SchemaFormats.HTML, kwargs)
@@ -109,6 +113,7 @@ ValidReaders[SchemaFormats.JADN] = Readers.JADNtoJADN;
 ValidWriters[SchemaFormats.JADN] = Writers.JADNtoJADN;
 const jadn: ConversionLib = {
   /** Converts to JADN format and writes to the given file, see {@link dump} for param specifics */
+  // eslint-disable-next-line max-len
   dump: (schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: DumpArgs): void => dump(schema, fname, source, comment, SchemaFormats.JADN, kwargs),
   /** Converts to JADN format and returns the string value, see {@link dumps} for param specifics */
   dumps: (schema: SchemaArg, comment?: CommentLevels, kwargs?: DumpArgs) => dumps(schema, comment, SchemaFormats.JADN, kwargs),
@@ -123,6 +128,7 @@ const jadn: ConversionLib = {
 ValidWriters[SchemaFormats.JIDL] = Writers.JADNtoIDL;
 const jidl: ConversionDumpLib = {
   /** Converts to JIDL format and writes to the given file, see {@link dump} for param specifics */
+  // eslint-disable-next-line max-len
   dump: (schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: DumpArgs): void => dump(schema, fname, source, comment, SchemaFormats.JIDL, kwargs),
   /** Converts to JADN format and returns the string value, see {@link dumps} for param specifics */
   dumps: (schema: SchemaArg, comment?: CommentLevels, kwargs?: DumpArgs) => dumps(schema, comment, SchemaFormats.JIDL, kwargs)
@@ -133,6 +139,7 @@ const jidl: ConversionDumpLib = {
 ValidWriters[SchemaFormats.JSON] = Writers.JADNtoJSON;
 const json: ConversionDumpLib = {
   /** Converts to JSON format and writes to the given file, see {@link dump} for param specifics */
+  // eslint-disable-next-line max-len
   dump: (schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: DumpArgs): void => dump(schema, fname, source, comment, SchemaFormats.JSON, kwargs),
   /** Converts to JSON format and returns the string value, see {@link dumps} for param specifics */
   dumps: (schema: SchemaArg, comment?: CommentLevels, kwargs?: DumpArgs) => dumps(schema, comment, SchemaFormats.JSON, kwargs)
@@ -142,8 +149,10 @@ const json: ConversionDumpLib = {
 ValidWriters[SchemaFormats.MarkDown] = Writers.JADNtoMD;
 const md: ConversionDumpLib = {
   /** Converts to JSON format and writes to the given file, see {@link dump} for param specifics */
+  // eslint-disable-next-line max-len
   dump: (schema: SchemaArg, fname: string, source?: string|null, comment?: CommentLevels, kwargs?: DumpArgs): void => dump(schema, fname, source, comment, SchemaFormats.MarkDown, kwargs),
   /** Converts to MarkDown format and returns the string value, see {@link dumps} for param specifics */
+  // eslint-disable-next-line max-len
   dumps: (schema: SchemaArg, comment?: CommentLevels, kwargs?: DumpArgs) => dumps(schema, comment, SchemaFormats.MarkDown, kwargs)
 };
 

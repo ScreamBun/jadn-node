@@ -45,7 +45,7 @@ export interface Export {
 }
 
 export interface Schema extends Meta {
-  type: PrimitiveTypes;
+  type: 'object';
   oneOf: Array<Export>;
   definitions: Record<string, TypeDefinition>;
 }

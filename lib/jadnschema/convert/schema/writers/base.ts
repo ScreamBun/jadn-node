@@ -12,7 +12,10 @@ import {
 } from '../../../utils';
 import { SchemaSimpleJADN } from '../../../schema/interfaces';
 
-type StructConvFun = (d: DefinitionBase, a?: Record<string, any>) => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DumpArgs = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StructConvFun = (d: DefinitionBase) => any;
 
 
 /**
@@ -89,21 +92,21 @@ class WriterBase {
     * Parse the given schema to a JADN schema
     * @param {string} fname - schema file to write to
     * @param {string} source - source schema file
-    * @param {Record<string, any>} kwargs - extra field values for the function
+    * @param {DumpArgs} kwargs - extra field values for the function
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  dump(fname: string, source?: string|null, kwargs?: Record<string, any>): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  dump(fname: string, source?: string|null, kwargs?: DumpArgs): void { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this.constructor.name} does not implement "dump"`);
   }
 
   /**
     * Parse the given schema to a JADN schema
-    * @param {Record<string, any>} kwargs - extra field values for the function
+    * @param {DumpArgs} kwargs - extra field values for the function
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  dumps(kwargs?: Record<string, any>): string { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  dumps(kwargs?: DumpArgs): string { // eslint-disable-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
     throw new ReferenceError(`${this.constructor.name} does not implement "dumps"`);
   }
 
@@ -115,12 +118,13 @@ class WriterBase {
     * @returns {Record<string, any>} - type definitions for the schema
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-  _makeStructures(def?: any, kwargs?: Record<string, any>): Record<string, any> {
+  _makeStructures(def?: any): Record<string, any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const structures: Record<string, any> = {};
     this.types.forEach(typeDef => {
       const df = safeGet(this, typeDef.isStructure() ?  `_format${typeDef.type}` : '_formatCustom', null) as StructConvFun|null;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      structures[typeDef.name] = df === null ? def : df.bind(this)(typeDef, kwargs);
+      structures[typeDef.name] = df === null ? def : df.bind(this)(typeDef);
     });
     return structures;
   }

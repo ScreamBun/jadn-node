@@ -37,7 +37,8 @@ class ArrayDef extends DefinitionBase {
     const config = this._config();
 
     if (hasProperty(this.options, 'format')) {
-      const fmtFun = safeGet(config.validationFormats, this.options.get('format', '').replace('-', '_')) as GeneralValidator;
+      const fmt = (this.options.get('format', '') as string).replace('-', '_');
+      const fmtFun = safeGet(config.validationFormats, fmt) as GeneralValidator;
       if (fmtFun) {
         errors.push(...fmtFun(inst));
       }

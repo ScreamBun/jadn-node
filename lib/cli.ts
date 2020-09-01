@@ -36,6 +36,7 @@ class CLI {
       this.args.splice(2, 1);
       const cliArgs = CLIOptions[this.command].parse(this.args);
       const positionals = cliArgs._ as Array<string>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let args: ConvertArgs|ValidateArgs|Record<string, any>;
       // eslint-disable-next-line default-case
       switch (this.command) {

@@ -29,31 +29,32 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
   const baseType = hasProperty(data, 'type') ? data.type as string : null;
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   const fields: Record<string, any> = kwargs ? objectFromTuple(
-    ...Object.keys(kwargs).map<[string, any]|[]>(k => /^_[^_]/.exec(k) ? [k, kwargs[k] ] : [] )
+    // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+    ...Object.keys(kwargs).map<[string, any]|[]>(k => /^_[^_]/.exec(k) ? [k, kwargs[k]] : [] )
   ) : {};
   const errors: Array<Error> = [];
 
   switch (modelClass) {
     case 'Schema':
-      if ('info' in data && typeof data.info === 'object') {
-        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+      if (hasProperty(data, 'info') && typeof data.info === 'object') {
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const Info = require('./info').default;
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         data.info = new Info(data.info);
       }
 
-      if ('types' in data && typeof data.types === 'object' && Array.isArray(data.types)) {
-        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+      if (hasProperty(data, 'types') && typeof data.types === 'object' && Array.isArray(data.types)) {
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const { makeDefinition } = require('./definitions');
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment
         data.types = objectFromTuple(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
           ...data.types.map<[string, any]>((t: SchemaSimpleType) => [t[0], makeDefinition(t, kwargs) ])
         );
       }
       break;
     case 'Info':
-      if ('config' in data && typeof data.config === 'object') {
+      if (hasProperty(data, 'config') && typeof data.config === 'object') {
         // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
         const { Config } = require('./info');
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -65,7 +66,7 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
     default:
       if (hasProperty(data, 'options') && typeof data.options === 'object' && Array.isArray(data.options)) {
         try {
-          // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           const Options = require('./options').default;
           // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           data.options = new Options(data.options);
@@ -79,7 +80,7 @@ export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaS
       }
 
       if (hasProperty(data, 'fields') && typeof data.fields === 'object' && Array.isArray(data.fields)) {
-        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const DefField = baseType === 'Enumerated' ? require('./fields').EnumeratedField : require('./fields').Field;
         // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
         data.fields = data.fields.map(f => new DefField(f, kwargs) );
@@ -140,6 +141,7 @@ class BaseModel {
   // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
   object(): Record<string, any> {
     return objectFromTuple(
+      // eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
       ...this.slots.map<[string, any]|[]>(key => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const val = this.get(key);
@@ -158,13 +160,9 @@ class BaseModel {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const val = props[key];
       if (val !== null && val !== undefined) {
-        Object.defineProperty(this, key, {
-          configurable: true,
-          enumerable: true,
-          writable: true,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          value: val
-        });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this[key] = val;  // eslint-disable-line @typescript-eslint/no-unsafe-assignment
       }
     });
   }

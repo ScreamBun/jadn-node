@@ -1,17 +1,13 @@
 /* eslint max-classes-per-file: 0 */
 // JADN Field Models - Enumerated and General
 import BaseModel from './base';
+import DefinitionBase from './definitions/base';
 import {
   SchemaSimpleEnumField, SchemaSimpleGenField, SchemaObjectEnumField, SchemaObjectGenField, SchemaObjectType
 } from './definitions/interfaces';
 import Options from './options';
 import { ValidationError } from '../exceptions';
 import { capitalize, safeGet, zip } from '../utils';
-
-interface DefinitionBase {
-  type: string;
-  validate: (inst: any) => Array<Error>;
-}
 
 const EnumeratedFieldSlots: Array<string> = ['id', 'value', 'description'];
 const FieldSlots: Array<string> = ['id', 'name', 'type', 'options', 'description'];

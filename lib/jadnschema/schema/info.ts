@@ -54,7 +54,7 @@ class Config extends BaseModel {
       };
     }
     return objectFromTuple(
-      ...Object.keys(d).map<[string, any]>(k => [k.replace(/^\$/, ''), safeGet(d, k) ])
+      ...Object.keys(d).map<[string, number|string]>(k => [k.replace(/^\$/, ''), safeGet(d, k) as number|string])
     );
   }
 
@@ -62,9 +62,9 @@ class Config extends BaseModel {
     * Format this config into valid JADN format
     * @returns {Record<string, string>} JADN formatted config
     */
-  schema(): Record<string, string> {
+  schema(): Record<string, number|string> {
     return objectFromTuple(
-      ...(this.slots || []).map<[string, any]|[]>(k => {
+      ...this.slots.map<[string, number|string]|[]>(k => {
         return hasProperty(this, `_${k}`) ? [`$${k}`, safeGet(this, k) ] : [];
       })
     );
@@ -204,8 +204,12 @@ class Info extends BaseModel {
 
   toString(): string {
     const value = objectFromTuple(
-      ...this.slots.map<[string, any]|[]>(k => {
-        return hasProperty(this, k) ? [k, safeGet(this, k) ] : [];
+      ...this.slots.map<[string, string|Array<string>|Record<string, number|string>]|[]>(k => {
+        if (hasProperty(this, k)) {
+          const v = k === 'config' ? this[k].schema() : safeGet(this, k) as string|Array<string>|Record<string, string>;
+          return [k, v];
+        }
+        return [];
       })
     );
     return `Info ${prettyObject(value)}`;
@@ -239,18 +243,14 @@ class Info extends BaseModel {
     */
   schema(): SchemaInfoJADN {
     const tmp = objectFromTuple(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...this.slots.map<[string, any]|[]>(k => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const v = safeGet(this, k);
+        const v = k === 'config' ? this[k].schema() : safeGet(this, k) as string|Array<string>|Record<string, string>;
         return v ? [k, v] : [];
       })
     ) as SchemaInfoJADN;
 
-    if (this.configSet) {
-      if ('config' in tmp) {
-        tmp.config = this.config.schema();
-      }
-    } else if ('config' in tmp) {
+    if (!this.configSet && 'config' in tmp) {
       delete tmp.config;
     }
     return tmp;

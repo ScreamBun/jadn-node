@@ -13,8 +13,7 @@ import { Config } from '../../../../schema/info';
 import Options from '../../../../schema/options';
 import { safeGet, hasProperty } from '../../../../utils';
 
-type StructConvFun = (d: DefinitionBase, i: number) => any;
-
+type StructConvFun = (d: DefinitionBase, i: number) => string;
 
 interface Args {
   styles?: string;
@@ -32,7 +31,7 @@ interface TypeTable {
 class JADNtoHTML extends WriterBase {
   format = 'html'
 
-  // eslint-disable-next-line global-require
+  // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-member-access
   private themeStyles = require('./theme').default as string;  //  Default theme
 
   /**

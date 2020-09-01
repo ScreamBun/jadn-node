@@ -655,7 +655,7 @@ class JADNtoJSON extends WriterBase {
         case (itm instanceof Object):
           const tmp = objectFromTuple(
             ...Object.keys(itm).map<[string, any]|[]>(key => {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
               const val = itm[key];
               if (['', ' ', null, undefined].includes(val) && ['boolean', 'number'].includes(typeof val)) {
                 return [];

@@ -298,7 +298,7 @@ class DefinitionBase extends BaseModel {
 
   // Extended Helper functions
   processOptions(): void {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line global-require, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const EnumeratedDef = require('./enumerated').default;
     const config = this._config();
 

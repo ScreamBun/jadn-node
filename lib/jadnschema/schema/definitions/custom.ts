@@ -52,7 +52,7 @@ class CustomDef extends DefinitionBase {
     if python_type and not isinstance(inst, python_type):
       errors.append(ValidationError(f"{self} is not valid as {self.type}"))
     */
-    const fmt = safeGet(this.options, 'format', '').replace('-', '_') as string;
+    const fmt = (safeGet(this.options, 'format', '') as string).replace('-', '_');
     if (fmt) {
       if (/^u\d+$/.exec(fmt)) {
         errors.push(...config.validationFormats.unsigned(parseInt(fmt.substring(1), 10), inst));

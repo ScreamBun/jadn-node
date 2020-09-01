@@ -10,7 +10,6 @@ const schema = fs.readJSONSync(schemaFile);
 
 // Test Setup
 const schemaObj = jadn.loads(schema);
-console.log(`SCHEMA - ${JSON.stringify(schemaObj.info.config)}`);
 
 describe('Translation Tests', () => {
   translationTest(schemaObj);
