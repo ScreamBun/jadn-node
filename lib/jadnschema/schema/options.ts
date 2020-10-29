@@ -8,49 +8,65 @@ import {
 // Helper Vars
 export const OptionTypes: Record<string, Array<string>> = {
   field: [
-    'default',
-    'dir',
     'minc',
     'maxc',
-    'tfield'
+    'tagid',
+    'dir',
+    'key',
+    'link'
   ],
   type: [
-    // Structural
-    'enum',
     'id',
-    'ktype',
+    'ktype', 
     'vtype',
+    'enum',
     'pointer',
-    // Validation
     'format',
+    'pattern',
     'minv',
     'maxv',
-    'pattern',
-    'unique'
+    'minf',
+    'maxf',
+    'unique',
+    'set',
+    'unordered', 
+    'extend',
+    'default'
   ]
 };
-export const BoolOpts: Array<string> = ['id', 'dir', 'unique'];
 export const OptionIds: Record<string, string> = {
   // Field Structural
-  '!': 'default',     // Reserved for default value § 3.2.2.4
-  '<': 'dir',         // Use FieldName as a qualifier for fields in FieldType
   '[': 'minc',        // Minimum cardinality
   ']': 'maxc',        // Maximum cardinality
-  '&': 'tfield',      // Field that specifies the type of this field, value is Enumerated
-  // Type Structural
-  '#': 'enum',        // Enumerated type derived from the specified Array, Choice, Map or Record type
+  '&': 'tagid',       // Field containing an explicit tag for this Choice type
+  '<': 'dir',         // Use FieldName as a qualifier for fields in FieldType
+  'K': 'key',         // Field is a primary key for this type
+  'L': 'link',        // Field is a relationship or link to a type instance (Extension: Section 3.3.6)
+  // Type
   '=': 'id',          // Optional-Enumerated values and fields of compound types denoted by FieldID rather than FieldName
   '+': 'ktype',       // Key type for MapOf
   '*': 'vtype',       // Value type for ArrayOf and MapOf
-  '>': 'pointer',     // Extension: Enumerated type containing pointers derived from the specified Array, Choice, Map or Record type
-  // Type Validation
+  '#': 'enum',        // Extension: Enumerated type derived from a specified type
+  '>': 'pointer',     // Extension: Enumerated type containing pointers derived from a specified type
   '/': 'format',      // Semantic validation keyword
+  '%': 'pattern',     // Regular expression used to validate a String type
   '{': 'minv',        // Minimum numeric value, octet or character count, or element count
   '}': 'maxv',        // Maximum numeric value, octet or character count, or element count
-  '%': 'pattern',     // Regular expression used to validate a String type
-  'q': 'unique'      // If present, an ArrayOf instance must not contain duplicate values
+  'y': 'minf',        // Minimum real number value
+  'z': 'maxf',        // Maximum real number value
+  'q': 'unique',      // If present, an ArrayOf instance must not contain duplicate values
+  's': 'set',         // ArrayOf instance is unordered and unique
+  'b': 'unordered',   // ArrayOf instance is unordered
+  'X': 'extend',      // Type has an extension point where fields may be added in the future
+  '!': 'default'      // Default value
 };
-export const EnumId = invertObject(OptionIds).enum;
+const BoolOpts: Array<string> = ['dir', 'extend', 'id', 'key', 'link', 'set', 'unique', 'unordered'];
+const IntegerOpts: Array<string> = ['minc', 'maxc', 'minv', 'maxv'];
+const FloatOpts: Array<string> = ['minf', 'maxf'];
+const StringOpts: Array<string> = ['default', 'enum', 'format', 'ktype', 'pattern', 'pointer', 'tagid', 'vtype'];
+const InvertedOptions = invertObject(OptionIds);
+export const EnumId = InvertedOptions.enum;
+export const PointerId = InvertedOptions.pointer;
 export const ValidFormats: Array<string> = [
   // JSON Formats
   'date-time',              // RFC 3339 § 5.6
@@ -89,20 +105,20 @@ export const ValidFormats: Array<string> = [
 ];
 export const ValidOptions: Record<string, Array<string>> = {
   // Primitives
-  Binary: ['format', 'maxv', 'minv'],
+  Binary: ['format', 'minv', 'maxv'],
   Boolean: [],
-  Integer: ['format', 'maxv', 'minv'],
-  Number: ['format', 'maxv', 'minv'],
+  Integer: ['format', 'minv', 'maxv'],
+  Number: ['format', 'minf', 'maxf'],
   Null: [],
-  String: ['format', 'maxv', 'minv', 'pattern'],
+  String: ['format', 'pattern', 'maxv', 'minv'],
   // Structures
-  Array: ['format', 'maxv', 'minv'],
-  ArrayOf: ['maxv', 'minv', 'vtype', 'unique'],
-  Choice: ['id'],
-  Enumerated: ['id', 'enum', 'pointer'],
-  Map: ['id', 'maxv', 'minv'],
-  MapOf: ['ktype', 'maxv', 'minv', 'vtype'],
-  Record: ['minv', 'maxv', 'path']
+  Array: ['format', 'minv', 'maxv', 'extend'],
+  ArrayOf: ['vtype', 'minv', 'maxv', 'set', 'unique', 'unordered'],
+  Choice: ['id', 'extend'],
+  Enumerated: ['id', 'enum', 'pointer', 'extend'],
+  Map: ['id', 'minv', 'maxv', 'extend'],
+  MapOf: ['ktype', 'vtype', 'minv', 'maxv'],
+  Record: ['minv', 'maxv', 'extend']
 };
 
 // Helper Functions
@@ -138,23 +154,30 @@ export const opts2arr = (opts: Record<string, boolean|number|string>): Array<str
 };
 
 class Options extends BaseModel {
-  // Type Structural
-  enum?: string
-  id?: boolean
-  vtype?: string
-  ktype?: string
-  // Type Validation
-  format?: string
-  minv?: number
-  maxv?: number
-  pattern?: string
-  unique?: boolean
-  // Field
-  default?: string
-  path?: boolean
+  // Field Options
   minc?: number
   maxc?: number
-  tfield?: string  // Enumerated
+  tagid?: string
+  dir?: boolean
+  key?: boolean
+  link?: boolean
+  // Type Options
+  id?: boolean
+  ktype?: string
+  vtype?: string
+  enum?: string
+  pointer?: string
+  format?: string
+  pattern?: string
+  minv?: number
+  maxv?: number
+  minf?: number
+  maxf?: number
+  unique?: boolean
+  set?: boolean
+  unordered?: boolean
+  extend?: boolean
+  default?: string
 
   // Helper Vars
   slots = flattenArray(objectValues(OptionTypes));
@@ -186,26 +209,24 @@ class Options extends BaseModel {
 
     Object.keys(d).forEach(key => {
       const val = d[key];
-      switch (key) {
-        case 'dir':  // boolean
-        case 'id':  // boolean
-        case 'unique':  // boolean
+      switch (true) {
+        // Boolean values
+        case BoolOpts.includes(key):
           break;
-        case 'minv':  // number
-        case 'maxv':  // number
-        case 'minc':  // number
-        case 'maxc':  // number
+        // Float values
+        case FloatOpts.includes(key):
+          if (typeof val === 'string') {
+            d[key] = parseFloat(val);
+          }
+          break;
+        // Integer values
+        case IntegerOpts.includes(key):
           if (typeof val === 'string') {
             d[key] = parseInt(val, 10);
           }
           break;
-        case 'enum':  // string
-        case 'vtype':  // string
-        case 'ktype':  // string
-        case 'format':  // string
-        case 'pattern':  // string
-        case 'default':  // string
-        case 'tfield':  // string  // Enumerated
+        // String values
+        case StringOpts.includes(key):
           break;
         default:
           throw new ValidationError(`'${key}' invalid, Options has no property by this name`);
@@ -277,10 +298,10 @@ class Options extends BaseModel {
   /**
     * Determine the multiplicity of the min/max options
     * minc    maxc	Multiplicity	Description	                                Keywords
-    *  0	    1	    0..1	        No instances or one instance	            optional
-    *  1	    1	    1	            Exactly one instance	                    required
+    *  0	    1	    0..1	        No instances or one instance	              optional
+    *  1	    1	    1	            Exactly one instance	                      required
     *  0	    0	    0..*	        Zero or more instances	                    optional, repeated
-    *  1	    0	    1..*	        At least one instance	                    required, repeated
+    *  1	    0	    1..*	        At least one instance	                      required, repeated
     *  m	    n	    m..n	        At least m but no more than n instances     required, repeated if m > 1
     *
     * @param {number} minDefault - default value of minc/minv
@@ -304,6 +325,25 @@ class Options extends BaseModel {
       return `${minimum}..${maximum === 0 ? '*' : maximum}`;
     }
     return '';
+  }
+
+  /**
+    * Determine if the give field options define an ArrayOf
+    * @returns {boolean} Determination if ArrayOf
+    */
+  isArray(): boolean {
+    const min = safeGet(this, 'minc', 0) as number;
+    const max = safeGet(this, 'maxc', null) as null|number;
+    return (max !== null && max !== 1) || (min !== null && min > 1);
+  }
+
+  /**
+    * Determine if the give field is optional
+    * @returns {boolean} Determination if optional
+    */
+  isOptional(): boolean {
+    const min = safeGet(this, 'minc', 0) as number;
+    return min === 0;
   }
 
   /**

@@ -4,7 +4,7 @@ function run(schemaObj) {
   test('Schema Analysis', () => {
     const analysis = schemaObj.analyze();
     expect(analysis).toEqual({
-      module: schemaObj.info.module,
+      package: schemaObj.info.package,
       exports: schemaObj.info.exports,
       unreferenced: [],
       undefined: []

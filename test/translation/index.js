@@ -33,7 +33,7 @@ function run(schemaObj) {
     const jidl = convert.schema.jidl.dumps(schemaObj, CommentLevels.ALL);
     expect(jidl).toEqual(TRANSLATIONS['schema.all.jidl'] || '');
   });
-  
+
   test('Translate -> JIDL, No Comments', () => {
     const jidl = convert.schema.jidl.dumps(schemaObj, CommentLevels.NONE);
     expect(jidl).toEqual(TRANSLATIONS['schema.none.jidl'] || '');

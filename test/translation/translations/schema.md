@@ -1,29 +1,28 @@
 ## Schema
-|                . | .                                                                                                                                                                                                                                       |
-| ---------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|       **title:** | oc2sl version 1.0 json schema                                                                                                                                                                                                           |
-|      **module:** | oasis-open.org/openc2/oc2ls/v1.0                                                                                                                                                                                                        |
-| **description:** | This schema is intended to validate all possible derived content for the OpenC2 Language Specification version 1.0. It is meant to be used as a template that can be more strictly tuned when creating actuator profile specific schema |
-|     **exports:** | OpenC2-Command, OpenC2-Response                                                                                                                                                                                                         |
-|      **config:** | **$FS**: :, **$FieldName**: ^[a-z][-_a-z0-9]{0,31}$                                                                                                                                                                                     |
+|                . | .                                                                   |
+| ---------------: | :------------------------------------------------------------------ |
+|       **title:** | OpenC2 Language Profile                                             |
+|     **package:** | http://oasis-open.org/openc2/oc2ls/v1.1                             |
+| **description:** | Language Profile from the OpenC2 Language Specification version 1.1 |
+|     **exports:** | OpenC2-Command, OpenC2-Response                                     |
 
 **_Type: OpenC2-Command (Record)_**
 
-| ID | Name           | Type     |    # | Description                                                               |
-| -: | :------------- | :------- | ---: | :------------------------------------------------------------------------ |
-|  1 | **action**     | Action   |    1 | The task or activity to be performed (i.e., the 'verb')                   |
-|  2 | **target**     | Target   |    1 | The object of the Action. The Action is performed on the Target           |
-|  3 | **args**       | Args     | 0..1 | Additional information that applies to the Command                        |
-|  4 | **actuator**   | Actuator | 0..1 | The subject of the Action. The Actuator executes the Action on the Target |
-|  5 | **command_id** | String   | 0..1 | An identifier of this Command                                             |
+| ID | Name           | Type       |    # | Description                                                               |
+| -: | :------------- | :--------- | ---: | :------------------------------------------------------------------------ |
+|  1 | **action**     | Action     |    1 | The task or activity to be performed (i.e., the 'verb')                   |
+|  2 | **target**     | Target     |    1 | The object of the Action. The Action is performed on the Target           |
+|  3 | **args**       | Args       | 0..1 | Additional information that applies to the Command                        |
+|  4 | **actuator**   | Actuator   | 0..1 | The subject of the Action. The Actuator executes the Action on the Target |
+|  5 | **command_id** | Command-ID | 0..1 | An identifier of this Command                                             |
 
-**_Type: OpenC2-Response (Map)_**
+**_Type: OpenC2-Response (Record)_**
 
 | ID | Name            | Type        |    # | Description                                                                          |
 | -: | :-------------- | :---------- | ---: | :----------------------------------------------------------------------------------- |
 |  1 | **status**      | Status-Code |    1 | An integer status code                                                               |
 |  2 | **status_text** | String      | 0..1 | A free-form human-readable description of the Response status                        |
-|  3 | **results**     | Results     |    1 | Map of key:value pairs that contain additional results based on the invoking Command |
+|  3 | **results**     | Results     | 0..1 | Map of key:value pairs that contain additional results based on the invoking Command |
 
 **_Type: Action (Enumerated)_**
 
@@ -55,7 +54,7 @@
 | ID | Name                | Type            |  # | Description                                                                                         |
 | -: | :------------------ | :-------------- | -: | :-------------------------------------------------------------------------------------------------- |
 |  1 | **artifact**        | Artifact        |  1 | An array of bytes representing a file-like object or a link to that object                          |
-|  2 | **command**         | String          |  1 | A reference to a previously issued Command                                                          |
+|  2 | **command**         | Command-ID      |  1 | A reference to a previously issued Command                                                          |
 |  3 | **device**          | Device          |  1 | The properties of a hardware device                                                                 |
 |  7 | **domain_name**     | Domain-Name     |  1 | A network domain name                                                                               |
 |  8 | **email_addr**      | Email-Addr      |  1 | A single email address                                                                              |
@@ -78,14 +77,14 @@
 | ID | Name | Type |  # | Description |
 | -: | :--- | :--- | -: | :---------- |
 
-**_Type: Args (Map{1..*})_**
+**_Type: Args (Map{1..\*})_**
 
-| ID | Name                   | Type          |  # | Description                                                                |
-| -: | :--------------------- | :------------ | -: | :------------------------------------------------------------------------- |
-|  1 | **start_time**         | Date-Time     |  1 | The specific date/time to initiate the Command                             |
-|  2 | **stop_time**          | Date-Time     |  1 | The specific date/time to terminate the Command                            |
-|  3 | **duration**           | Duration      |  1 | The length of time for an Command to be in effect                          |
-|  4 | **response_requested** | Response-Type |  1 | The type of Response required for the Command: none, ack, status, complete |
+| ID | Name                   | Type          |    # | Description                                                                |
+| -: | :--------------------- | :------------ | ---: | :------------------------------------------------------------------------- |
+|  1 | **start_time**         | Date-Time     | 0..1 | The specific date/time to initiate the Command                             |
+|  2 | **stop_time**          | Date-Time     | 0..1 | The specific date/time to terminate the Command                            |
+|  3 | **duration**           | Duration      | 0..1 | The length of time for an Command to be in effect                          |
+|  4 | **response_requested** | Response-Type | 0..1 | The type of Response required for the Command: none, ack, status, complete |
 
 **_Type: Status-Code (Enumerated.ID)_**
 
@@ -93,6 +92,7 @@
 | --: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 102 | **Processing**::an interim Response used to inform the Producer that the Consumer has accepted the Command but has not yet completed it                              |
 | 200 | **OK**::the Command has succeeded                                                                                                                                    |
+| 201 | **Created**::the Command has succeeded and a new resource has been created as a result of it                                                                         |
 | 400 | **Bad Request**::the Consumer cannot process the Command due to something that is perceived to be a Producer error (e.g., malformed Command syntax)                  |
 | 401 | **Unauthorized**::the Command Message lacks valid authentication credentials for the target resource or authorization has been refused for the submitted credentials |
 | 403 | **Forbidden**::the Consumer understood the Command but refuses to authorize it                                                                                       |
@@ -101,25 +101,25 @@
 | 501 | **Not Implemented**::the Consumer does not support the functionality required to perform the Command                                                                 |
 | 503 | **Service Unavailable**::the Consumer is currently unable to perform the Command due to a temporary overloading or maintenance of the Consumer                       |
 
-**_Type: Results (Map{1..*})_**
+**_Type: Results (Map{1..\*})_**
 
-| ID | Name           | Type             |  # | Description                                                         |
-| -: | :------------- | :--------------- | -: | :------------------------------------------------------------------ |
-|  1 | **versions**   | ArrayOf$versions |  1 | List of OpenC2 language versions supported by this Actuator         |
-|  2 | **profiles**   | ArrayOf$profiles |  1 | List of profiles supported by this Actuator                         |
-|  3 | **pairs**      | Action-Targets   |  1 | List of targets applicable to each supported Action                 |
-|  4 | **rate_limit** | Number{0..*}     |  1 | Maximum number of requests per minute supported by design or policy |
-|  5 | **args**       | ArrayOf$args     |  1 | List of supported Command Arguments                                 |
+| ID | Name           | Type               |    # | Description                                                         |
+| -: | :------------- | :----------------- | ---: | :------------------------------------------------------------------ |
+|  1 | **versions**   | Versions           | 0..1 | List of OpenC2 language versions supported by this Actuator         |
+|  2 | **profiles**   | Profiles           | 0..1 | List of profiles supported by this Actuator                         |
+|  3 | **pairs**      | Action-Targets     | 0..1 | List of targets applicable to each supported Action                 |
+|  4 | **rate_limit** | Results$rate-limit | 0..1 | Maximum number of requests per minute supported by design or policy |
+|  5 | **args**       | Results$Args       | 0..1 | List of supported Command Arguments                                 |
 
-**_Type: Artifact (Record{1..*})_**
+**_Type: Artifact (Record{1..\*})_**
 
-| ID | Name          | Type    |    # | Description                                                                        |
-| -: | :------------ | :------ | ---: | :--------------------------------------------------------------------------------- |
-|  1 | **mime_type** | String  | 0..1 | Permitted values specified in the IANA Media Types registry, [[RFC6838]](#rfc6838) |
-|  2 | **payload**   | Payload | 0..1 | Choice of literal content or URL                                                   |
-|  3 | **hashes**    | Hashes  | 0..1 | Hashes of the payload content                                                      |
+| ID | Name          | Type    |    # | Description                                                            |
+| -: | :------------ | :------ | ---: | :--------------------------------------------------------------------- |
+|  1 | **mime_type** | String  | 0..1 | Permitted values specified in the IANA Media Types registry, [RFC6838] |
+|  2 | **payload**   | Payload | 0..1 | Choice of literal content or URL                                       |
+|  3 | **hashes**    | Hashes  | 0..1 | Hashes of the payload content                                          |
 
-**_Type: Device (Map{1..*})_**
+**_Type: Device (Map{1..\*})_**
 
 | ID | Name             | Type         |    # | Description                                                                             |
 | -: | :--------------- | :----------- | ---: | :-------------------------------------------------------------------------------------- |
@@ -133,16 +133,16 @@
 | **Domain-Name** | String /hostname | [RFC1034], Section 3.5 |
 
 
-| Type Name      | Type Definition | Description                             |
-| :------------- | :-------------- | :-------------------------------------- |
-| **Email-Addr** | String /email   | Email address, [RFC5322], Section 3.4.1 |
+| Type Name      | Type Definition | Description                              |
+| :------------- | :-------------- | :--------------------------------------- |
+| **Email-Addr** | String /email   | Email address - [RFC5322], Section 3.4.1 |
 
 
 | Type Name    | Type Definition                | Description                                                                            |
 | :----------- | :----------------------------- | :------------------------------------------------------------------------------------- |
 | **Features** | ArrayOf(Feature){0..10} unique | An array of zero to ten names used to query an Actuator for its supported capabilities |
 
-**_Type: File (Map{1..*})_**
+**_Type: File (Map{1..\*})_**
 
 | ID | Name       | Type   |    # | Description                                                      |
 | -: | :--------- | :----- | ---: | :--------------------------------------------------------------- |
@@ -151,14 +151,14 @@
 |  3 | **hashes** | Hashes | 0..1 | One or more cryptographic hash codes of the file contents        |
 
 
-| Type Name           | Type Definition      | Description                                               |
-| :------------------ | :------------------- | :-------------------------------------------------------- |
-| **IDN-Domain-Name** | String /idn-hostname | Internationalized Domain Name, [RFC5890], Section 2.3.2.3 |
+| Type Name           | Type Definition      | Description                                                |
+| :------------------ | :------------------- | :--------------------------------------------------------- |
+| **IDN-Domain-Name** | String /idn-hostname | Internationalized Domain Name - [RFC5890], Section 2.3.2.3 |
 
 
-| Type Name          | Type Definition   | Description                                |
-| :----------------- | :---------------- | :----------------------------------------- |
-| **IDN-Email-Addr** | String /idn-email | Internationalized email address, [RFC6531] |
+| Type Name          | Type Definition   | Description                                 |
+| :----------------- | :---------------- | :------------------------------------------ |
+| **IDN-Email-Addr** | String /idn-email | Internationalized email address - [RFC6531] |
 
 **_Type: IPv4-Net (Array /ipv4-net)_**
 
@@ -167,32 +167,32 @@
 |  1 | IPv4-Addr |    1 | **ipv4_addr**::IPv4 address as defined in [RFC0791]                                |
 |  2 | Integer   | 0..1 | **prefix_length**::CIDR prefix-length. If omitted, refers to a single host address |
 
-**_Type: IPv4-Connection (Record{1..*})_**
+**_Type: IPv4-Connection (Record{1..\*})_**
 
-| ID | Name         | Type        |    # | Description                                                             |
-| -: | :----------- | :---------- | ---: | :---------------------------------------------------------------------- |
-|  1 | **src_addr** | IPv4-Net    | 0..1 | IPv4 source address range                                               |
-|  2 | **src_port** | Port        | 0..1 | source service per [RFC6335]                                            |
-|  3 | **dst_addr** | IPv4-Net    | 0..1 | IPv4 destination address range                                          |
-|  4 | **dst_port** | Port        | 0..1 | destination service per [RFC6335]                                       |
-|  5 | **protocol** | L4-Protocol | 0..1 | layer 4 protocol (e.g., TCP) - see [Section 3.4.2.9](#3429-l4-protocol) |
+| ID | Name         | Type        |    # | Description                                            |
+| -: | :----------- | :---------- | ---: | :----------------------------------------------------- |
+|  1 | **src_addr** | IPv4-Net    | 0..1 | IPv4 source address range                              |
+|  2 | **src_port** | Port        | 0..1 | Source service per [RFC6335]                           |
+|  3 | **dst_addr** | IPv4-Net    | 0..1 | IPv4 destination address range                         |
+|  4 | **dst_port** | Port        | 0..1 | Destination service per [RFC6335]                      |
+|  5 | **protocol** | L4-Protocol | 0..1 | Layer 4 protocol (e.g., TCP) - see L4-Protocol section |
 
 **_Type: IPv6-Net (Array /ipv6-net)_**
 
-| ID | Type      |    # | Description                                                                        |
-| -: | :-------- | ---: | :--------------------------------------------------------------------------------- |
-|  1 | IPv6-Addr |    1 | **ipv6_addr**::IPv6 address as defined in [RFC8200]                                |
-|  2 | Integer   | 0..1 | **prefix_length**::CIDR prefix-length. If omitted, refers to a single host address |
+| ID | Type      |    # | Description                                                                   |
+| -: | :-------- | ---: | :---------------------------------------------------------------------------- |
+|  1 | IPv6-Addr |    1 | **ipv6_addr**::IPv6 address as defined in [RFC8200]                           |
+|  2 | Integer   | 0..1 | **prefix_length**::prefix length. If omitted, refers to a single host address |
 
-**_Type: IPv6-Connection (Record{1..*})_**
+**_Type: IPv6-Connection (Record{1..\*})_**
 
-| ID | Name         | Type        |    # | Description                                                         |
-| -: | :----------- | :---------- | ---: | :------------------------------------------------------------------ |
-|  1 | **src_addr** | IPv6-Net    | 0..1 | IPv6 source address range                                           |
-|  2 | **src_port** | Port        | 0..1 | source service per [RFC6335]                                        |
-|  3 | **dst_addr** | IPv6-Net    | 0..1 | IPv6 destination address range                                      |
-|  4 | **dst_port** | Port        | 0..1 | destination service per [RFC6335]                                   |
-|  5 | **protocol** | L4-Protocol | 0..1 | layer 4 protocol (e.g., TCP) - [Section 3.4.2.9](#3429-l4-protocol) |
+| ID | Name         | Type        |    # | Description                                       |
+| -: | :----------- | :---------- | ---: | :------------------------------------------------ |
+|  1 | **src_addr** | IPv6-Net    | 0..1 | IPv6 source address range                         |
+|  2 | **src_port** | Port        | 0..1 | Source service per [RFC6335]                      |
+|  3 | **dst_addr** | IPv6-Net    | 0..1 | IPv6 destination address range                    |
+|  4 | **dst_port** | Port        | 0..1 | Destination service per [RFC6335]                 |
+|  5 | **protocol** | L4-Protocol | 0..1 | Layer 4 protocol (e.g., TCP) - [Section 3.4.2.10] |
 
 
 | Type Name | Type Definition | Description                                      |
@@ -204,21 +204,21 @@
 | :----------- | :-------------- | :----------------------------------------------------------------------------------------------- |
 | **MAC-Addr** | Binary /eui     | Media Access Control / Extended Unique Identifier address - EUI-48 or EUI-64 as defined in [EUI] |
 
-**_Type: Process (Map{1..*})_**
+**_Type: Process (Map{1..\*})_**
 
-| ID | Name             | Type          |    # | Description                                                                          |
-| -: | :--------------- | :------------ | ---: | :----------------------------------------------------------------------------------- |
-|  1 | **pid**          | Integer{0..*} | 0..1 | Process ID of the process                                                            |
-|  2 | **name**         | String        | 0..1 | Name of the process                                                                  |
-|  3 | **cwd**          | String        | 0..1 | Current working directory of the process                                             |
-|  4 | **executable**   | File          | 0..1 | Executable that was executed to start the process                                    |
-|  5 | **parent**       | Process       | 0..1 | Process that spawned this one                                                        |
-|  6 | **command_line** | String        | 0..1 | The full command line invocation used to start this process, including all arguments |
+| ID | Name             | Type        |    # | Description                                                                          |
+| -: | :--------------- | :---------- | ---: | :----------------------------------------------------------------------------------- |
+|  1 | **pid**          | Process$pid | 0..1 | Process ID of the process                                                            |
+|  2 | **name**         | String      | 0..1 | Name of the process                                                                  |
+|  3 | **cwd**          | String      | 0..1 | Current working directory of the process                                             |
+|  4 | **executable**   | File        | 0..1 | Executable that was executed to start the process                                    |
+|  5 | **parent**       | Process     | 0..1 | Process that spawned this one                                                        |
+|  6 | **command_line** | String      | 0..1 | The full command line invocation used to start this process, including all arguments |
 
 
-| Type Name      | Type Definition | Description                                                      |
-| :------------- | :-------------- | :--------------------------------------------------------------- |
-| **Properties** | ArrayOf(String) | A list of names that uniquely identify properties of an Actuator |
+| Type Name      | Type Definition               | Description                                                      |
+| :------------- | :---------------------------- | :--------------------------------------------------------------- |
+| **Properties** | ArrayOf(String){1..\*} unique | A list of names that uniquely identify properties of an Actuator |
 
 
 | Type Name | Type Definition | Description                            |
@@ -226,24 +226,19 @@
 | **URI**   | String /uri     | Uniform Resource Identifier, [RFC3986] |
 
 
-| Type Name          | Type Definition        | Description                                                                                    |
-| :----------------- | :--------------------- | :--------------------------------------------------------------------------------------------- |
-| **Action-Targets** | MapOf(Action, Targets) | Map of each action supported by this actuator to the list of targets applicable to that action |
-
-
-| Type Name   | Type Definition        | Description           |
-| :---------- | :--------------------- | :-------------------- |
-| **Targets** | ArrayOf($Target){1..*} | List of Target fields |
+| Type Name          | Type Definition               | Description                                                                                    |
+| :----------------- | :---------------------------- | :--------------------------------------------------------------------------------------------- |
+| **Action-Targets** | MapOf(Action, Targets){1..\*} | Map of each action supported by this actuator to the list of targets applicable to that action |
 
 
 | Type Name     | Type Definition | Description   |
 | :------------ | :-------------- | :------------ |
-| **Date-Time** | Integer{0..*}   | Date and Time |
+| **Date-Time** | Integer{0..\*}  | Date and Time |
 
 
 | Type Name    | Type Definition | Description      |
 | :----------- | :-------------- | :--------------- |
-| **Duration** | Integer{0..*}   | A length of time |
+| **Duration** | Integer{0..\*}  | A length of time |
 
 **_Type: Feature (Enumerated)_**
 
@@ -252,15 +247,16 @@
 |  1 | **versions**   | List of OpenC2 Language versions supported by this Actuator         |
 |  2 | **profiles**   | List of profiles supported by this Actuator                         |
 |  3 | **pairs**      | List of supported Actions and applicable Targets                    |
-|  4 | **rate_limit** | Maximum number of requests per minute supported by design or policy |
+|  4 | **rate_limit** | Maximum number of Commands per minute supported by design or policy |
+|  5 | **args**       | List of supported Command Arguments                                 |
 
-**_Type: Hashes (Map{1..*})_**
+**_Type: Hashes (Map{1..\*})_**
 
-| ID | Name       | Type          |    # | Description                         |
-| -: | :--------- | :------------ | ---: | :---------------------------------- |
-|  1 | **md5**    | Binary$md5    | 0..1 | MD5 hash as defined in [RFC1321]    |
-|  2 | **sha1**   | Binary$sha1   | 0..1 | SHA1 hash as defined in [RFC6234]   |
-|  3 | **sha256** | Binary$sha256 | 0..1 | SHA256 hash as defined in [RFC6234] |
+| ID | Name       | Type          |  # | Description                         |
+| -: | :--------- | :------------ | -: | :---------------------------------- |
+|  1 | **md5**    | Hashes$md5    |  1 | MD5 hash as defined in [RFC1321]    |
+|  2 | **sha1**   | Hashes$sha1   |  1 | SHA1 hash as defined in [RFC6234]   |
+|  3 | **sha256** | Hashes$sha256 |  1 | SHA256 hash as defined in [RFC6234] |
 
 
 | Type Name    | Type Definition  | Description                                  |
@@ -291,11 +287,6 @@
 |  17 | **udp**  | User Datagram Protocol - [RFC0768]               |
 | 132 | **sctp** | Stream Control Transmission Protocol - [RFC4960] |
 
-
-| Type Name | Type Definition | Description                                   |
-| :-------- | :-------------- | :-------------------------------------------- |
-| **Nsid**  | String{1..16}   | A short identifier that refers to a namespace |
-
 **_Type: Payload (Choice)_**
 
 | ID | Name    | Type   |  # | Description                                                 |
@@ -323,32 +314,57 @@
 | **Version** | String          | Major.Minor version number |
 
 
-| Type Name            | Type Definition        | Description                                                 |
-| :------------------- | :--------------------- | :---------------------------------------------------------- |
-| **ArrayOf$versions** | ArrayOf(Version){1..*} | List of OpenC2 language versions supported by this Actuator |
+| Type Name      | Type Definition      | Description        |
+| :------------- | :------------------- | :----------------- |
+| **Command-ID** | String(%^\S{0,36}$%) | Command Identifier |
 
 
-| Type Name            | Type Definition     | Description                                 |
-| :------------------- | :------------------ | :------------------------------------------ |
-| **ArrayOf$profiles** | ArrayOf(Nsid){0..1} | List of profiles supported by this Actuator |
+| Type Name    | Type Definition                | Description                                                 |
+| :----------- | :----------------------------- | :---------------------------------------------------------- |
+| **Versions** | ArrayOf(Version){0..10} unique | List of OpenC2 language versions supported by this Actuator |
+
+
+| Type Name     | Type Definition | Description                        |
+| :------------ | :-------------- | :--------------------------------- |
+| **Namespace** | String /uri     | Unique name of an Actuator Profile |
+
+
+| Type Name    | Type Definition           | Description                                 |
+| :----------- | :------------------------ | :------------------------------------------ |
+| **Profiles** | ArrayOf(Namespace) unique | List of profiles supported by this Actuator |
+
+
+| Type Name   | Type Definition                | Description          |
+| :---------- | :----------------------------- | :------------------- |
+| **Targets** | ArrayOf(>Target){1..\*} unique | List of Target types |
 
 
 | Type Name        | Type Definition | Description                         |
 | :--------------- | :-------------- | :---------------------------------- |
-| **ArrayOf$args** | ArrayOf($Args)  | List of supported Command Arguments |
+| **Results$Args** | ArrayOf(>Args)  | List of supported Command Arguments |
 
 
-| Type Name      | Type Definition | Description                      |
-| :------------- | :-------------- | :------------------------------- |
-| **Binary$md5** | Binary /x       | MD5 hash as defined in [RFC1321] |
+| Type Name              | Type Definition | Description                                                         |
+| :--------------------- | :-------------- | :------------------------------------------------------------------ |
+| **Results$rate-limit** | Number{0..\*}   | Maximum number of requests per minute supported by design or policy |
 
 
-| Type Name       | Type Definition | Description                       |
-| :-------------- | :-------------- | :-------------------------------- |
-| **Binary$sha1** | Binary /x       | SHA1 hash as defined in [RFC6234] |
+| Type Name       | Type Definition | Description               |
+| :-------------- | :-------------- | :------------------------ |
+| **Process$pid** | Integer{0..\*}  | Process ID of the process |
 
 
-| Type Name         | Type Definition | Description                         |
-| :---------------- | :-------------- | :---------------------------------- |
-| **Binary$sha256** | Binary /x       | SHA256 hash as defined in [RFC6234] |
+| Type Name      | Type Definition   | Description                      |
+| :------------- | :---------------- | :------------------------------- |
+| **Hashes$md5** | Binary{16..16} /x | MD5 hash as defined in [RFC1321] |
+
+
+| Type Name       | Type Definition   | Description                       |
+| :-------------- | :---------------- | :-------------------------------- |
+| **Hashes$sha1** | Binary{20..20} /x | SHA1 hash as defined in [RFC6234] |
+
+
+| Type Name         | Type Definition   | Description                         |
+| :---------------- | :---------------- | :---------------------------------- |
+| **Hashes$sha256** | Binary{32..32} /x | SHA256 hash as defined in [RFC6234] |
 

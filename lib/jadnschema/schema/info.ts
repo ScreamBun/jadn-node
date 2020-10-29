@@ -169,7 +169,7 @@ class Config extends BaseModel {
  */
 class Info extends BaseModel {
   // Info Values
-  module: string;
+  package: string;
   version?: string;
   title?: string;
   description?: string;
@@ -181,7 +181,7 @@ class Info extends BaseModel {
   config: Config;
 
   // Helper Variables
-  slots: Array<string> = ['module', 'version', 'title', 'description', 'comment', 'copyright', 'license', 'imports', 'exports', 'config'];
+  slots: Array<string> = ['package', 'version', 'title', 'description', 'comment', 'copyright', 'license', 'imports', 'exports', 'config'];
   private configSet: boolean;
 
   /**
@@ -195,7 +195,7 @@ class Info extends BaseModel {
     const keys = Object.keys(data || {});
 
     // Field Vars
-    this.module = safeGet(this, 'module', 'MODULE') as string;
+    this.package = safeGet(this, 'package', 'PACKAGE') as string;
     this.config = safeGet(this, 'config', new Config()) as Config;
 
     // Helper Vars
@@ -226,12 +226,12 @@ class Info extends BaseModel {
       d = data.schema(); // eslint-disable-line no-param-reassign
     } else {
       d = {
-        module: '',
+        package: '',
         ...data
       };
     }
-    if (!('module' in d)) {
-      throw new ValidationError('Info property \'module\' is required');
+    if (!('package' in d)) {
+      throw new ValidationError('Info property \'package\' is required');
     }
     // TODO: Validation
     return d;

@@ -44,8 +44,13 @@ export interface Export {
   description?: string;
 }
 
+export interface RootProperties {
+  [key: string]: Export
+}
+
 export interface Schema extends Meta {
   type: 'object';
-  oneOf: Array<Export>;
+  oneOf?: Array<Export>;
+  properties?: RootProperties;
   definitions: Record<string, TypeDefinition>;
 }

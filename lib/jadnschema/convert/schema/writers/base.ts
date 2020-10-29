@@ -27,14 +27,9 @@ class WriterBase {
   escapeChars: Array<string> = [' '];
 
   // Non Override
-  protected definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
-  'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr',
-  'IPv4-Net', 'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI',
-  'Action-Targets', 'Targets', 'Date-Time', 'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr',
-  'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Version', 'Versions',
-  'Namespace', 'Profiles', 'Rate-Limit', 'Command-ID'];
+  protected definitionOrder: Array<string>;
   protected indent = '  ';
-  protected infoOrder: Array<string> = ['title', 'module', 'version', 'description', 'comment', 'copyright', 'license', 'exports', 'imports', 'config'];
+  protected infoOrder: Array<string> = ['title', 'package', 'version', 'description', 'comment', 'copyright', 'license', 'exports', 'imports', 'config'];
   protected titleOverrides: Record<string, string> = {
     Addr: 'Address',
     IDN: 'Internationalized',
@@ -82,6 +77,7 @@ class WriterBase {
     }
 
     // Helper Vars
+    this.definitionOrder = this.schema.definitionOrder;
     this.info = this.schema.info;
     this.imports = this.info.get('imports', {}) as Record<string, string>;
     this.types = objectValues(this.schema.types);

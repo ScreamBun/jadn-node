@@ -200,7 +200,7 @@ class JADNtoMarkDown extends WriterBase {
   _formatMap(itm: MapDef): string {
     let fmt = hasProperty(itm.options, 'id') ? '.ID' : '';
     const multi = itm.options.multiplicity(0, 0, false, (x: number, y: number) => x > 0 || y > 0);
-    fmt += multi === '' ? '' : `{${multi}}`;
+    fmt += multi === '' ? '' : `{${multi}}`.replace('*', '\\*');
 
     const mapMD = `**_Type: ${itm.name} (Map${fmt})_**\n\n`;
 
@@ -233,7 +233,7 @@ class JADNtoMarkDown extends WriterBase {
    */
   _formatRecord(itm: RecordDef): string {
     const multi = itm.options.multiplicity(0, 0, false, (x: number, y: number) => x > 0 || y > 0);
-    const fmt = multi === '' ? '' : `{${multi}}`;
+    const fmt = multi === '' ? '' : `{${multi}}`.replace('*', '\\*');
     const recordMD = `**_Type: ${itm.name} (Record${fmt})_**\n\n`;
 
     const headers = {
@@ -292,7 +292,7 @@ class JADNtoMarkDown extends WriterBase {
     const mltiOptsCheck = ['Integer', 'Number'].includes(field.type) ? undefined : (x: number, y: number): boolean => (x > 0 || y > 0);
     const multi = field.options.multiplicity(0, 0, false, mltiOptsCheck);
     if (multi !== '') {
-      fieldObject.type += `{${multi}}`;
+      fieldObject.type += `{${multi}}`.replace('*', '\\*');
     }
 
     fieldObject.type += field.options.pattern ? `(%${field.options.pattern}%)` : '';
@@ -328,7 +328,7 @@ class JADNtoMarkDown extends WriterBase {
 
             if (columnName === 'options' && cell instanceof Options) {
               // TODO: More options
-              cell = cell.multiplicity(1, 1, true);
+              cell = cell.multiplicity(1, 1, true).replace('*', '\*');
             } else if (columnName === this.tableFieldHeaders.Name) {
               cell = `**${String(cell)}**`;
             }

@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://oasis-open.org/openc2/oc2ls/v1.0",
-  "title": "oc2sl version 1.0 json schema",
+  "$id": "http://oasis-open.org/openc2/oc2ls/v1.1",
+  "title": "OpenC2 Language Profile",
   "type": "object",
-  "description": "This schema is intended to validate all possible derived content for the OpenC2 Language Specification version 1.0. It is meant to be used as a template that can be more strictly tuned when creating actuator profile specific schema",
+  "description": "Language Profile from the OpenC2 Language Specification version 1.1",
   "oneOf": [
     {
       "$ref": "#/definitions/OpenC2-Command",
@@ -41,7 +41,7 @@
           "description": "The subject of the Action. The Actuator executes the Action on the Target"
         },
         "command_id": {
-          "type": "string",
+          "$ref": "#/definitions/Command-ID",
           "description": "An identifier of this Command"
         }
       }
@@ -51,8 +51,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "status",
-        "results"
+        "status"
       ],
       "properties": {
         "status": {
@@ -158,7 +157,6 @@
     "Target": {
       "title": "Target",
       "type": "object",
-      "description": "OpenC2 Target datatypes",
       "additionalProperties": false,
       "minProperties": 1,
       "maxProperties": 1,
@@ -172,7 +170,7 @@
           "description": "An array of bytes representing a file-like object or a link to that object"
         },
         "command": {
-          "type": "string",
+          "$ref": "#/definitions/Command-ID",
           "description": "A reference to a previously issued Command"
         },
         "device": {
@@ -250,12 +248,6 @@
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
-      "required": [
-        "start_time",
-        "stop_time",
-        "duration",
-        "response_requested"
-      ],
       "properties": {
         "start_time": {
           "$ref": "#/definitions/Date-Time",
@@ -286,6 +278,10 @@
         {
           "const": 200,
           "description": "OK - the Command has succeeded"
+        },
+        {
+          "const": 201,
+          "description": "Created - the Command has succeeded and a new resource has been created as a result of it"
         },
         {
           "const": 400,
@@ -320,22 +316,16 @@
     "Results": {
       "title": "Results",
       "type": "object",
+      "description": "Response Results",
       "additionalProperties": false,
       "minProperties": 1,
-      "required": [
-        "versions",
-        "profiles",
-        "pairs",
-        "rate_limit",
-        "args"
-      ],
       "properties": {
         "versions": {
-          "$ref": "#/definitions/ArrayOf$versions",
+          "$ref": "#/definitions/Versions",
           "description": "List of OpenC2 language versions supported by this Actuator"
         },
         "profiles": {
-          "$ref": "#/definitions/ArrayOf$profiles",
+          "$ref": "#/definitions/Profiles",
           "description": "List of profiles supported by this Actuator"
         },
         "pairs": {
@@ -343,11 +333,11 @@
           "description": "List of targets applicable to each supported Action"
         },
         "rate_limit": {
-          "type": "number",
+          "$ref": "#/definitions/Results$rate-limit",
           "description": "Maximum number of requests per minute supported by design or policy"
         },
         "args": {
-          "$ref": "#/definitions/ArrayOf$args",
+          "$ref": "#/definitions/Results$Args",
           "description": "List of supported Command Arguments"
         }
       }
@@ -360,7 +350,7 @@
       "properties": {
         "mime_type": {
           "type": "string",
-          "description": "Permitted values specified in the IANA Media Types registry, [[RFC6838]](#rfc6838)"
+          "description": "Permitted values specified in the IANA Media Types registry, [RFC6838]"
         },
         "payload": {
           "$ref": "#/definitions/Payload",
@@ -395,12 +385,14 @@
     "Domain-Name": {
       "title": "Domain Name",
       "type": "string",
-      "description": "[RFC1034], Section 3.5"
+      "description": "[RFC1034], Section 3.5",
+      "format": "hostname"
     },
     "Email-Addr": {
       "title": "Email Address",
       "type": "string",
-      "description": "Email address, [RFC5322], Section 3.4.1"
+      "description": "Email address - [RFC5322], Section 3.4.1",
+      "format": "email"
     },
     "Features": {
       "title": "Features",
@@ -435,16 +427,19 @@
     "IDN-Domain-Name": {
       "title": "Internationalized Domain Name",
       "type": "string",
-      "description": "Internationalized Domain Name, [RFC5890], Section 2.3.2.3"
+      "description": "Internationalized Domain Name - [RFC5890], Section 2.3.2.3",
+      "format": "idn-hostname"
     },
     "IDN-Email-Addr": {
       "title": "Internationalized Email Address",
       "type": "string",
-      "description": "Internationalized email address, [RFC6531]"
+      "description": "Internationalized email address - [RFC6531]",
+      "format": "idn-email"
     },
     "IPv4-Net": {
       "title": "IPv4 Net",
       "type": "string",
+      "description": "IPv4 address and prefix length",
       "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(\\/(3[0-2]|[0-2]?[0-9]))?$"
     },
     "IPv4-Connection": {
@@ -460,7 +455,7 @@
         },
         "src_port": {
           "$ref": "#/definitions/Port",
-          "description": "source service per [RFC6335]"
+          "description": "Source service per [RFC6335]"
         },
         "dst_addr": {
           "$ref": "#/definitions/IPv4-Net",
@@ -468,18 +463,19 @@
         },
         "dst_port": {
           "$ref": "#/definitions/Port",
-          "description": "destination service per [RFC6335]"
+          "description": "Destination service per [RFC6335]"
         },
         "protocol": {
           "$ref": "#/definitions/L4-Protocol",
-          "description": "layer 4 protocol (e.g., TCP) - see [Section 3.4.2.9](#3429-l4-protocol)"
+          "description": "Layer 4 protocol (e.g., TCP) - see L4-Protocol section"
         }
       }
     },
     "IPv6-Net": {
       "title": "IPv6 Net",
       "type": "string",
-      "pattern": "^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$"
+      "description": "IPv6 address and prefix length",
+      "pattern": "^(([0-9A-Fa-f]{1,4}:){7,7}[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,7}:|([0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,5}(:[0-9A-Fa-f]{1,4}){1,2}|([0-9A-Fa-f]{1,4}:){1,4}(:[0-9A-Fa-f]{1,4}){1,3}|([0-9A-Fa-f]{1,4}:){1,3}(:[0-9A-Fa-f]{1,4}){1,4}|([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:((:[0-9A-Fa-f]{1,4}){1,6})|:((:[0-9A-Fa-f]{1,4}){1,7}|:)|fe80:(:[0-9A-Fa-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9A-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$"
     },
     "IPv6-Connection": {
       "title": "IPv6 Connection",
@@ -494,7 +490,7 @@
         },
         "src_port": {
           "$ref": "#/definitions/Port",
-          "description": "source service per [RFC6335]"
+          "description": "Source service per [RFC6335]"
         },
         "dst_addr": {
           "$ref": "#/definitions/IPv6-Net",
@@ -502,24 +498,25 @@
         },
         "dst_port": {
           "$ref": "#/definitions/Port",
-          "description": "destination service per [RFC6335]"
+          "description": "Destination service per [RFC6335]"
         },
         "protocol": {
           "$ref": "#/definitions/L4-Protocol",
-          "description": "layer 4 protocol (e.g., TCP) - [Section 3.4.2.9](#3429-l4-protocol)"
+          "description": "Layer 4 protocol (e.g., TCP) - [Section 3.4.2.10]"
         }
       }
     },
     "IRI": {
       "title": "IRI",
       "type": "string",
-      "description": "Internationalized Resource Identifier, [RFC3987]"
+      "description": "Internationalized Resource Identifier, [RFC3987]",
+      "format": "iri"
     },
     "MAC-Addr": {
       "title": "MAC Address",
       "type": "string",
       "description": "Media Access Control / Extended Unique Identifier address - EUI-48 or EUI-64 as defined in [EUI]",
-      "pattern": "^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(([:-][0-9a-fA-F]){2})?$"
+      "pattern": "^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(([:-][0-9A-Fa-f]){2})?$"
     },
     "Process": {
       "title": "Process",
@@ -528,7 +525,7 @@
       "minProperties": 1,
       "properties": {
         "pid": {
-          "type": "integer",
+          "$ref": "#/definitions/Process$pid",
           "description": "Process ID of the process"
         },
         "name": {
@@ -557,7 +554,9 @@
       "title": "Properties",
       "type": "array",
       "description": "A list of names that uniquely identify properties of an Actuator",
+      "minItems": 1,
       "maxItems": 100,
+      "uniqueItems": true,
       "items": {
         "type": "string"
       }
@@ -565,7 +564,8 @@
     "URI": {
       "title": "URI",
       "type": "string",
-      "description": "Uniform Resource Identifier, [RFC3986]"
+      "description": "Uniform Resource Identifier, [RFC3986]",
+      "format": "uri"
     },
     "Action-Targets": {
       "title": "Action Targets",
@@ -636,45 +636,17 @@
         }
       }
     },
-    "Targets": {
-      "title": "Targets",
-      "type": "array",
-      "description": "List of Target fields",
-      "minItems": 1,
-      "maxItems": 100,
-      "items": {
-        "type": "string",
-        "enum": [
-          "artifact",
-          "command",
-          "device",
-          "domain_name",
-          "email_addr",
-          "features",
-          "file",
-          "idn_domain_name",
-          "idn_email_addr",
-          "ipv4_net",
-          "ipv6_net",
-          "ipv4_connection",
-          "ipv6_connection",
-          "iri",
-          "mac_addr",
-          "process",
-          "properties",
-          "uri"
-        ]
-      }
-    },
     "Date-Time": {
       "title": "Date Time",
       "type": "integer",
-      "description": "Date and Time"
+      "description": "Date and Time",
+      "minimum": 0
     },
     "Duration": {
       "title": "Duration",
       "type": "integer",
-      "description": "A length of time"
+      "description": "A length of time",
+      "minimum": 0
     },
     "Feature": {
       "title": "Feature",
@@ -695,27 +667,31 @@
         },
         {
           "const": "rate_limit",
-          "description": "Maximum number of requests per minute supported by design or policy"
+          "description": "Maximum number of Commands per minute supported by design or policy"
+        },
+        {
+          "const": "args",
+          "description": "List of supported Command Arguments"
         }
       ]
     },
     "Hashes": {
       "title": "Hashes",
       "type": "object",
-      "description": "Cryptographic Hash values",
+      "description": "Cryptographic hash values",
       "additionalProperties": false,
       "minProperties": 1,
       "properties": {
         "md5": {
-          "$ref": "#/definitions/Binary$md5",
+          "$ref": "#/definitions/Hashes$md5",
           "description": "MD5 hash as defined in [RFC1321]"
         },
         "sha1": {
-          "$ref": "#/definitions/Binary$sha1",
+          "$ref": "#/definitions/Hashes$sha1",
           "description": "SHA1 hash as defined in [RFC6234]"
         },
         "sha256": {
-          "$ref": "#/definitions/Binary$sha256",
+          "$ref": "#/definitions/Hashes$sha256",
           "description": "SHA256 hash as defined in [RFC6234]"
         }
       }
@@ -723,22 +699,26 @@
     "Hostname": {
       "title": "Hostname",
       "type": "string",
-      "description": "Internet host name as specified in [RFC1123]"
+      "description": "Internet host name as specified in [RFC1123]",
+      "format": "hostname"
     },
     "IDN-Hostname": {
       "title": "Internationalized Hostname",
       "type": "string",
-      "description": "Internationalized Internet host name as specified in [RFC5890], Section 2.3.2.3"
+      "description": "Internationalized Internet host name as specified in [RFC5890], Section 2.3.2.3",
+      "format": "idn-hostname"
     },
     "IPv4-Addr": {
       "title": "IPv4 Address",
-      "$ref": "#/definitions/Binary",
-      "description": "32 bit IPv4 address as defined in [RFC0791]"
+      "type": "string",
+      "description": "32 bit IPv4 address as defined in [RFC0791]",
+      "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])$"
     },
     "IPv6-Addr": {
       "title": "IPv6 Address",
-      "$ref": "#/definitions/Binary",
-      "description": "128 bit IPv6 address as defined in [RFC8200]"
+      "type": "string",
+      "description": "128 bit IPv6 address as defined in [RFC8200]",
+      "pattern": "^(([0-9A-Fa-f]{1,4}:){7,7}[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,7}:|([0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,5}(:[0-9A-Fa-f]{1,4}){1,2}|([0-9A-Fa-f]{1,4}:){1,4}(:[0-9A-Fa-f]{1,4}){1,3}|([0-9A-Fa-f]{1,4}:){1,3}(:[0-9A-Fa-f]{1,4}){1,4}|([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:((:[0-9A-Fa-f]{1,4}){1,6})|:((:[0-9A-Fa-f]{1,4}){1,7}|:)|fe80:(:[0-9A-Fa-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9A-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)$"
     },
     "L4-Protocol": {
       "title": "Layer 4 Protocol",
@@ -763,13 +743,6 @@
         }
       ]
     },
-    "Nsid": {
-      "title": "Namespace Identifier",
-      "type": "string",
-      "description": "A short identifier that refers to a namespace",
-      "minLength": 1,
-      "maxLength": 16
-    },
     "Payload": {
       "title": "Payload",
       "type": "object",
@@ -779,7 +752,8 @@
       "properties": {
         "bin": {
           "type": "string",
-          "description": "Specifies the data contained in the artifact"
+          "description": "Specifies the data contained in the artifact",
+          "contentEncoding": "base64url"
         },
         "url": {
           "$ref": "#/definitions/URI",
@@ -821,59 +795,187 @@
       "type": "string",
       "description": "Major.Minor version number"
     },
-    "ArrayOf$versions": {
-      "title": "ArrayOf$versions",
+    "Command-ID": {
+      "title": "Command ID",
+      "type": "string",
+      "description": "Command Identifier",
+      "pattern": "^\\S{0,36}$"
+    },
+    "Versions": {
+      "title": "Versions",
       "type": "array",
       "description": "List of OpenC2 language versions supported by this Actuator",
-      "minItems": 1,
-      "maxItems": 100,
+      "maxItems": 10,
+      "uniqueItems": true,
       "items": {
         "$ref": "#/definitions/Version"
       }
     },
-    "ArrayOf$profiles": {
-      "title": "ArrayOf$profiles",
+    "Namespace": {
+      "title": "Namespace",
+      "type": "string",
+      "description": "Unique name of an Actuator Profile",
+      "format": "uri"
+    },
+    "Profiles": {
+      "title": "Profiles",
       "type": "array",
       "description": "List of profiles supported by this Actuator",
-      "maxItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
       "items": {
-        "$ref": "#/definitions/Nsid"
+        "$ref": "#/definitions/Namespace"
       }
     },
-    "ArrayOf$args": {
-      "title": "ArrayOf$args",
+    "Targets": {
+      "title": "Targets",
+      "type": "array",
+      "description": "List of Target types",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "description": "Derived enumeration from Target",
+        "oneOf": [
+          {
+            "const": "artifact",
+            "description": "An array of bytes representing a file-like object or a link to that object"
+          },
+          {
+            "const": "command",
+            "description": "A reference to a previously issued Command"
+          },
+          {
+            "const": "device",
+            "description": "The properties of a hardware device"
+          },
+          {
+            "const": "domain_name",
+            "description": "A network domain name"
+          },
+          {
+            "const": "email_addr",
+            "description": "A single email address"
+          },
+          {
+            "const": "features",
+            "description": "A set of items used with the query Action to determine an Actuator's capabilities"
+          },
+          {
+            "const": "file",
+            "description": "Properties of a file"
+          },
+          {
+            "const": "idn_domain_name",
+            "description": "An internationalized domain name"
+          },
+          {
+            "const": "idn_email_addr",
+            "description": "A single internationalized email address"
+          },
+          {
+            "const": "ipv4_net",
+            "description": "An IPv4 address range including CIDR prefix length"
+          },
+          {
+            "const": "ipv6_net",
+            "description": "An IPv6 address range including prefix length"
+          },
+          {
+            "const": "ipv4_connection",
+            "description": "A 5-tuple of source and destination IPv4 address ranges, source and destination ports, and protocol"
+          },
+          {
+            "const": "ipv6_connection",
+            "description": "A 5-tuple of source and destination IPv6 address ranges, source and destination ports, and protocol"
+          },
+          {
+            "const": "iri",
+            "description": "An internationalized resource identifier (IRI)"
+          },
+          {
+            "const": "mac_addr",
+            "description": "A Media Access Control (MAC) address - EUI-48 or EUI-64 as defined in [EUI]"
+          },
+          {
+            "const": "process",
+            "description": "Common properties of an instance of a computer program as executed on an operating system"
+          },
+          {
+            "const": "properties",
+            "description": "Data attribute associated with an Actuator"
+          },
+          {
+            "const": "uri",
+            "description": "A uniform resource identifier (URI)"
+          }
+        ]
+      }
+    },
+    "Results$Args": {
+      "title": "Results$Args",
       "type": "array",
       "description": "List of supported Command Arguments",
       "maxItems": 100,
       "items": {
         "type": "string",
-        "enum": [
-          "start_time",
-          "stop_time",
-          "duration",
-          "response_requested"
+        "description": "Derived enumeration from Args",
+        "oneOf": [
+          {
+            "const": "start_time",
+            "description": "The specific date/time to initiate the Command"
+          },
+          {
+            "const": "stop_time",
+            "description": "The specific date/time to terminate the Command"
+          },
+          {
+            "const": "duration",
+            "description": "The length of time for an Command to be in effect"
+          },
+          {
+            "const": "response_requested",
+            "description": "The type of Response required for the Command: none, ack, status, complete"
+          }
         ]
       }
     },
-    "Binary$md5": {
-      "title": "Binary$md5",
-      "$ref": "#/definitions/Binary",
-      "description": "MD5 hash as defined in [RFC1321]"
+    "Results$rate-limit": {
+      "title": "Results$rate limit",
+      "type": "number",
+      "description": "Maximum number of requests per minute supported by design or policy",
+      "minimum": 0
     },
-    "Binary$sha1": {
-      "title": "Binary$sha1",
-      "$ref": "#/definitions/Binary",
-      "description": "SHA1 hash as defined in [RFC6234]"
+    "Process$pid": {
+      "title": "Process$pid",
+      "type": "integer",
+      "description": "Process ID of the process",
+      "minimum": 0
     },
-    "Binary$sha256": {
-      "title": "Binary$sha256",
-      "$ref": "#/definitions/Binary",
-      "description": "SHA256 hash as defined in [RFC6234]"
-    },
-    "Binary": {
-      "title": "Binary",
+    "Hashes$md5": {
+      "title": "Hashes$md5",
       "type": "string",
-      "contentEncoding": "base64"
+      "description": "MD5 hash as defined in [RFC1321]",
+      "contentEncoding": "base16",
+      "minLength": 16,
+      "maxLength": 16
+    },
+    "Hashes$sha1": {
+      "title": "Hashes$sha1",
+      "type": "string",
+      "description": "SHA1 hash as defined in [RFC6234]",
+      "contentEncoding": "base16",
+      "minLength": 20,
+      "maxLength": 20
+    },
+    "Hashes$sha256": {
+      "title": "Hashes$sha256",
+      "type": "string",
+      "description": "SHA256 hash as defined in [RFC6234]",
+      "contentEncoding": "base16",
+      "minLength": 32,
+      "maxLength": 32
     }
   }
 }

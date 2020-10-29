@@ -1,20 +1,19 @@
-       title:  oc2sl version 1.0 json schema
-      module:  oasis-open.org/openc2/oc2ls/v1.0
- description:  This schema is intended to validate all possible derived content for the OpenC2 Language Specification version 1.0. It is meant to be used as a template that can be more strictly tuned when creating actuator profile specific schema
+       title:  OpenC2 Language Profile
+     package:  http://oasis-open.org/openc2/oc2ls/v1.1
+ description:  Language Profile from the OpenC2 Language Specification version 1.1
      exports:  ['OpenC2-Command', 'OpenC2-Response']
-      config:  {"$FS":":","$FieldName":"^[a-z][-_a-z0-9]{0,31}$"}
 
 OpenC2-Command = Record
  1  action      Action
  2  target      Target
  3  args        Args optional
  4  actuator    Actuator optional
- 5  command_id  String optional
+ 5  command_id  Command-ID optional
 
-OpenC2-Response = Map
+OpenC2-Response = Record
  1  status       Status-Code
  2  status_text  String optional
- 3  results      Results
+ 3  results      Results optional
 
 Action = Enumerated
   1  scan
@@ -40,7 +39,7 @@ Action = Enumerated
 
 Target = Choice
   1  artifact         Artifact
-  2  command          String
+  2  command          Command-ID
   3  device           Device
   7  domain_name      Domain-Name
   8  email_addr       Email-Addr
@@ -61,14 +60,15 @@ Target = Choice
 Actuator = Choice
 
 Args = Map{1..*}
- 1  start_time          Date-Time
- 2  stop_time           Date-Time
- 3  duration            Duration
- 4  response_requested  Response-Type
+ 1  start_time          Date-Time optional
+ 2  stop_time           Date-Time optional
+ 3  duration            Duration optional
+ 4  response_requested  Response-Type optional
 
 Status-Code = Enumerated.ID
  102
  200
+ 201
  400
  401
  403
@@ -78,11 +78,11 @@ Status-Code = Enumerated.ID
  503
 
 Results = Map{1..*}
- 1  versions    ArrayOf$versions
- 2  profiles    ArrayOf$profiles
- 3  pairs       Action-Targets
- 4  rate_limit  Number
- 5  args        ArrayOf$args
+ 1  versions    Versions optional
+ 2  profiles    Profiles optional
+ 3  pairs       Action-Targets optional
+ 4  rate_limit  Results$rate-limit optional
+ 5  args        Results$Args optional
 
 Artifact = Record{1..*}
  1  mime_type  String optional
@@ -136,20 +136,18 @@ IRI = String /iri
 MAC-Addr = Binary /eui
 
 Process = Map{1..*}
- 1  pid           Integer optional
+ 1  pid           Process$pid optional
  2  name          String optional
  3  cwd           String optional
  4  executable    File optional
  5  parent        Process optional
  6  command_line  String optional
 
-Properties = ArrayOf(String)
+Properties = ArrayOf(String){1..*} unique
 
 URI = String /uri
 
-Action-Targets = MapOf(Action, Targets)
-
-Targets = ArrayOf($Target){1..*}
+Action-Targets = MapOf(Action, Targets){1..*}
 
 Date-Time = Integer{0..*}
 
@@ -160,11 +158,12 @@ Feature = Enumerated
  2  profiles
  3  pairs
  4  rate_limit
+ 5  args
 
 Hashes = Map{1..*}
- 1  md5     Binary$md5 optional
- 2  sha1    Binary$sha1 optional
- 3  sha256  Binary$sha256 optional
+ 1  md5     Hashes$md5
+ 2  sha1    Hashes$sha1
+ 3  sha256  Hashes$sha256
 
 Hostname = String /hostname
 
@@ -180,8 +179,6 @@ L4-Protocol = Enumerated
   17  udp
  132  sctp
 
-Nsid = String{1..16}
-
 Payload = Choice
  1  bin  Binary
  2  url  URI
@@ -196,15 +193,25 @@ Response-Type = Enumerated
 
 Version = String
 
-ArrayOf$versions = ArrayOf(Version){1..*}
+Command-ID = String(%^\S{0,36}$%)
 
-ArrayOf$profiles = ArrayOf(Nsid){0..1}
+Versions = ArrayOf(Version){0..10} unique
 
-ArrayOf$args = ArrayOf($Args)
+Namespace = String /uri
 
-Binary$md5 = Binary /x
+Profiles = ArrayOf(Namespace) unique
 
-Binary$sha1 = Binary /x
+Targets = ArrayOf(>Target){1..*} unique
 
-Binary$sha256 = Binary /x
+Results$Args = ArrayOf(>Args)
+
+Results$rate-limit = Number{0..*}
+
+Process$pid = Integer{0..*}
+
+Hashes$md5 = Binary{16..16} /x
+
+Hashes$sha1 = Binary{20..20} /x
+
+Hashes$sha256 = Binary{32..32} /x
 

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://oasis-open.org/openc2/oc2ls/v1.0",
-  "title": "oc2sl version 1.0 json schema",
+  "$id": "http://oasis-open.org/openc2/oc2ls/v1.1",
+  "title": "OpenC2 Language Profile",
   "type": "object",
   "oneOf": [
     {
@@ -34,7 +34,7 @@
           "$ref": "#/definitions/Actuator"
         },
         "command_id": {
-          "type": "string"
+          "$ref": "#/definitions/Command-ID"
         }
       }
     },
@@ -43,8 +43,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "status",
-        "results"
+        "status"
       ],
       "properties": {
         "status": {
@@ -138,7 +137,7 @@
           "$ref": "#/definitions/Artifact"
         },
         "command": {
-          "type": "string"
+          "$ref": "#/definitions/Command-ID"
         },
         "device": {
           "$ref": "#/definitions/Device"
@@ -200,12 +199,6 @@
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
-      "required": [
-        "start_time",
-        "stop_time",
-        "duration",
-        "response_requested"
-      ],
       "properties": {
         "start_time": {
           "$ref": "#/definitions/Date-Time"
@@ -230,6 +223,9 @@
         },
         {
           "const": 200
+        },
+        {
+          "const": 201
         },
         {
           "const": 400
@@ -259,28 +255,21 @@
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
-      "required": [
-        "versions",
-        "profiles",
-        "pairs",
-        "rate_limit",
-        "args"
-      ],
       "properties": {
         "versions": {
-          "$ref": "#/definitions/ArrayOf$versions"
+          "$ref": "#/definitions/Versions"
         },
         "profiles": {
-          "$ref": "#/definitions/ArrayOf$profiles"
+          "$ref": "#/definitions/Profiles"
         },
         "pairs": {
           "$ref": "#/definitions/Action-Targets"
         },
         "rate_limit": {
-          "type": "number"
+          "$ref": "#/definitions/Results$rate-limit"
         },
         "args": {
-          "$ref": "#/definitions/ArrayOf$args"
+          "$ref": "#/definitions/Results$Args"
         }
       }
     },
@@ -320,11 +309,13 @@
     },
     "Domain-Name": {
       "title": "Domain Name",
-      "type": "string"
+      "type": "string",
+      "format": "hostname"
     },
     "Email-Addr": {
       "title": "Email Address",
-      "type": "string"
+      "type": "string",
+      "format": "email"
     },
     "Features": {
       "title": "Features",
@@ -354,11 +345,13 @@
     },
     "IDN-Domain-Name": {
       "title": "Internationalized Domain Name",
-      "type": "string"
+      "type": "string",
+      "format": "idn-hostname"
     },
     "IDN-Email-Addr": {
       "title": "Internationalized Email Address",
-      "type": "string"
+      "type": "string",
+      "format": "idn-email"
     },
     "IPv4-Net": {
       "title": "IPv4 Net",
@@ -391,7 +384,7 @@
     "IPv6-Net": {
       "title": "IPv6 Net",
       "type": "string",
-      "pattern": "^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$"
+      "pattern": "^(([0-9A-Fa-f]{1,4}:){7,7}[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,7}:|([0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,5}(:[0-9A-Fa-f]{1,4}){1,2}|([0-9A-Fa-f]{1,4}:){1,4}(:[0-9A-Fa-f]{1,4}){1,3}|([0-9A-Fa-f]{1,4}:){1,3}(:[0-9A-Fa-f]{1,4}){1,4}|([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:((:[0-9A-Fa-f]{1,4}){1,6})|:((:[0-9A-Fa-f]{1,4}){1,7}|:)|fe80:(:[0-9A-Fa-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9A-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$"
     },
     "IPv6-Connection": {
       "title": "IPv6 Connection",
@@ -418,12 +411,13 @@
     },
     "IRI": {
       "title": "IRI",
-      "type": "string"
+      "type": "string",
+      "format": "iri"
     },
     "MAC-Addr": {
       "title": "MAC Address",
       "type": "string",
-      "pattern": "^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(([:-][0-9a-fA-F]){2})?$"
+      "pattern": "^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(([:-][0-9A-Fa-f]){2})?$"
     },
     "Process": {
       "title": "Process",
@@ -432,7 +426,7 @@
       "minProperties": 1,
       "properties": {
         "pid": {
-          "type": "integer"
+          "$ref": "#/definitions/Process$pid"
         },
         "name": {
           "type": "string"
@@ -454,14 +448,17 @@
     "Properties": {
       "title": "Properties",
       "type": "array",
+      "minItems": 1,
       "maxItems": 100,
+      "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
     "URI": {
       "title": "URI",
-      "type": "string"
+      "type": "string",
+      "format": "uri"
     },
     "Action-Targets": {
       "title": "Action Targets",
@@ -531,42 +528,15 @@
         }
       }
     },
-    "Targets": {
-      "title": "Targets",
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 100,
-      "items": {
-        "type": "string",
-        "enum": [
-          "artifact",
-          "command",
-          "device",
-          "domain_name",
-          "email_addr",
-          "features",
-          "file",
-          "idn_domain_name",
-          "idn_email_addr",
-          "ipv4_net",
-          "ipv6_net",
-          "ipv4_connection",
-          "ipv6_connection",
-          "iri",
-          "mac_addr",
-          "process",
-          "properties",
-          "uri"
-        ]
-      }
-    },
     "Date-Time": {
       "title": "Date Time",
-      "type": "integer"
+      "type": "integer",
+      "minimum": 0
     },
     "Duration": {
       "title": "Duration",
-      "type": "integer"
+      "type": "integer",
+      "minimum": 0
     },
     "Feature": {
       "title": "Feature",
@@ -583,6 +553,9 @@
         },
         {
           "const": "rate_limit"
+        },
+        {
+          "const": "args"
         }
       ]
     },
@@ -593,31 +566,35 @@
       "minProperties": 1,
       "properties": {
         "md5": {
-          "$ref": "#/definitions/Binary$md5"
+          "$ref": "#/definitions/Hashes$md5"
         },
         "sha1": {
-          "$ref": "#/definitions/Binary$sha1"
+          "$ref": "#/definitions/Hashes$sha1"
         },
         "sha256": {
-          "$ref": "#/definitions/Binary$sha256"
+          "$ref": "#/definitions/Hashes$sha256"
         }
       }
     },
     "Hostname": {
       "title": "Hostname",
-      "type": "string"
+      "type": "string",
+      "format": "hostname"
     },
     "IDN-Hostname": {
       "title": "Internationalized Hostname",
-      "type": "string"
+      "type": "string",
+      "format": "idn-hostname"
     },
     "IPv4-Addr": {
       "title": "IPv4 Address",
-      "$ref": "#/definitions/Binary"
+      "type": "string",
+      "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])$"
     },
     "IPv6-Addr": {
       "title": "IPv6 Address",
-      "$ref": "#/definitions/Binary"
+      "type": "string",
+      "pattern": "^(([0-9A-Fa-f]{1,4}:){7,7}[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,7}:|([0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,5}(:[0-9A-Fa-f]{1,4}){1,2}|([0-9A-Fa-f]{1,4}:){1,4}(:[0-9A-Fa-f]{1,4}){1,3}|([0-9A-Fa-f]{1,4}:){1,3}(:[0-9A-Fa-f]{1,4}){1,4}|([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:((:[0-9A-Fa-f]{1,4}){1,6})|:((:[0-9A-Fa-f]{1,4}){1,7}|:)|fe80:(:[0-9A-Fa-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9A-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)$"
     },
     "L4-Protocol": {
       "title": "Layer 4 Protocol",
@@ -637,12 +614,6 @@
         }
       ]
     },
-    "Nsid": {
-      "title": "Namespace Identifier",
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 16
-    },
     "Payload": {
       "title": "Payload",
       "type": "object",
@@ -651,7 +622,8 @@
       "maxProperties": 1,
       "properties": {
         "bin": {
-          "type": "string"
+          "type": "string",
+          "contentEncoding": "base64url"
         },
         "url": {
           "$ref": "#/definitions/URI"
@@ -686,53 +658,152 @@
       "title": "Version",
       "type": "string"
     },
-    "ArrayOf$versions": {
-      "title": "ArrayOf$versions",
+    "Command-ID": {
+      "title": "Command ID",
+      "type": "string",
+      "pattern": "^\\S{0,36}$"
+    },
+    "Versions": {
+      "title": "Versions",
       "type": "array",
-      "minItems": 1,
-      "maxItems": 100,
+      "maxItems": 10,
+      "uniqueItems": true,
       "items": {
         "$ref": "#/definitions/Version"
       }
     },
-    "ArrayOf$profiles": {
-      "title": "ArrayOf$profiles",
+    "Namespace": {
+      "title": "Namespace",
+      "type": "string",
+      "format": "uri"
+    },
+    "Profiles": {
+      "title": "Profiles",
       "type": "array",
-      "maxItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
       "items": {
-        "$ref": "#/definitions/Nsid"
+        "$ref": "#/definitions/Namespace"
       }
     },
-    "ArrayOf$args": {
-      "title": "ArrayOf$args",
+    "Targets": {
+      "title": "Targets",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "oneOf": [
+          {
+            "const": "artifact"
+          },
+          {
+            "const": "command"
+          },
+          {
+            "const": "device"
+          },
+          {
+            "const": "domain_name"
+          },
+          {
+            "const": "email_addr"
+          },
+          {
+            "const": "features"
+          },
+          {
+            "const": "file"
+          },
+          {
+            "const": "idn_domain_name"
+          },
+          {
+            "const": "idn_email_addr"
+          },
+          {
+            "const": "ipv4_net"
+          },
+          {
+            "const": "ipv6_net"
+          },
+          {
+            "const": "ipv4_connection"
+          },
+          {
+            "const": "ipv6_connection"
+          },
+          {
+            "const": "iri"
+          },
+          {
+            "const": "mac_addr"
+          },
+          {
+            "const": "process"
+          },
+          {
+            "const": "properties"
+          },
+          {
+            "const": "uri"
+          }
+        ]
+      }
+    },
+    "Results$Args": {
+      "title": "Results$Args",
       "type": "array",
       "maxItems": 100,
       "items": {
         "type": "string",
-        "enum": [
-          "start_time",
-          "stop_time",
-          "duration",
-          "response_requested"
+        "oneOf": [
+          {
+            "const": "start_time"
+          },
+          {
+            "const": "stop_time"
+          },
+          {
+            "const": "duration"
+          },
+          {
+            "const": "response_requested"
+          }
         ]
       }
     },
-    "Binary$md5": {
-      "title": "Binary$md5",
-      "$ref": "#/definitions/Binary"
+    "Results$rate-limit": {
+      "title": "Results$rate limit",
+      "type": "number",
+      "minimum": 0
     },
-    "Binary$sha1": {
-      "title": "Binary$sha1",
-      "$ref": "#/definitions/Binary"
+    "Process$pid": {
+      "title": "Process$pid",
+      "type": "integer",
+      "minimum": 0
     },
-    "Binary$sha256": {
-      "title": "Binary$sha256",
-      "$ref": "#/definitions/Binary"
-    },
-    "Binary": {
-      "title": "Binary",
+    "Hashes$md5": {
+      "title": "Hashes$md5",
       "type": "string",
-      "contentEncoding": "base64"
+      "contentEncoding": "base16",
+      "minLength": 16,
+      "maxLength": 16
+    },
+    "Hashes$sha1": {
+      "title": "Hashes$sha1",
+      "type": "string",
+      "contentEncoding": "base16",
+      "minLength": 20,
+      "maxLength": 20
+    },
+    "Hashes$sha256": {
+      "title": "Hashes$sha256",
+      "type": "string",
+      "contentEncoding": "base16",
+      "minLength": 32,
+      "maxLength": 32
     }
   }
 }

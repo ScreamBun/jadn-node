@@ -1,8 +1,8 @@
 // HTML Template functions
-import { safeGet } from '../../../../utils';
+import { capitalize, safeGet } from '../../../../utils';
 
 export interface BaseProps {
-  module?: string;
+  package?: string;
   version?: string;
   styles?: string;
   info: string;
@@ -20,7 +20,7 @@ export function baseTemplate(props: BaseProps): string {
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
-      <title>${ props.module || 'JADN Schema Convert' } v.${ props.version || '0.0' }</title>
+      <title>${ props.package || 'JADN Schema Convert' } v.${ props.version || '0.0' }</title>
       <style type="text/css">${ props.styles || '' }</style>
     </head>
     <body>
@@ -35,7 +35,7 @@ export function baseTemplate(props: BaseProps): string {
 
 export interface HeaderProps {
   title?: string;
-  module: string;
+  package: string;
   version?: string;
   description?: string;
   comment?: string;
@@ -53,7 +53,7 @@ export interface HeaderProps {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function headerTemplate(props: HeaderProps): string {
-  const rows = Object.keys(props).map(k => `<tr><td class="h">${ k }:</td><td class="s">${ safeGet(props, k, '') as string }</td></tr>`).join('\n');
+  const rows = Object.keys(props).map(k => `<tr><td class="h">${ capitalize(k) }:</td><td class="s">${ safeGet(props, k, '') as string }</td></tr>`).join('\n');
   return `<table>${ rows }</table>`;
 }
 

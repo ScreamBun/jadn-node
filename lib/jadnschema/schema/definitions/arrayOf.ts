@@ -1,6 +1,7 @@
 // JADN ArrayOf Structure
 import DefinitionBase from './base';
 import { SchemaObjectType, SchemaSimpleType } from './interfaces';
+import { EnumId, PointerId } from '../options';
 import { SchemaError, ValidationError } from '../../exceptions';
 import { safeGet } from '../../utils';
 
@@ -62,7 +63,13 @@ class ArrayOfDef extends DefinitionBase {
           }
           */
         } else {
-          const SchemaType = (vtype.startsWith('$') ? safeGet(config.derived, vtype) : safeGet(config.types, vtype)) as DefinitionBase;
+          let SchemaType: DefinitionBase;
+          if (RegExp(`^(${EnumId}|${PointerId})`).test(vtype)) {
+            SchemaType = safeGet(config.derived, vtype) as DefinitionBase;
+          } else {
+            SchemaType = safeGet(config.types, vtype.startsWith(PointerId) ? vtype.substr(1) : vtype) as DefinitionBase;
+          }
+
           inst.forEach(idx => {
             const errs = SchemaType.validate(idx);
             errors.push(...errs);

@@ -6,7 +6,7 @@ import Resolver from './resolver';
 
 // Schema Definitions
 export interface SchemaInfoJADN {
-  module: string;
+  package: string;
   version?: string;
   title?: string;
   description?: string;

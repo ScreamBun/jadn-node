@@ -8,7 +8,7 @@ import {
 } from './utils';
 import BaseModel from '../base';
 import { Field, EnumeratedField } from '../fields';
-import Options from '../options';
+import Options, { EnumId, PointerId } from '../options';
 import { DuplicateError, FormatError, ValidationError } from '../../exceptions';
 import {
   flattenArray, hasProperty, objectValues, safeGet, zip
@@ -302,7 +302,7 @@ class DefinitionBase extends BaseModel {
     const EnumeratedDef = require('./enumerated').default;
     const config = this._config();
 
-    function enumerated(def: DefinitionBase): typeof EnumeratedDef {
+    const enumerated = (def: DefinitionBase): typeof EnumeratedDef => {
       if (['Binary', 'Boolean', 'Integer', 'Number', 'Null', 'String'].includes(def.type)) {
         throw new TypeError(`${def.toString()} cannot be extended as an enumerated type`);
       }
@@ -322,29 +322,20 @@ class DefinitionBase extends BaseModel {
       return new EnumeratedDef(data, {_config: def._config});
     }
 
-    const key = safeGet(this.options, 'ktype', '') as string;
-    if (key.startsWith('$')) {
-      const ktype = this.options.ktype || '';
-      if (!(ktype in config.derived)) {
-        const typeDef = safeGet(config.types, ktype.substring(1), null) as null|DefinitionBase;
-        if (typeDef) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          config.derived[ktype] = enumerated(typeDef);
+    [
+      safeGet(this.options, 'ktype', '') as string, // Key
+      safeGet(this.options, 'vtype', '') as string // Value
+    ].forEach(ref => {
+      if (RegExp(`^(${EnumId}|${PointerId})`).test(ref)) {
+        const typeDef = safeGet(config.types, ref.substring(1)) as DefinitionBase;
+        if (!(ref in config.derived)) {
+          if (typeDef) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            config.derived[ref] = enumerated(typeDef);
+          }
         }
       }
-    }
-
-    const value = safeGet(this.options, 'vtype', '') as string;
-    if (value.startsWith('$')) {
-      const vtype = this.options.vtype || '';
-      if (!(vtype in config.derived)) {
-        const typeDef = safeGet(config.types, vtype.substring(1), null) as null|DefinitionBase;
-        if (typeDef) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          config.derived[vtype] = enumerated(typeDef);
-        }
-      }
-    }
+    });
   }
 }
 

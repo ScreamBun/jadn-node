@@ -7,7 +7,7 @@ import BaseModel, { initModel } from './base';
 import { DefinitionBase } from './definitions';
 import ValidationFormats from './formats';
 import Info from './info';
-import Options, { EnumId } from './options';
+import Options, { EnumId, PointerId } from './options';
 import { SchemaJADN, SchemaSimpleJADN, SchemaObjectJADN } from './interfaces';
 import {
   SchemaSimpleType,
@@ -16,7 +16,7 @@ import {
 import { JADNTypes } from './definitions/utils';
 import { FormatError, SchemaError, ValidationError } from '../exceptions';
 import {
-  capitalize, cloneObject, flattenArray, mergeArrayObjects, objectValues, prettyObject, safeGet, zip
+  capitalize, cloneObject, flattenArray, mergeArrayObjects, objectFromTuple, objectValues, prettyObject, safeGet, zip
 } from '../utils';
 
 // Format valiator
@@ -34,12 +34,13 @@ class Schema extends BaseModel {
   derived: Record<string, DefinitionBase>;
   protected schemaTypes: Set<string>;
   protected validators: Record<string, GeneralValidator|UnsignedValidator> = ValidationFormats;
-  protected definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
-    'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr',
-    'IPv4-Net', 'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI',
-    'Action-Targets', 'Targets', 'Date-Time', 'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr',
-    'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid', 'Payload', 'Port', 'Response-Type', 'Versions', 'Version',
-    'Profiles', 'Rate-Limit', 'Binary', 'Command-ID'];
+  readonly definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
+    'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr', 'IPv4-Net',
+    'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI', 'Action-Targets', 'Date-Time',
+    'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr', 'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid',
+    'Payload', 'Port', 'Response-Type', 'Version',
+    // Undefined types
+    'Command-ID','Versions', 'Namespace', 'Profiles', 'Targets'];
 
   /**
     * Initialize a Schema object
@@ -91,7 +92,7 @@ class Schema extends BaseModel {
     const types = new Set([...Object.keys(typeDeps), ...Object.keys(this.derived)]);
 
     return {
-      module: `${this.info.get('module', '') as string}${this.info.get('version', '') as string}`,
+      package: `${this.info.get('package', '') as string}${this.info.get('version', '') as string}`,
       exports: this.info.get('exports', []) as Array<string>,
       unreferenced: [...types].filter(d => !refs.has(d)).filter(d => !Object.keys(this.derived).includes(d)),
       undefined: [...refs].filter(d => !types.has(d))
@@ -115,7 +116,7 @@ class Schema extends BaseModel {
      */
     function ns(name: string): string {
       const nsp = name.split(':')[0];
-      return nsids.includes(nsp) ? nsp : name.replace(new RegExp(`^${EnumId}`), '');
+      return nsids.includes(nsp) ? nsp : name.replace(new RegExp(`^(${EnumId}|${PointerId})`), '');
     }
 
     Object.keys(this.types).forEach(typeName => {
@@ -155,7 +156,7 @@ class Schema extends BaseModel {
     */
   schemaPretty(strip?: boolean, indent?: number): string {
     strip = typeof strip === 'boolean' ? strip : false; // eslint-disable-line no-param-reassign
-    return this._dumps(this.schema(strip), indent);
+    return this.dumps(indent, strip);
   }
 
   /**
@@ -176,7 +177,7 @@ class Schema extends BaseModel {
     multi = typeof multi === 'boolean' ? multi : true; // eslint-disable-line no-param-reassign
     derived = typeof derived === 'boolean' ? derived : true; // eslint-disable-line no-param-reassign
     mapOf = typeof mapOf === 'boolean' ? mapOf : true; // eslint-disable-line no-param-reassign
-
+    
     const removeAnonymousType = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType> = [];
       // eslint-disable-next-line no-param-reassign
@@ -188,7 +189,8 @@ class Schema extends BaseModel {
             if ('options' in fieldDef) {
               const [fieldOpts, typeOpts] = fieldDef.options.split();
               if (Object.keys(typeOpts.object()).length > 0) {
-                const newName = `${fieldDef.type}${this.info.config.Sys}${fieldDef.name}`.replace('_', '-');
+                // console.log(`Anon Type ${fieldDef.name} - ${JSON.stringify(fieldDef.options.object())}`);
+                const newName = `${typeDef.name}${this.info.config.Sys}${fieldDef.name}`.replace('_', '-');
                 newTypes.push({
                   name: newName,
                   type: fieldDef.type,
@@ -219,33 +221,36 @@ class Schema extends BaseModel {
             const fieldDef: SchemaObjectGenField|SchemaObjectEnumField = { ...fd };
             if ('options' in fieldDef) {
               const [fieldOpts, typeOpts] = fieldDef.options.split();
-              const minc = fieldOpts.get('minc', 0) as number;
-              const maxc = fieldOpts.get('maxc', null) as null|number;
-              if ((maxc !== null && maxc !== 1) || (minc !== null && minc > 1)) {
-                delete fieldOpts.maxc;
-
+              if (fieldOpts.isArray()) {
                 typeOpts.vtype = fieldDef.type;
-                typeOpts.minv = Math.max(minc, 1);
-                if (maxc !== null && maxc > 1) {
-                  typeOpts.maxv = maxc;
+                if (fieldDef.type === 'Enumerated') {
+                  typeOpts.vtype = `${PointerId}${typeOpts.enum}`;
+                  delete typeOpts.enum;
                 }
+
+                const min = fieldOpts.get('minc', 0) as number;
+                const max = fieldOpts.get('maxc', 0) as number;
+                delete fieldOpts.maxc;
+                typeOpts.minv = Math.max(min, 0);
+                typeOpts.maxv = max;
 
                 const nameArr = fieldDef.name.split('_');
                 const endIdx = nameArr.length - 1;
                 nameArr[endIdx] = pluralize.isSingular(nameArr[endIdx]) ? pluralize.plural(nameArr[endIdx]) : nameArr[endIdx];
-                const newName = nameArr.map(w => capitalize(w)).join('-');
+                let newName = nameArr.map(w => capitalize(w)).join('-');
 
-                if (sch.types.filter(t => t.name === newName).length === 0) {
-                  newTypes.push({
-                    name: newName,
-                    type: 'ArrayOf',
-                    options: typeOpts,
-                    description: fieldDef.description,
-                    fields: []
-                  });
-                  fieldDef.type = newName;
-                  fieldDef.options = fieldOpts;
+                if (sch.types.filter(t => t.name === newName).length >= 1) {
+                  newName = `${typeDef.name}${this.info.config.Sys}${newName}`.replace('_', '-');
                 }
+                newTypes.push({
+                  name: newName,
+                  type: 'ArrayOf',
+                  options: typeOpts,
+                  description: fieldDef.description,
+                  fields: []
+                });
+                fieldDef.type = newName;
+                fieldDef.options = fieldOpts;
               }
             }
             return fieldDef;
@@ -349,7 +354,7 @@ class Schema extends BaseModel {
     complexSchema = derived ? removeDerivedEnum(complexSchema) : complexSchema;
     complexSchema = mapOf ? removeMapOfEnum(complexSchema) : complexSchema;
     const simpleSchema = this._convertTypes(complexSchema) as SchemaSimpleJADN;
-
+    
     return simple ? simpleSchema : new Schema(simpleSchema);
   }
 
@@ -392,7 +397,7 @@ class Schema extends BaseModel {
   dump(fname: string, indent?: number, strip?: boolean): void {
     indent = indent || 2; // eslint-disable-line no-param-reassign
     strip = strip || false; // eslint-disable-line no-param-reassign
-    fs.outputFileSync(fname, `${this._dumps(this.schema(strip), indent)}\n`);
+    fs.outputFileSync(fname, `${this.dumps(indent, strip)}\n`);
   }
 
   /**
@@ -404,7 +409,7 @@ class Schema extends BaseModel {
   dumps(indent?: number, strip?: boolean): string {
     indent = indent || 2; // eslint-disable-line no-param-reassign
     strip = strip || false; // eslint-disable-line no-param-reassign
-    return `${this._dumps(this.schema(strip), indent)}\n`;
+    return `${this._dumps(this._orderDefs(this.schema(strip)), indent)}\n`;
   }
 
   // Validation
@@ -503,6 +508,24 @@ class Schema extends BaseModel {
   // eslint-disable-next-line no-underscore-dangle
   _getConfig(): Schema {
     return this;
+  }
+
+  /**
+    * Reorder schema definitions to predefined order
+    * @param {SchemaSimpleJADN} schema - Schema to reorganize the types
+    * @returns {SchemaSimpleJADN} Schema with reorganized types
+    */
+  _orderDefs(schema: SchemaSimpleJADN): SchemaSimpleJADN {;
+    const defs: Record<string, SchemaSimpleType> = objectFromTuple(
+      ...schema.types.map<[string, SchemaSimpleType]>(def => [def[0], def])
+    );
+    const defNames = Object.keys(defs);
+
+    schema.types = [
+      ...this.definitionOrder.filter(n => defNames.includes(n)).map<SchemaSimpleType>(n => defs[n] ),
+      ...defNames.filter(n => !this.definitionOrder.includes(n)).map<SchemaSimpleType>(n => defs[n] )
+    ];
+    return schema;
   }
 
   /**

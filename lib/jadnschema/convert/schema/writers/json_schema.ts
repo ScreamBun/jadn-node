@@ -9,22 +9,29 @@ import { FormatError } from '../../../exceptions';
 import {
   DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';
-import Options, { EnumId } from '../../../schema/options';
+import Options, { EnumId, PointerId } from '../../../schema/options';
 import { Field, EnumeratedField } from '../../../schema/fields';
 import {
   hasProperty, mergeArrayObjects, objectFromTuple, objectValues, safeGet
 } from '../../../utils';
 
-type Args = {
+interface Args {
   indent?: number;
+  oneOf: boolean;
 }
+
+const defaultArgs: Args = {
+  oneOf: true
+}
+
+const DecOct = '25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9]'; // 0-255
+const HexOct = '0-9A-Fa-f'; // 00-FF or 00-ff
 
 
 class JADNtoJSON extends WriterBase {
   format = 'json';
 
   // Helper Variables
-  private hasBinary = false;
   private fieldMap: Record<string, string> = {
     Binary: 'string',
     Boolean: 'bool',
@@ -35,12 +42,15 @@ class JADNtoJSON extends WriterBase {
   };
   private ignoreOpts: Array<string> = ['id', 'ktype', 'vtype'];
   private jadnFmt: Record<string, Record<string, number|string>> = {
-    eui: {pattern: '^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(([:-][0-9a-fA-F]){2})?$'},
-    'ipv4-net': {pattern: '^((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(\\/(3[0-2]|[0-2]?[0-9]))?$'},
-    'ipv6-net': {pattern: '^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$'},
+    eui: {pattern: `^([${HexOct}]{2}[:-]){5}[${HexOct}]{2}(([:-][${HexOct}]){2})?$`},
+    'ipv4-addr': {pattern: `^((${DecOct})\\.){3}(${DecOct})$`},
+    'ipv4-net': {pattern: `^((${DecOct})\\.){3}(${DecOct})(\\/(3[0-2]|[0-2]?[0-9]))?$`},
+    'ipv6-addr': {pattern: `^(([${HexOct}]{1,4}:){7,7}[${HexOct}]{1,4}|([${HexOct}]{1,4}:){1,7}:|([${HexOct}]{1,4}:){1,6}:[${HexOct}]{1,4}|([${HexOct}]{1,4}:){1,5}(:[${HexOct}]{1,4}){1,2}|([${HexOct}]{1,4}:){1,4}(:[${HexOct}]{1,4}){1,3}|([${HexOct}]{1,4}:){1,3}(:[${HexOct}]{1,4}){1,4}|([${HexOct}]{1,4}:){1,2}(:[${HexOct}]{1,4}){1,5}|[${HexOct}]{1,4}:((:[${HexOct}]{1,4}){1,6})|:((:[${HexOct}]{1,4}){1,7}|:)|fe80:(:[${HexOct}]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([${HexOct}]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)$`},
+    'ipv6-net': {pattern: `^(([${HexOct}]{1,4}:){7,7}[${HexOct}]{1,4}|([${HexOct}]{1,4}:){1,7}:|([${HexOct}]{1,4}:){1,6}:[${HexOct}]{1,4}|([${HexOct}]{1,4}:){1,5}(:[${HexOct}]{1,4}){1,2}|([${HexOct}]{1,4}:){1,4}(:[${HexOct}]{1,4}){1,3}|([${HexOct}]{1,4}:){1,3}(:[${HexOct}]{1,4}){1,4}|([${HexOct}]{1,4}:){1,2}(:[${HexOct}]{1,4}){1,5}|[${HexOct}]{1,4}:((:[${HexOct}]{1,4}){1,6})|:((:[${HexOct}]{1,4}){1,7}|:)|fe80:(:[${HexOct}]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([${HexOct}]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(%.+)?s*(\\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$`},
     i8: {minimum: -128, maximum: 127},
     i16: {minimum: -32768, maximum: 32767},
-    i32: {minimum: -2147483648, maximum: 2147483647}
+    i32: {minimum: -2147483648, maximum: 2147483647},
+    x: {contentEncoding: 'base16'}
   };
   private optKeys: Record<string, Record<string, string>> = {
     'array': {
@@ -51,6 +61,8 @@ class JADNtoJSON extends WriterBase {
     'integer|number': {
       minc: 'minimum',
       maxc: 'maximum',
+      minf: 'minimum',
+      maxf: 'maximum',
       minv: 'minimum',
       maxv: 'maximum',
       format: 'format'
@@ -84,7 +96,7 @@ class JADNtoJSON extends WriterBase {
     'ipv6-addr': 'ipv6',  // ipv6
     'ipv4-net': null,
     'ipv6-net': null,
-    x: 'binary',
+    x: null,
     // JSON
     'date-time': 'date-time',
     date: 'date',
@@ -111,7 +123,7 @@ class JADNtoJSON extends WriterBase {
     * @param {string} source - Name of the original schema file
     * @param {Args} kwargs - extra field values for the function
     */
-  dump(fname: string, source?: string, kwargs?: Args): void {
+  dump(fname: string, source?: string, kwargs: Args = defaultArgs): void {
     let contents = this.dumps(kwargs);
 
     if (source !== null && source !== undefined) {
@@ -126,36 +138,44 @@ class JADNtoJSON extends WriterBase {
     * @param {Args} kwargs - extra field values for the function
     * @return {string} - JADN schema
     */
-  dumps(kwargs?: Args): string {
+  dumps(kwargs: Args = defaultArgs): string {
     const args = kwargs || {}; // eslint-disable-lne no-param-reassign
     const indent = safeGet(args, 'indent', 2) as number;
-    const exports = (this.info.exports || []).map((exp: string) => {
-      const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
-      if (expDefs.length === 1) {
-        return {
-          '$ref': this.formatString(`#/definitions/${exp}`),
-          'description': this._cleanComment(expDefs[0].description || '')
-        };
-      }
-      return {};
-    }).filter(o => Object.keys(o).length > 0) as Array<InterfaceJSON.Export>;
+    
+    const root: Record<string, any> = {};
+    if (args.oneOf) {
+      root.oneOf = (this.info.exports || []).map((exp: string) => {
+        const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
+        if (expDefs.length === 1) {
+          return {
+            '$ref': this.formatString(`#/definitions/${exp}`),
+            'description': this._cleanComment(expDefs[0].description || '')
+          };
+        }
+        return {};
+      }).filter(o => Object.keys(o).length > 0) as Array<InterfaceJSON.Export>;
+    } else {
+      root.additionalProperties = false;
+      root.properties = {};
+      (this.info.exports || []).forEach((exp: string) => {
+        const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
+        if (expDefs.length === 1) {
+          root.properties[exp.toLowerCase()] = {
+            '$ref': this.formatString(`#/definitions/${exp}`),
+            'description': this._cleanComment(expDefs[0].description || '')
+          };
+        }
+      });
+    }
 
      const jsonSchema: InterfaceJSON.Schema = {
        ...this.makeHeader(),
        type: 'object',
-       oneOf: exports,
+       ...root,
        definitions: {}
     };
 
     const defs = mergeArrayObjects(...objectValues(this._makeStructures({})));
-
-    if (this.hasBinary) {
-      defs.Binary = {
-        title: 'Binary',
-        type: 'string',
-        contentEncoding: 'base64'
-      };
-    }
 
     jsonSchema.definitions = objectFromTuple(
       ...this.definitionOrder.filter(d => hasProperty(defs, d)).map<[string, any]>(f => [f, defs[f] ] ),
@@ -170,8 +190,8 @@ class JADNtoJSON extends WriterBase {
     * @returns {InterfaceJSON.Meta} - header for schema
    */
   makeHeader(): InterfaceJSON.Meta {
-    const module = this.info.get('module', '') as string;
-    const schemaID = `${module.startsWith('http') ? '' : 'http://'}${module}`;
+    const pkg = this.info.get('package', '') as string;
+    const schemaID = `${pkg.startsWith('http') ? '' : 'http://'}${pkg}`;
     return this._cleanEmpty({
       $schema: 'http://json-schema.org/draft-07/schema#',
       $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
@@ -311,7 +331,7 @@ class JADNtoJSON extends WriterBase {
         description: this._cleanComment(itm.description),
         additionalProperties: false,
         ...this._optReformat('object', itm.options, false),
-        required: itm.fields.filter(f => !this._isOptional(f.options)).map(f => f.name),
+        required: itm.fields.filter(f => !f.options.isOptional()).map(f => f.name),
         properties: objectFromTuple( ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ]))
       })
     };
@@ -454,6 +474,10 @@ class JADNtoJSON extends WriterBase {
             ...formattedOpts,
             ...fmt
           };
+        } else {
+          if (val in this.validationMap && this.validationMap[val]) {
+            formattedOpts.format = this.validationMap[val] as string;
+          }
         }
       } else if (hasProperty(optKeys, key)) {
         formattedOpts[optKeys[key]] = key === 'format' ? safeGet(this.validationMap, val as string, val) as string : val;
@@ -493,6 +517,12 @@ class JADNtoJSON extends WriterBase {
         case 'MapOf':
           rtn = this._formatMapOf(field);
           break;
+        case 'Binary':
+          rtn = {
+            type: 'string',
+            contentEncoding: 'base64url'
+          };
+          break;
         default:
           rtn = {};
           break;
@@ -504,19 +534,9 @@ class JADNtoJSON extends WriterBase {
       }
 
       if (hasProperty(this.fieldMap, field.type)) {
-        rtn = {
+        return {
           type: this.formatString(safeGet(this.fieldMap, field.type, field.type))
         };
-        if (field.type.toLowerCase() === 'binary') {
-          const fmt = safeGet(field.options, 'format', '') as string;
-          if (['b', 'x', 'binary', null].includes(fmt)) {
-            this.hasBinary = !hasProperty(this.customFields, 'Binary');
-            rtn = { '$ref' : '#/definitions/Binary' };
-          } else {
-            rtn.format = fmt;
-          }
-        }
-        return rtn;
       }
     }
 
@@ -527,16 +547,9 @@ class JADNtoJSON extends WriterBase {
     }
 
     if (hasProperty(this.fieldMap, fieldType)) {
-      let rtn: Record<string, string> = {
+      return {
         type: this.formatString(safeGet(this.fieldMap, fieldType, fieldType))
       };
-
-      if (fieldType.toLowerCase() === 'binary') {
-        this.hasBinary = !hasProperty(this.customFields, 'Binary');
-        rtn = { '$ref' : '#/definitions/Binary' };
-      }
-      return rtn;
-
     }
 
     if (fieldType.includes(':')) {
@@ -551,18 +564,35 @@ class JADNtoJSON extends WriterBase {
 
     const enumRegEx = new RegExp(`^${EnumId}`);
     if (enumRegEx.exec(fieldType)) {
+      // TODO: Verify this is proper
       const fType = safeGet(this.schema.types, fieldType.substring(1)) as DefinitionBase;
       if (['Array', 'Choice', 'Map', 'Record'].includes(fType.type)) {
         return {
           type: safeGet(fType.options, 'id', false) ? 'number' : 'string',
-          description: `Derived enumeration from ${fType.name}`,
+          description: this._cleanComment(`Derived enumeration from ${fType.name}`),
           oneOf: (fType.fields || []).map(f => ({
             const: safeGet(f, 'name', '') as string,
-            description: safeGet(f, 'description', '') as string
+            description: this._cleanComment(safeGet(f, 'description', '') as string)
           }))
         };
       }
       throw new FormatError(`Invalid derived enumeration - ${fType.name} should be a Array, Choice, Map or Record type`);
+    }
+
+    const pointerRegEx = new RegExp(`^${PointerId}`);
+    if (pointerRegEx.exec(fieldType)) {
+      const fType = safeGet(this.schema.types, fieldType.substring(1)) as DefinitionBase;
+      if (['Array', 'Choice', 'Map', 'Record'].includes(fType.type)) {
+        return {
+          type: safeGet(fType.options, 'id', false) ? 'number' : 'string',
+          description: this._cleanComment(`Derived enumeration from ${fType.name}`),
+          oneOf: (fType.fields || []).map(f => ({
+            const: safeGet(f, 'name', '') as string,
+            description: this._cleanComment(safeGet(f, 'description', '') as string)
+          }))
+        };
+      }
+      throw new FormatError(`Invalid pointer - ${fType.name} should be a Array, Choice, Map or Record type`);
     }
 
     if (/^MapOf\(.*?\)$/.exec(fieldType)) {

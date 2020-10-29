@@ -60,7 +60,7 @@ class JADNtoHTML extends WriterBase {
     const styles = safeGet(args, 'styles', '') as string;
 
     const html = baseTemplate({
-      module: this.info.get('module', 'JADN Schema Convert') as string,
+      package: this.info.get('package', 'JADN Schema Convert') as string,
       version: this.info.get('version', '0.0') as string,
       styles: this._loadStyles(styles),
       info: this.makeHeader(),
@@ -91,7 +91,7 @@ class JADNtoHTML extends WriterBase {
 
     return headerTemplate({
       title: this.info.title || '',
-      module: this.info.module,
+      package: this.info.package,
       version: this.info.version || '',
       description: this.info.description || '',
       comment: this.info.comment || '',
@@ -279,7 +279,6 @@ class JADNtoHTML extends WriterBase {
     });
   }
 
-
   // Helper Functions
   /**
     * Format the HTML to a predefined standard
@@ -293,8 +292,7 @@ class JADNtoHTML extends WriterBase {
 
     const tmpFormat = html.split('><').map(e => {
       let elm = e.startsWith('<') ? e : `<${e}`;
-      elm = elm.endsWith('>') ? elm : `${elm}>`;
-      return elm;
+      return elm.endsWith('>') ? elm : `${elm}>`;
     });
 
     const tagRegEx = namedRegExp(/\s*?<\/?(?<tag>[\w]+)(\s|>).*$/);
@@ -303,36 +301,52 @@ class JADNtoHTML extends WriterBase {
       const tag = safeGet((tagRegEx.execGroups(line) || {}), 'tag', '') as string;
       let indent = '\t'.repeat(nestedTags.length);
 
-      if (tag === 'style') {
-        let styles = line.substring(line.indexOf('>')+1, line.lastIndexOf('<'));
-        const formattedStyles = this._formatCSS(styles);
-        if (formattedStyles === '') {
-          formattedHTML += `${indent}${line}</style>\n`;
-        } else {
-          const stylesIndent = '\t'.repeat(nestedTags.length + 1);
-          const beginRegEx = namedRegExp(/^(?<start>.)/, 'gm');
-          styles = formattedStyles.split('\n').map(l => beginRegEx.replace(l, `${stylesIndent}\${start}`)).join('\n');
-          formattedHTML += `${indent}${line.substring(0, line.indexOf('>')+1)}\n${styles}\n${indent}${line.substring(line.lastIndexOf('<'))}\n`;
-        }
-      } else if (new RegExp(`^<${tag}.*?</${tag}>$`).exec(line)) {
-        formattedHTML += `${indent}${line}\n`;
-      } else if (line.startsWith('<!') || line.endsWith('/>')) {
-        formattedHTML += `${indent}${line}\n`;
-      } else if (line.endsWith(`</${nestedTags.length > 0 ? nestedTags[nestedTags.length - 1] : ''}>`)) {
-        nestedTags.pop();
-        indent = '\t'.repeat(nestedTags.length);
-        formattedHTML += `${indent}${line}\n`;
-      }
-      else {
-        formattedHTML += `${indent}${line}\n`;
-        if (!line.endsWith(`${tag}/>`)) {
+      switch (true) {
+        case tag === 'style':
+          let styles = line.substring(line.indexOf('>')+1, line.lastIndexOf('<'));
+          const formattedStyles = this._formatCSS(styles);
+          if (formattedStyles === '') {
+            formattedHTML += `${indent}${line}</style>\n`;
+          } else {
+            const stylesIndent = '\t'.repeat(nestedTags.length + 1);
+            const beginRegEx = namedRegExp(/^(?<start>.)/, 'gm');
+            styles = formattedStyles.split('\n').map(l => beginRegEx.replace(l, `${stylesIndent}\${start}`)).join('\n');
+            formattedHTML += `${indent}${line.substring(0, line.indexOf('>')+1)}\n${styles}\n${indent}${line.substring(line.lastIndexOf('<'))}\n`;
+          }
+          break;
+        case new RegExp(`^<${tag}.*?>\s+</${tag}>$`).test(line):
+          formattedHTML += `${line}\n`;
+          break;
+        case new RegExp(`^<${tag}.*?</${tag}>$`).test(line):
+        case line.startsWith('<!') || line.endsWith('/>'):
+          formattedHTML += `${indent}${line}\n`;
+          break;
+        case line.endsWith(`</${nestedTags.length > 0 ? nestedTags[nestedTags.length - 1] : ''}>`):
+          nestedTags.pop();
+          indent = '\t'.repeat(nestedTags.length);
+          formattedHTML += `${indent}${line}\n`;
+          break;
+        default:
+          formattedHTML += `${indent}${line}\n`;
+          if (!line.endsWith(`${tag}/>`)) {
             nestedTags.push(tag);
-        }
+          }
+          break;
       }
-
+    });
+    
+    // Cleanup
+    const cleanup: Array<[RegExp, string]> = [
+      [/\n\t+<span/g, '<span'],
+      [/(<(\w+)[^>]+?>)\n\t+<\/\2>/g, '$1</$2>'],
+      [/\t/g, '  ']
+    ];
+    cleanup.forEach(([reg, rep]) => {
+      formattedHTML = formattedHTML.replace(reg, rep);
     });
 
-    return formattedHTML;
+
+    return formattedHTML
   }
 
   /**
