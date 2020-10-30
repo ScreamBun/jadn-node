@@ -291,7 +291,7 @@ class JADNtoHTML extends WriterBase {
     const nestedTags: Array<string> = [];
 
     const tmpFormat = html.split('><').map(e => {
-      let elm = e.startsWith('<') ? e : `<${e}`;
+      const elm = e.startsWith('<') ? e : `<${e}`;
       return elm.endsWith('>') ? elm : `${elm}>`;
     });
 
@@ -314,7 +314,7 @@ class JADNtoHTML extends WriterBase {
             formattedHTML += `${indent}${line.substring(0, line.indexOf('>')+1)}\n${styles}\n${indent}${line.substring(line.lastIndexOf('<'))}\n`;
           }
           break;
-        case new RegExp(`^<${tag}.*?>\s+</${tag}>$`).test(line):
+        case new RegExp(`^<${tag}.*?> +</${tag}>$`).test(line):
           formattedHTML += `${line}\n`;
           break;
         case new RegExp(`^<${tag}.*?</${tag}>$`).test(line):
@@ -334,7 +334,7 @@ class JADNtoHTML extends WriterBase {
           break;
       }
     });
-    
+
     // Cleanup
     const cleanup: Array<[RegExp, string]> = [
       [/\n\t+<span/g, '<span'],
@@ -345,8 +345,7 @@ class JADNtoHTML extends WriterBase {
       formattedHTML = formattedHTML.replace(reg, rep);
     });
 
-
-    return formattedHTML
+    return formattedHTML;
   }
 
   /**

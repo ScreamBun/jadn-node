@@ -12,7 +12,12 @@ import Options from '../../../schema/options';
 import { hasProperty, objectValues, safeGet } from '../../../utils';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Args = Record<string, any>
+interface Args {
+  indent?: number|string;
+}
+const defaultArgs: Args = {
+  indent: 4
+};
 
 
 class JADNtoMarkDown extends WriterBase {
@@ -24,7 +29,7 @@ class JADNtoMarkDown extends WriterBase {
     * @param {string} source - Name of the original schema file
     * @param {Args} kwargs - extra field values for the function
     */
-  dump(fname: string, source?: string, kwargs?: Args): void {
+  dump(fname: string, source?: string, kwargs: Args = defaultArgs): void {
     let contents = this.dumps(kwargs);
 
     if (source !== null && source !== undefined) {
@@ -41,7 +46,8 @@ class JADNtoMarkDown extends WriterBase {
     */
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  dumps(kwargs?: Args): string {
+  dumps(kwargs: Args = defaultArgs): string {
+    const indent = safeGet(kwargs, 'indent', 4) as number|string;
     let schemaMD = this.makeHeader();
     const structures = this._makeStructures('') as Record<string, string>;
 
@@ -66,7 +72,8 @@ class JADNtoMarkDown extends WriterBase {
     }).filter(d => d.length > 0).join('\n');
 
     schemaMD += '\n';
-    return schemaMD.replace('\t', ' '.repeat(4));
+    const ind = typeof indent === 'string' ? indent : ' '.repeat(indent);
+    return schemaMD.replace('\t', ind);
   }
 
   /**
@@ -328,7 +335,7 @@ class JADNtoMarkDown extends WriterBase {
 
             if (columnName === 'options' && cell instanceof Options) {
               // TODO: More options
-              cell = cell.multiplicity(1, 1, true).replace('*', '\*');
+              cell = cell.multiplicity(1, 1, true).replace('*', '\\*');
             } else if (columnName === this.tableFieldHeaders.Name) {
               cell = `**${String(cell)}**`;
             }

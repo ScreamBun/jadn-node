@@ -396,7 +396,7 @@ module.exports = {
   'no-process-exit': 0,
   'no-proto': 2,
   'no-prototype-builtins': 2,
-  'no-redeclare': 2,
+  'no-redeclare': 0,
   'no-regex-spaces': 2,
   'no-reserved-keys': 0,
   'no-restricted-exports': [0, {
@@ -546,7 +546,7 @@ module.exports = {
   'no-self-compare': 2,
   'no-sequences': 2,
   'no-setter-return': 0,
-  'no-shadow': 2,
+  'no-shadow': 0,
   'no-shadow-restricted-names': 2,
   'no-space-before-semi': 0,
   'no-spaced-func': 0,

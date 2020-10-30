@@ -40,8 +40,8 @@ class Resolver {
           const tmpSchema = new Schema(fs.readJSONSync(path.join(this.resolveDir, file)), {
             resolver: this
           });
-          if (!(tmpSchema.info.module in this.resolved)) {
-            this.resolved[tmpSchema.info.module] = tmpSchema;
+          if (!(tmpSchema.info.package in this.resolved)) {
+            this.resolved[tmpSchema.info.package] = tmpSchema;
           }
         } else if (ext === 'jidl') {
           console.log(`JIDL LOAD - ${file}`);

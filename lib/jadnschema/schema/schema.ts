@@ -40,7 +40,7 @@ class Schema extends BaseModel {
     'Duration', 'Feature', 'Hashes', 'Hostname', 'IDN-Hostname', 'IPv4-Addr', 'IPv6-Addr', 'L4-Protocol', 'Message-Type', 'Nsid',
     'Payload', 'Port', 'Response-Type', 'Version',
     // Undefined types
-    'Command-ID','Versions', 'Namespace', 'Profiles', 'Targets'];
+    'Command-ID', 'Versions', 'Namespace', 'Profiles', 'Targets'];
 
   /**
     * Initialize a Schema object
@@ -177,7 +177,7 @@ class Schema extends BaseModel {
     multi = typeof multi === 'boolean' ? multi : true; // eslint-disable-line no-param-reassign
     derived = typeof derived === 'boolean' ? derived : true; // eslint-disable-line no-param-reassign
     mapOf = typeof mapOf === 'boolean' ? mapOf : true; // eslint-disable-line no-param-reassign
-    
+
     const removeAnonymousType = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType> = [];
       // eslint-disable-next-line no-param-reassign
@@ -224,6 +224,7 @@ class Schema extends BaseModel {
               if (fieldOpts.isArray()) {
                 typeOpts.vtype = fieldDef.type;
                 if (fieldDef.type === 'Enumerated') {
+                  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                   typeOpts.vtype = `${PointerId}${typeOpts.enum}`;
                   delete typeOpts.enum;
                 }
@@ -354,7 +355,6 @@ class Schema extends BaseModel {
     complexSchema = derived ? removeDerivedEnum(complexSchema) : complexSchema;
     complexSchema = mapOf ? removeMapOfEnum(complexSchema) : complexSchema;
     const simpleSchema = this._convertTypes(complexSchema) as SchemaSimpleJADN;
-    
     return simple ? simpleSchema : new Schema(simpleSchema);
   }
 
@@ -515,15 +515,15 @@ class Schema extends BaseModel {
     * @param {SchemaSimpleJADN} schema - Schema to reorganize the types
     * @returns {SchemaSimpleJADN} Schema with reorganized types
     */
-  _orderDefs(schema: SchemaSimpleJADN): SchemaSimpleJADN {;
+  _orderDefs(schema: SchemaSimpleJADN): SchemaSimpleJADN {
     const defs: Record<string, SchemaSimpleType> = objectFromTuple(
       ...schema.types.map<[string, SchemaSimpleType]>(def => [def[0], def])
     );
     const defNames = Object.keys(defs);
 
     schema.types = [
-      ...this.definitionOrder.filter(n => defNames.includes(n)).map<SchemaSimpleType>(n => defs[n] ),
-      ...defNames.filter(n => !this.definitionOrder.includes(n)).map<SchemaSimpleType>(n => defs[n] )
+      ...this.definitionOrder.filter(n => defNames.includes(n)).map<SchemaSimpleType>(n => defs[n]),
+      ...defNames.filter(n => !this.definitionOrder.includes(n)).map<SchemaSimpleType>(n => defs[n])
     ];
     return schema;
   }

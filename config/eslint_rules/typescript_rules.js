@@ -132,6 +132,8 @@ module.exports = {
   '@typescript-eslint/no-namespace': 2,
   '@typescript-eslint/no-non-null-asserted-optional-chain': 2,
   '@typescript-eslint/no-non-null-assertion': 1,
+  '@typescript-eslint/no-redeclare': 2,
+  '@typescript-eslint/no-shadow': 2,
   '@typescript-eslint/no-this-alias': 2,
   '@typescript-eslint/no-throw-literal': 2,
   '@typescript-eslint/no-unsafe-assignment': 2,

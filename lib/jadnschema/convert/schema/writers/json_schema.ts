@@ -22,7 +22,7 @@ interface Args {
 
 const defaultArgs: Args = {
   oneOf: true
-}
+};
 
 const DecOct = '25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9]'; // 0-255
 const HexOct = '0-9A-Fa-f'; // 00-FF or 00-ff
@@ -139,11 +139,10 @@ class JADNtoJSON extends WriterBase {
     * @return {string} - JADN schema
     */
   dumps(kwargs: Args = defaultArgs): string {
-    const args = kwargs || {}; // eslint-disable-lne no-param-reassign
-    const indent = safeGet(args, 'indent', 2) as number;
-    
+    const indent = safeGet(kwargs, 'indent', 2) as number;
     const root: Record<string, any> = {};
-    if (args.oneOf) {
+
+    if (kwargs.oneOf) {
       root.oneOf = (this.info.exports || []).map((exp: string) => {
         const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
         if (expDefs.length === 1) {
@@ -195,7 +194,7 @@ class JADNtoJSON extends WriterBase {
     return this._cleanEmpty({
       $schema: 'http://json-schema.org/draft-07/schema#',
       $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
-      title: this.info.title ? this.info.title : (module + (this.info.version ? ` v.${this.info.version}` : '')),
+      title: this.info.title ? this.info.title : `${pkg}${this.info.version ? ` v.${this.info.version}` : ''}`,
       description: this._cleanComment(this.info.get('description', ''))
     }) as InterfaceJSON.Meta;
   }
@@ -474,10 +473,8 @@ class JADNtoJSON extends WriterBase {
             ...formattedOpts,
             ...fmt
           };
-        } else {
-          if (val in this.validationMap && this.validationMap[val]) {
-            formattedOpts.format = this.validationMap[val] as string;
-          }
+        } else if (val in this.validationMap && this.validationMap[val]) {
+          formattedOpts.format = this.validationMap[val] as string;
         }
       } else if (hasProperty(optKeys, key)) {
         formattedOpts[optKeys[key]] = key === 'format' ? safeGet(this.validationMap, val as string, val) as string : val;

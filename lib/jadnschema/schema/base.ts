@@ -16,7 +16,7 @@ import {
   * @param {boolean} silent - raise or return errors
   * @return {[Record<string, any>, Array<Error>]} - validated fields, OPTIONAL(ERRORS)
   */
-// eslint-disable-next-line max-len, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line max-len, no-use-before-define, @typescript-eslint/no-explicit-any
 export function initModel(model: BaseModel, inputData?: SchemaSimpleType|SchemaSimpleJADN|BaseModel|Record<string, any>, kwargs?: Record<string, any>, silent?: boolean): [Record<string, any>, Array<Error>] {
   silent = silent || true;  // eslint-disable-line no-param-reassign
   const modelClass = model.constructor.name;

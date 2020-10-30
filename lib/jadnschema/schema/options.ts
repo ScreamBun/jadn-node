@@ -17,7 +17,7 @@ export const OptionTypes: Record<string, Array<string>> = {
   ],
   type: [
     'id',
-    'ktype', 
+    'ktype',
     'vtype',
     'enum',
     'pointer',
@@ -29,7 +29,7 @@ export const OptionTypes: Record<string, Array<string>> = {
     'maxf',
     'unique',
     'set',
-    'unordered', 
+    'unordered',
     'extend',
     'default'
   ]

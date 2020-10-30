@@ -320,7 +320,7 @@ class DefinitionBase extends BaseModel {
       };
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       return new EnumeratedDef(data, {_config: def._config});
-    }
+    };
 
     [
       safeGet(this.options, 'ktype', '') as string, // Key
