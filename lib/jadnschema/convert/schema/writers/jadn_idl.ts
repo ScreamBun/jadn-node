@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import { getBorderCharacters, table } from 'table';
 
 import WriterBase from './base';
-import { Field } from '../../../schema';
+import { Field } from '../../../schema/fields';
 import {
   DefinitionBase, ArrayDef, ArrayOfDef, ChoiceDef, EnumeratedDef, MapDef, MapOfDef, RecordDef
 } from '../../../schema/definitions';

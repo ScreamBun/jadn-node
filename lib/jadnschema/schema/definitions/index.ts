@@ -52,7 +52,9 @@ export function makeDefinition(data: SchemaObjectType|SchemaSimpleType|Definitio
 }
 
 export {
+  // Base Structures
   DefinitionBase,
+  // Defined Structures
   ArrayDef,
   ArrayOfDef,
   ChoiceDef,
@@ -60,5 +62,6 @@ export {
   MapDef,
   MapOfDef,
   RecordDef,
+  // Non-Defined Structures
   CustomDef
 };

@@ -5,7 +5,8 @@ import {
 } from './array';
 
 import {
-  capitalize
+  capitalize,
+  sentenceCase
 } from './general';
 
 import {
@@ -25,6 +26,7 @@ export {
   zip,
   // General
   capitalize,
+  sentenceCase,
   // Object
   cloneObject,
   hasProperty,

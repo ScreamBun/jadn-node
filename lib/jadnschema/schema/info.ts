@@ -1,7 +1,7 @@
 /* eslint max-classes-per-file: 0 */
-// JADN Config
+// JADN Info & Config
 import BaseModel from './base';
-import { SchemaInfoJADN } from './interfaces';
+import { SchemaConfigJADN, SchemaInfoJADN } from './interfaces';
 import { ValidationError } from '../exceptions';
 import {
   hasProperty, objectFromTuple, prettyObject, safeGet
@@ -18,12 +18,23 @@ class Config extends BaseModel {
   _MaxElements?: number  // Default maximum number of items/properties
   _FS?: string           // Field Separator character used in pathnames
   _Sys?: string          // System character for TypeName
-  _TypeName?: string     // TypeName regex
-  _FieldName?: string    // FieldName regex
-  _NSID?: string         // Namespace Identifier regex
+  _TypeName?: RegExp     // TypeName regex
+  _FieldName?: RegExp    // FieldName regex
+  _NSID?: RegExp         // Namespace Identifier regex
 
   // Helper Variables
-  slots: Array<string> = ['MaxBinary', 'MaxString', 'MaxElements', 'FS', 'Sys', 'TypeName', 'FieldName', 'NSID'];
+  readonly slots: Array<string> = ['MaxBinary', 'MaxString', 'MaxElements', 'FS', 'Sys', 'TypeName', 'FieldName', 'NSID'];
+  readonly defaultConfig = {
+    MaxBinary: 255,                           // Default maximum number of octets
+    MaxString: 255,                           // Default maximum number of characters
+    MaxElements: 100,                         // Default maximum number of items/properties
+    FS: '/',                                  // Field Separator character used in pathnames
+    Sys: '$',                                 // System character for TypeName
+    TypeName: /^[A-Z][-$A-Za-z0-9]{0,31}$/,   // TypeName regex
+    FieldName: /^[a-z][_A-Za-z0-9]{0,31}$/,   // FieldName regex
+    NSID: /^[A-Za-z][A-Za-z0-9]{0,7}$/        // Namespace Identifier regex
+  };
+
 
   /**
     * Initialize a Config object
@@ -42,10 +53,10 @@ class Config extends BaseModel {
   /**
     * initialize the date for the class
     * @param {Record<string, number|string>|Config} data - The config data to validate
-    * @return {Record<string, number|string>} - validated data
+    * @return {SchemaConfigJADN} - validated data
     */
-  initData(data?: Record<string, number|string>|Config): Record<string, number|string> {
-    let d: Record<string, number|string>;
+  initData(data?: Record<string, number|string>|Config): SchemaConfigJADN {
+    let d: Record<string, number|string|RegExp>;
     if (typeof data === 'object' && data instanceof Config) {
       d = data.schema();
     } else {
@@ -53,9 +64,21 @@ class Config extends BaseModel {
         ...data
       };
     }
-    return objectFromTuple(
-      ...Object.keys(d).map<[string, number|string]>(k => [k.replace(/^\$/, ''), safeGet(d, k) as number|string])
+    d = objectFromTuple(
+      ...Object.keys(d).map<[string, number|string|RegExp]>(k => [k.replace(/^\$/, ''), safeGet(d, k) as number|string|RegExp])
     );
+
+    const RegExpKeys = ['TypeName', 'FieldName', 'NSID'];
+    Object.keys(d).forEach(key => {
+      if (RegExpKeys.includes(key)) {
+        const val = d[key];
+        if (!(val instanceof RegExp)) {
+          d[key] = new RegExp(val as string);
+        }
+      }
+    });
+
+    return d as SchemaConfigJADN;
   }
 
   /**
@@ -79,7 +102,7 @@ class Config extends BaseModel {
   }
 
   get MaxBinary(): number {
-    return safeGet(this, '_MaxBinary', 255) as number;
+    return safeGet(this, '_MaxBinary', this.defaultConfig.MaxBinary) as number;
   }
 
   set MaxString(val: number) {
@@ -90,7 +113,7 @@ class Config extends BaseModel {
   }
 
   get MaxString(): number {
-    return safeGet(this, '_MaxString', 255) as number;
+    return safeGet(this, '_MaxString', this.defaultConfig.MaxString) as number;
   }
 
   set MaxElements(val: number) {
@@ -101,7 +124,7 @@ class Config extends BaseModel {
   }
 
   get MaxElements(): number {
-    return safeGet(this, '_MaxElements', 100) as number;
+    return safeGet(this, '_MaxElements', this.defaultConfig.MaxElements) as number;
   }
 
   set FS(val: string) {
@@ -112,7 +135,7 @@ class Config extends BaseModel {
   }
 
   get FS(): string {
-    return safeGet(this, '_FS', '/') as string;
+    return safeGet(this, '_FS', this.defaultConfig.FS) as string;
   }
 
   set Sys(val: string) {
@@ -123,43 +146,49 @@ class Config extends BaseModel {
   }
 
   get Sys(): string {
-    return safeGet(this, '_Sys', '$') as string;
+    return safeGet(this, '_Sys', this.defaultConfig.Sys) as string;
   }
 
-  set TypeName(val: string) {
-    if (typeof val !== 'string' ||  val.length < 1 || val.length > 127) {
-      throw new ValidationError(`TypeName invalid, must be between 1 and 127 characters - given ${val.length}`);
+  set TypeName(val: RegExp) {
+    const valStr = val.source;
+    if (!(val instanceof RegExp)) {
+      throw new ValidationError(`TypeName invalid, must be a valid RegExp`);
+    } else if (valStr.length < 1 || valStr.length > 127) {
+      throw new ValidationError(`TypeName invalid, must be between 1 and 127 characters - given ${valStr.length}`);
     }
-    RegExp(val);
-    this._TypeName = val;
+    this._TypeName = RegExp(val);
   }
 
-  get TypeName(): string {
-    return safeGet(this, '_TypeName', '^[A-Z][-$A-Za-z0-9]{0,31}$') as string;
+  get TypeName(): RegExp {
+    return safeGet(this, '_TypeName', this.defaultConfig.TypeName) as RegExp;
   }
 
-  set FieldName(val: string) {
-    if (typeof val !== 'string' ||  val.length < 1 || val.length > 127) {
-      throw new ValidationError(`FieldName invalid, must be between 1 and 127 characters - given ${val.length}`);
+  set FieldName(val: RegExp) {
+    const valStr = val.source;
+    if (!(val instanceof RegExp)) {
+      throw new ValidationError(`FieldName invalid, must be a valid RegExp`);
+    } else if (valStr.length < 1 || valStr.length > 127) {
+      throw new ValidationError(`FieldName invalid, must be between 1 and 127 characters - given ${valStr.length}`);
     }
-    RegExp(val);
-    this._FieldName = val;
+    this._FieldName = RegExp(val);
   }
 
-  get FieldName(): string {
-    return safeGet(this, '_FieldName', '^[a-z][_A-Za-z0-9]{0,31}$') as string;
+  get FieldName(): RegExp {
+    return safeGet(this, '_FieldName', this.defaultConfig.FieldName) as RegExp;
   }
 
-  set NSID(val: string) {
-    if (typeof val !== 'string' ||  val.length < 1 || val.length > 127) {
-      throw new ValidationError(`NSID invalid, must be between 1 and 127 characters - given ${val.length}`);
+  set NSID(val: RegExp) {
+    const valStr = val.source;
+    if (!(val instanceof RegExp)) {
+      throw new ValidationError(`NSID invalid, must be a valid RegExp`);
+    } else if (valStr.length < 1 || valStr.length > 127) {
+      throw new ValidationError(`NSID invalid, must be between 1 and 127 characters - given ${valStr.length}`);
     }
-    RegExp(val);
-    this._NSID = val;
+    this._NSID = RegExp(val);
   }
 
-  get NSID(): string {
-    return safeGet(this, '_NSID', '^[A-Za-z][A-Za-z0-9]{0,7}$') as string;
+  get NSID(): RegExp {
+    return safeGet(this, '_NSID', this.defaultConfig.NSID) as RegExp;
   }
 }
 
@@ -181,7 +210,7 @@ class Info extends BaseModel {
   config: Config;
 
   // Helper Variables
-  slots: Array<string> = ['package', 'version', 'title', 'description', 'comment', 'copyright', 'license', 'imports', 'exports', 'config'];
+  readonly slots: Array<string> = ['package', 'version', 'title', 'description', 'comment', 'copyright', 'license', 'imports', 'exports', 'config'];
   private configSet: boolean;
 
   /**

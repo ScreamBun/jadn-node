@@ -3,7 +3,6 @@
 import fs from 'fs-extra';
 
 import WriterBase from './base';
-import * as InterfaceJSON from './json_interface';
 import { CommentLevels } from '../enums';
 import { FormatError } from '../../../exceptions';
 import {
@@ -15,6 +14,67 @@ import {
   hasProperty, mergeArrayObjects, objectFromTuple, objectValues, safeGet
 } from '../../../utils';
 
+// JSON Schema interfaces & types
+type PrimitiveTypes = 'array'|'boolean'|'number'|'null'|'object'|'string';
+
+interface PrimitiveDefinition {
+  title?: string;
+  type?: PrimitiveTypes;
+  $ref?: string;
+  description?: string;
+  format?: string;
+  contentEncoding?: 'base64url';
+}
+
+interface TypeDefinition {
+  title: string;
+  type: PrimitiveTypes;
+  description?: string;
+  additionalProperties?: boolean;
+
+  // Array
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  items?: Array<string>|Record<string, any>;
+
+  // Enumerated
+  enum?: Array<number|string>;
+
+  // Fields
+  minProperties?: number;
+  maxProperties?: number;
+  required?: Array<string>;
+  properties?: Record<string, PrimitiveDefinition>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  patternProperty?: Record<string, any>;
+}
+
+interface Meta {
+  $schema: string;
+  $id: string;
+  title: string;
+  description?: string;
+}
+
+interface Export {
+  $ref: string;
+  description?: string;
+}
+
+interface RootProperties {
+  [key: string]: Export
+}
+
+type Definition = TypeDefinition|PrimitiveDefinition
+
+interface Schema extends Meta {
+  type: 'object';
+  oneOf?: Array<Export>;
+  additionalProperties?: boolean;
+  properties?: RootProperties;
+  definitions: Record<string, Definition>;
+}
+
+// JSON Schema conversion
 interface Args {
   indent?: number;
   oneOf: boolean;
@@ -140,10 +200,14 @@ class JADNtoJSON extends WriterBase {
     */
   dumps(kwargs: Args = defaultArgs): string {
     const indent = safeGet(kwargs, 'indent', 2) as number;
-    const root: Record<string, any> = {};
+    const jsonSchema: Schema = {
+      ...this.makeHeader(),
+      type: 'object',
+      definitions: {}
+    };
 
     if (kwargs.oneOf) {
-      root.oneOf = (this.info.exports || []).map((exp: string) => {
+      jsonSchema.oneOf = (this.info.exports || []).map((exp: string) => {
         const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
         if (expDefs.length === 1) {
           return {
@@ -152,33 +216,27 @@ class JADNtoJSON extends WriterBase {
           };
         }
         return {};
-      }).filter(o => Object.keys(o).length > 0) as Array<InterfaceJSON.Export>;
+      }).filter(o => Object.keys(o).length > 0) as Array<Export>;
     } else {
-      root.additionalProperties = false;
-      root.properties = {};
+      jsonSchema.additionalProperties = false;
+      const props: Record<string, Export> = {};
       (this.info.exports || []).forEach((exp: string) => {
         const expDefs = this.types.filter((t: DefinitionBase) => t.name === exp);
         if (expDefs.length === 1) {
-          root.properties[exp.toLowerCase()] = {
+          props[exp.toLowerCase()] = {
             '$ref': this.formatString(`#/definitions/${exp}`),
             'description': this._cleanComment(expDefs[0].description || '')
           };
         }
       });
+      jsonSchema.properties = props;
     }
 
-     const jsonSchema: InterfaceJSON.Schema = {
-       ...this.makeHeader(),
-       type: 'object',
-       ...root,
-       definitions: {}
-    };
-
-    const defs = mergeArrayObjects(...objectValues(this._makeStructures({})));
+    const defs = mergeArrayObjects<Definition>(...objectValues(this._makeStructures({})));
 
     jsonSchema.definitions = objectFromTuple(
-      ...this.definitionOrder.filter(d => hasProperty(defs, d)).map<[string, any]>(f => [f, defs[f] ] ),
-      ...Object.keys(defs).filter(d => !this.definitionOrder.includes(d)).map<[string, any]>(f =>  [f, defs[f] ] )
+      ...this.definitionOrder.filter(d => hasProperty(defs, d)).map<[string, Definition]>(f => [f, defs[f] ] ),
+      ...Object.keys(defs).filter(d => !this.definitionOrder.includes(d)).map<[string, Definition]>(f =>  [f, defs[f] ] )
     );
 
     return JSON.stringify(this._cleanEmpty(jsonSchema), null, indent);
@@ -186,9 +244,9 @@ class JADNtoJSON extends WriterBase {
 
   /**
     * Create the headers for the schema
-    * @returns {InterfaceJSON.Meta} - header for schema
+    * @returns {Meta} - header for schema
    */
-  makeHeader(): InterfaceJSON.Meta {
+  makeHeader(): Meta {
     const pkg = this.info.get('package', '') as string;
     const schemaID = `${pkg.startsWith('http') ? '' : 'http://'}${pkg}`;
     return this._cleanEmpty({
@@ -196,7 +254,7 @@ class JADNtoJSON extends WriterBase {
       $id: schemaID,  // .endsWith('.json') ? schemaID : `${schemaID}.json`,
       title: this.info.title ? this.info.title : `${pkg}${this.info.version ? ` v.${this.info.version}` : ''}`,
       description: this._cleanComment(this.info.get('description', ''))
-    }) as InterfaceJSON.Meta;
+    }) as Meta;
   }
 
   // Structure Formats
@@ -204,11 +262,11 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats array for the given schema type
     * @param {ArrarDef} itm - array to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted array
+    * @returns {Record<string, TypeDefinition>} - formatted array
    `*/
-  _formatArray(itm: ArrayDef): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatArray(itm: ArrayDef): Record<string, TypeDefinition> {
     const opts = this._optReformat('array', itm.options, false);
-    let arrayJSON: InterfaceJSON.TypeDefinition;
+    let arrayJSON: TypeDefinition;
 
     if (hasProperty(opts, 'pattern')) {
       arrayJSON = {
@@ -235,15 +293,15 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats arrayOf for the given schema type
     * @param {ArrayOfDef|Field} itm - arrayOf to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted arrayOf
+    * @returns {Record<string, TypeDefinition>} - formatted arrayOf
     */
-  _formatArrayOf(itm: ArrayOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatArrayOf(itm: ArrayOfDef|Field): Record<string, TypeDefinition> {
     const vtype = itm.options.get('vtype', 'String') as string;
     const maxv = safeGet(itm.options, 'maxv', 0) as number;
     // eslint-disable-next-line no-param-reassign
     itm.options.maxv = maxv === 0 ? this.schema.info.config.MaxElements : maxv;
 
-    const arrayOfJSON: InterfaceJSON.TypeDefinition = {
+    const arrayOfJSON: TypeDefinition = {
       title: this.formatTitle(itm.name),
       type: 'array',
       description: this._cleanComment(itm.description),
@@ -275,9 +333,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats choice for the given schema type
     * @param {ChoiceDef} itm - choice to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted choice
+    * @returns {Record<string, TypeDefinition>} - formatted choice
     */
-  _formatChoice(itm: ChoiceDef): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatChoice(itm: ChoiceDef): Record<string, TypeDefinition> {
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
@@ -288,7 +346,7 @@ class JADNtoJSON extends WriterBase {
           minProperties: 1,
           maxProperties: 1,
           ...this._optReformat('object', itm.options, false),
-          properties: objectFromTuple( ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ]))
+          properties: objectFromTuple( ...itm.fields.map<[string, PrimitiveDefinition]>(f => [f.name, this._makeField(f) ]))
       })
     };
   }
@@ -296,9 +354,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats enum for the given schema type
     * @param {EnumeratedDef} itm - enum to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted enum
+    * @returns {Record<string, TypeDefinition>} - formatted enum
     */
-  _formatEnumerated(itm: EnumeratedDef): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatEnumerated(itm: EnumeratedDef): Record<string, TypeDefinition> {
     const useID = safeGet(itm.options, 'id', false) as boolean;
 
     return {
@@ -319,9 +377,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats map for the given schema type
     * @param {MapDef} itm - map to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted map
+    * @returns {Record<string, TypeDefinition>} - formatted map
     */
-  _formatMap(itm: MapDef): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatMap(itm: MapDef): Record<string, TypeDefinition> {
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
@@ -331,7 +389,7 @@ class JADNtoJSON extends WriterBase {
         additionalProperties: false,
         ...this._optReformat('object', itm.options, false),
         required: itm.fields.filter(f => !f.options.isOptional()).map(f => f.name),
-        properties: objectFromTuple( ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ]))
+        properties: objectFromTuple( ...itm.fields.map<[string, PrimitiveDefinition]>(f => [f.name, this._makeField(f) ]))
       })
     };
   }
@@ -339,9 +397,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats mapOf for the given schema type
     * @param {MapDef} itm - mapOf to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted mapOf
+    * @returns {Record<string, TypeDefinition>} - formatted mapOf
     */
-  _formatMapOf(itm: MapOfDef|Field): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatMapOf(itm: MapOfDef|Field): Record<string, TypeDefinition> {
     const keyType = safeGet(this.schema.types, itm.options.get('ktype')) as DefinitionBase;
     let keys: Array<number|string> = [];
 
@@ -361,7 +419,7 @@ class JADNtoJSON extends WriterBase {
         additionalProperties: false,
         minProperties: 1,
         properties: objectFromTuple(
-          ...keys.map<[number|string, any]>(k => [k, this._getFieldType(itm.options.get('vtype', 'String')) ])
+          ...keys.map<[number|string, PrimitiveDefinition]>(k => [k, this._getFieldType(itm.options.get('vtype', 'String')) ])
         )
       })
     };
@@ -370,9 +428,9 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats record for the given schema type
     * @param {RecordDef} itm - record to format
-    * @returns {Record<string, InterfaceJSON.TypeDefinition>} - formatted record
+    * @returns {Record<string, TypeDefinition>} - formatted record
     */
-  _formatRecord(itm: RecordDef): Record<string, InterfaceJSON.TypeDefinition> {
+  _formatRecord(itm: RecordDef): Record<string, TypeDefinition> {
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [this.formatString(itm.name)]: this._cleanEmpty({
@@ -383,7 +441,7 @@ class JADNtoJSON extends WriterBase {
         ...this._optReformat('object', itm.options, false),
         required: itm.fields.filter(f => !this._isOptional(f.options)).map(f => f.name),
         properties: objectFromTuple(
-          ...itm.fields.map<[string, any]>(f => [f.name, this._makeField(f) ])
+          ...itm.fields.map<[string, PrimitiveDefinition]>(f => [f.name, this._makeField(f) ])
         )
       })
     };
@@ -392,10 +450,10 @@ class JADNtoJSON extends WriterBase {
   /**
     * Formats custom type for the given schema type
     * @param {DefinitionBase} itm - custom type to format
-    * @returns {Record<string, InterfaceJSON.PrimitiveDefinition>} - formatted custom type
+    * @returns {Record<string, PrimitiveDefinition>} - formatted custom type
    */
-  _formatCustom(itm: DefinitionBase): Record<string, InterfaceJSON.PrimitiveDefinition> {
-    const customJSON: InterfaceJSON.PrimitiveDefinition = {
+  _formatCustom(itm: DefinitionBase): Record<string, PrimitiveDefinition> {
+    const customJSON: PrimitiveDefinition = {
       title: this.formatTitle(itm.name),
       ...this._getFieldType(itm.type),
       description: this._cleanComment(itm.description)
@@ -606,7 +664,7 @@ class JADNtoJSON extends WriterBase {
    * @returns {Record<string, string|number|Array<string>>} - formatted JSON field
    */
   // eslint-disable-next-line class-methods-use-this
-  _makeField(field: Field): Record<string, string|number|Array<string>> {
+  _makeField(field: Field): PrimitiveDefinition {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fieldDef: Record<string, any> = this._getFieldType(field);
     if (this._isArray(field.options)) {
@@ -615,6 +673,7 @@ class JADNtoJSON extends WriterBase {
         items: fieldDef
       };
     } else if (Object.keys(fieldDef).length === 1 && hasProperty(fieldDef, field.name)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fieldDef = safeGet(fieldDef, field.name, {}) as Record<string, any>;
     }
 
@@ -676,11 +735,12 @@ class JADNtoJSON extends WriterBase {
   _cleanEmpty(itm: any): any {
     switch (true) {
       case (itm instanceof Array):
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
         return (itm as Array<any>).map(idx => this._cleanEmpty(idx));
 
         case (itm instanceof Object):
           const tmp = objectFromTuple(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...Object.keys(itm).map<[string, any]|[]>(key => {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
               const val = itm[key];
@@ -694,7 +754,9 @@ class JADNtoJSON extends WriterBase {
             })
           );
           return objectFromTuple(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...this.schemaOrder.map<[string, any]|[]>(f => hasProperty(tmp, f) ? [f, tmp[f] ] : [] ),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...Object.keys(tmp).map<[string, any]|[]>(f => this.schemaOrder.includes(f) ? [] : [f, tmp[f] ] )
           );
 

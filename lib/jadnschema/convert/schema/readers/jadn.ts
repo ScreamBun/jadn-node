@@ -1,6 +1,6 @@
 // JADN to JADN
 import ReaderBase from './base';
-import { Schema } from '../../../schema';
+import Schema from '../../../schema';
 
 
 class JADNtoJADN extends ReaderBase {

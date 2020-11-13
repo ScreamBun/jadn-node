@@ -7,7 +7,7 @@ import ReaderBase, * as Readers from './readers';
 import WriterBase, * as Writers from './writers';
 
 import { FormatError } from '../../exceptions';
-import { Schema } from '../../schema';
+import Schema from '../../schema';
 import { SchemaSimpleJADN } from '../../schema/interfaces';
 import { safeGet } from '../../utils';
 

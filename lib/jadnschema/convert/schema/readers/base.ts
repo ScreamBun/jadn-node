@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs-extra';
 
 import { SchemaError } from '../../../exceptions';
-import { Schema } from '../../../schema';
+import Schema from '../../../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LoadArgs = Record<string, any>;

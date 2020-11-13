@@ -17,7 +17,7 @@ function run(schemaObj) {
 
   test('Validate Response Generic', () => {
     const rsp = schemaObj.validate(response);
-    expect(rsp).toEqual(null);
+    expect(rsp).toEqual(undefined);
   });
 
 }

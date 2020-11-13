@@ -2,7 +2,7 @@
 import DefinitionBase from './base';
 import { SchemaObjectType, SchemaSimpleType } from './interfaces';
 import { Field } from '../fields';
-import { GeneralValidator } from '../schema';
+import { GeneralValidator } from '../formats';
 import { ValidationError } from '../../exceptions';
 import { hasProperty, safeGet } from '../../utils';
 
@@ -40,7 +40,10 @@ class ArrayDef extends DefinitionBase {
       const fmt = (this.options.get('format', '') as string).replace('-', '_');
       const fmtFun = safeGet(config.validationFormats, fmt) as GeneralValidator;
       if (fmtFun) {
-        errors.push(...fmtFun(inst));
+        const val = fmtFun(inst);
+        if (val) {
+          errors.push(val);
+        }
       }
     } else {
       const keyCount = inst.length;

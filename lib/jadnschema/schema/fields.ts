@@ -23,9 +23,9 @@ class EnumeratedField extends BaseModel {
 
   /**
     * Initialize a Field object
-    * @param {SchemaSimpleEnumField|EnumeratedField} schema - The JADN schema to utilize
+    * @param {SchemaSimpleEnumField|SchemaObjectEnumField|EnumeratedField} schema - The JADN schema to utilize
     */
-  constructor(data: SchemaSimpleEnumField|EnumeratedField) {
+  constructor(data: SchemaSimpleEnumField|SchemaObjectEnumField|EnumeratedField) {
     super(data);
     // Field Vars
     this.id = safeGet(this, 'id', 0) as number;
@@ -35,10 +35,10 @@ class EnumeratedField extends BaseModel {
 
   /**
     * Initialize base data
-    * @param {SchemaSimpleEnumField|EnumeratedField} data - Base data
+    * @param {SchemaSimpleEnumField|SchemaObjectEnumField|EnumeratedField} data - Base data
     * @return {SchemaObjectEnumField} - initialized data
     */
-  initData(data: SchemaSimpleEnumField|EnumeratedField): SchemaObjectEnumField {
+  initData(data: SchemaSimpleEnumField|SchemaObjectEnumField|EnumeratedField): SchemaObjectEnumField {
     let d: SchemaObjectEnumField;
     if (typeof data === 'object' && Array.isArray(data)) {
       const tmp = zip(EnumeratedFieldSlots, data);
@@ -100,11 +100,11 @@ class Field extends BaseModel {
 
   /**
     * Initialize a Field object
-    * @param {SchemaSimpleGenField|Field} schema - The JADN schema to utilize
+    * @param {SchemaSimpleGenField|SchemaObjectGenField|Field} schema - The JADN schema to utilize
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(data: SchemaSimpleGenField|Field, kwargs?: Record<string, any> ) {
+  constructor(data: SchemaSimpleGenField|SchemaObjectGenField|Field, kwargs?: Record<string, any> ) {
     super(data, kwargs);
     // Field Vars
     this.id = safeGet(this, 'id', 0) as number;
@@ -116,10 +116,10 @@ class Field extends BaseModel {
 
   /**
     * Initialize base data
-    * @param {SchemaSimpleGenField|Field} data - Base data
+    * @param {SchemaSimpleGenField|SchemaObjectGenField|Field} data - Base data
     * @return {SchemaObjectGenField} - initialized data
     */
-  initData(data: SchemaSimpleGenField|Field): SchemaObjectGenField {
+  initData(data: SchemaSimpleGenField|SchemaObjectGenField|Field): SchemaObjectGenField {
     let d: SchemaObjectGenField;
     if (typeof data === 'object' && Array.isArray(data)) {
       const tmp = zip(FieldSlots, data);
@@ -135,6 +135,7 @@ class Field extends BaseModel {
     } else {
       d = data;
     }
+    d.options = new Options(d.options);
     d.description = d.description.replace(/\.$/, '');
     return d;
   }
@@ -157,8 +158,8 @@ class Field extends BaseModel {
     */
   set name(val: string) {
     const config = this._config();
-    const FieldName = new RegExp(config.info.config.FieldName);
-    if (!FieldName.exec(val)) {
+    const { FieldName } = config.info.config;
+    if (!FieldName.test(val)) {
       throw new ValidationError(`Name invalid - ${val}`);
     }
     this._name = val;

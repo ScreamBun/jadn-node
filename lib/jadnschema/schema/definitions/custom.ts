@@ -1,9 +1,10 @@
 // JADN Custom Structure
+import validator from 'validator';
 import DefinitionBase from './base';
 import { SchemaObjectType, SchemaSimpleType } from './interfaces';
-import { GeneralValidator } from '../schema';
+import { GeneralValidator } from '../formats';
 import { ValidationError } from '../../exceptions';
-import { safeGet } from '../../utils';
+import { hasProperty, safeGet } from '../../utils';
 
 
 /**
@@ -41,47 +42,56 @@ class CustomDef extends DefinitionBase {
       return errors;
     }
 
-    if (this.type === 'Binary') {
-      // TODO: Validate is binary...
-      // inst = bytes(inst, "utf-8") if isinstance(inst, str) else inst
-    }
-
-    // TODO: Validate is proper type
-    /*
-    python_type = _Python_Types.get(self.type, None)
-    if python_type and not isinstance(inst, python_type):
-      errors.append(ValidationError(f"{self} is not valid as {self.type}"))
-    */
     const fmt = (safeGet(this.options, 'format', '') as string).replace('-', '_');
     if (fmt) {
-      if (/^u\d+$/.exec(fmt)) {
-        errors.push(...config.validationFormats.unsigned(parseInt(fmt.substring(1), 10), inst));
-      } else {
-        const fun = safeGet(config.validationFormats, fmt) as null|GeneralValidator;
-        if (fun) {
-          errors.push(...fun(inst));
+      let fmtFun: undefined|GeneralValidator;
+      if (/^u\d+$/.test(fmt)) {
+        fmtFun = (v: string): void|Error => config.validationFormats.unsigned(parseInt(fmt.substring(1), 10), v);
+      } else if (fmt in config.validationFormats) {
+        fmtFun = safeGet(config.validationFormats, fmt) as GeneralValidator;
+      }
+
+      if (fmtFun) {
+        const fmtVal = fmtFun(inst);
+        if (fmtVal) {
+          errors.push(fmtVal);
         }
       }
-    } else if (['Binary', 'String'].includes(this.type)) {
-      const instLen = (inst as string).length;
-      const minLen = safeGet(this.options, 'minv', 0) as number;
-      let maxLen = safeGet(this.options, 'maxv', 0) as number;
-      maxLen = maxLen <= 0 ? safeGet(config.info.config, `Max${this.type}`) as number : maxLen;
+    } else {
+      const optMin = safeGet(this.options, 'minv', 0) as number;
+      const optMax = safeGet(this.options, 'maxv', 0) as number;
+      const rangeArgs: Record<string, number> = {
+        min: optMin
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let valFun: undefined|((itm: string, args?: Record<string, any>) => boolean);
+      let msg = 'ERROR MESSAGE';
 
-      if (minLen > instLen) {
-        errors.push( new ValidationError(`${this.toString()} is invalid, minimum length of ${minLen} bytes/characters not met`));
-      } else if (maxLen < instLen) {
-        errors.push(new ValidationError(`${this.toString()} is invalid, maximum length of ${maxLen} bytes/characters exceeded`));
+      switch (this.type) {
+        case 'Binary':
+          valFun = validator.isByteLength;
+        case 'String':
+          valFun = valFun || validator.isLength;
+          rangeArgs.max = hasProperty(this.options, 'maxv') ? optMax : safeGet(config.info.config, `Max${this.type}`) as number;
+          msg = `byte/character count not within the range of [${rangeArgs.min}:${rangeArgs.max || '∞'}]`;
+          break;
+        case 'Integer':
+          valFun = validator.isInt;
+        case 'Number':
+          valFun = valFun || validator.isFloat;
+          rangeArgs.min = hasProperty(this.options, 'minv') ? optMin : Number.MIN_VALUE;
+          if (hasProperty(this.options, 'maxv')) {
+            rangeArgs.max = optMax;
+          }
+          const min = rangeArgs.min === Number.MIN_VALUE ? 'MIN' : rangeArgs.min;
+          msg = `not within the range of [${min}:${rangeArgs.max || '∞'}]`;
+          break;
+        // no default
       }
-    } else if (['Integer', 'Number'].includes(this.type)) {
-      inst = inst as number;  // eslint-disable-line no-param-reassign
-      const minVal = safeGet(this.options, 'minv', 0) as number;
-      const maxVal = safeGet(this.options, 'maxv', 0) as number;
 
-      if (minVal > inst) {
-        errors.push(new ValidationError(`${this.toString()} is invalid, minimum of ${minVal} not met`));
-      } else if (maxVal !== 0 && maxVal < inst) {
-        errors.push(new ValidationError(`${this.toString()} is invalid, maximum of ${maxVal} exceeded`));
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      if (valFun && !valFun(`${inst}`, rangeArgs)) {
+        errors.push(new ValidationError(`${this.toString()} is invalid, ${msg}`));
       }
     }
 

@@ -180,7 +180,7 @@ class Options extends BaseModel {
   default?: string
 
   // Helper Vars
-  slots = flattenArray(objectValues(OptionTypes));
+  readonly slots = flattenArray(objectValues(OptionTypes));
 
   /**
     * Initialize an Options object

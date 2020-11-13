@@ -1,6 +1,6 @@
 // Conversion interfaces
 import { CommentLevels } from './enums';
-import { Schema } from '../../schema';
+import Schema from '../../schema';
 import { SchemaSimpleJADN } from '../../schema/interfaces';
 
 export interface ConversionDumpLib {

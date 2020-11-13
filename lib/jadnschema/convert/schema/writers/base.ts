@@ -3,7 +3,7 @@
 import { CommentLevels } from '../enums';
 
 import { SchemaError } from '../../../exceptions';
-import { Schema } from '../../../schema';
+import Schema from '../../../schema';
 import { DefinitionBase } from '../../../schema/definitions';
 import Info from '../../../schema/info';
 import Options from '../../../schema/options';

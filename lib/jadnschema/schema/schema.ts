@@ -3,26 +3,29 @@ import path from 'path';
 import fs from 'fs-extra';
 import pluralize from 'pluralize';
 
-import BaseModel, { initModel } from './base';
-import { DefinitionBase } from './definitions';
-import ValidationFormats from './formats';
+import BaseModel from './base';
+import { DefinitionBase, makeDefinition } from './definitions';
+import ValidationFormats, { GeneralValidator, UnsignedValidator } from './formats';
 import Info from './info';
 import Options, { EnumId, PointerId } from './options';
-import { SchemaJADN, SchemaSimpleJADN, SchemaObjectJADN } from './interfaces';
 import {
-  SchemaSimpleType,
-  SchemaObjectGenField, SchemaObjectEnumField, SchemaObjectType, SchemaObjectField, SchemaSimpleField
+  SchemaConfig, SchemaJADN, SchemaSimpleJADN, SchemaObjectJADN
+} from './interfaces';
+import {
+  SchemaSimpleType, SchemaObjectGenField, SchemaObjectEnumField, SchemaObjectType, SchemaObjectField,
+  SchemaSimpleField
 } from './definitions/interfaces';
-import { JADNTypes } from './definitions/utils';
 import { FormatError, SchemaError, ValidationError } from '../exceptions';
 import {
-  capitalize, cloneObject, flattenArray, mergeArrayObjects, objectFromTuple, objectValues, prettyObject, safeGet, zip
+  capitalize, cloneObject, flattenArray, hasProperty, mergeArrayObjects, objectFromTuple,
+  objectValues, prettyObject, safeGet, zip
 } from '../utils';
 
-// Format valiator
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GeneralValidator = (val: any) => Array<Error>;
-export type UnsignedValidator = (n: number, val: number|string) => Array<Error>;
+interface SchemaInterface {
+  // Base JADN
+  info: Info;
+  types: Record<string, DefinitionBase>;
+}
 
 class Schema extends BaseModel {
   // Fields Variables
@@ -30,10 +33,10 @@ class Schema extends BaseModel {
   types: Record<string, DefinitionBase>;
 
   // Helper Variables
-  slots: Array<string> = ['info', 'types'];
+  readonly slots: Array<string> = ['info', 'types'];
   derived: Record<string, DefinitionBase>;
   protected schemaTypes: Set<string>;
-  protected validators: Record<string, GeneralValidator|UnsignedValidator> = ValidationFormats;
+  protected validators: Record<string, GeneralValidator|UnsignedValidator> = { ...ValidationFormats };
   readonly definitionOrder: Array<string> = ['OpenC2-Command', 'OpenC2-Response', 'Action', 'Target', 'Actuator', 'Args', 'Status-Code',
     'Results', 'Artifact', 'Device', 'Domain-Name', 'Email-Addr', 'Features', 'File', 'IDN-Domain-Name', 'IDN-Email-Addr', 'IPv4-Net',
     'IPv4-Connection', 'IPv6-Net', 'IPv6-Connection', 'IRI', 'MAC-Addr', 'Process', 'Properties', 'URI', 'Action-Targets', 'Date-Time',
@@ -48,7 +51,7 @@ class Schema extends BaseModel {
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(schema?: SchemaSimpleJADN|Schema, kwargs?: Record<string, any> ) {
+  constructor(schema?: SchemaSimpleJADN|Schema, kwargs?: Record<string, any>) {
     super({}, kwargs);
     // Fields Variables
     this.info = safeGet(this, 'info', new Info()) as Info;
@@ -69,6 +72,27 @@ class Schema extends BaseModel {
       types: this.types
     };
     return `Schema ${prettyObject(value)}`;
+  }
+
+  /**
+    * initialize the date for the class
+    * @param {Record<string, number|string>|Config} data - The config data to validate
+    * @return {SchemaInterface} - validated data
+    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   initData(data: SchemaSimpleJADN|Schema, kwargs?: Record<string, any>): SchemaInterface {
+    const d: SchemaInterface = {
+      info: new Info(data.info),
+      types: {}
+    };
+
+    if (hasProperty(data, 'types') && typeof data.types === 'object' && Array.isArray(data.types)) {
+      d.types = objectFromTuple(
+        ...data.types.map<[string, DefinitionBase]>(t => [t[0], makeDefinition(t, kwargs)])
+      );
+    }
+
+    return d;
   }
 
   get formats(): Array<string> {
@@ -456,24 +480,20 @@ class Schema extends BaseModel {
    * @return {Array<Error>} List of errors raises
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate(inst: Record<string, any>, silent?: boolean): null|Error {
+  validate(inst: Record<string, any>, silent?: boolean): void|Error {
     silent = silent || true; // eslint-disable-line no-param-reassign
     const errors: Array<Error> = [];
 
     const exports: Array<string> = this.info.exports || [];
     // eslint-disable-next-line guard-for-in, no-restricted-syntax, @typescript-eslint/no-for-in-array
     for (const exp of exports) {
-      const rtn = this.validateAs(inst, exp);
-      if (rtn.length === 0) {
-        return null;
-      }
-      errors.push(...rtn);
+      errors.push(...this.validateAs(inst, exp));
     }
     const errs = errors.filter(e => e);
     if (errs.length > 0 && !silent) {
       throw errs[0];
     }
-    return errs.length > 1 ? errs[0] : null;
+    return errs.length > 1 ? errs[0] : undefined;
   }
 
   /**
@@ -506,7 +526,7 @@ class Schema extends BaseModel {
 
   // Helper Functions
   // eslint-disable-next-line no-underscore-dangle
-  _getConfig(): Schema {
+  _getConfig(): SchemaConfig {
     return this;
   }
 
@@ -542,17 +562,13 @@ class Schema extends BaseModel {
 
     // eslint-disable-next-line no-param-reassign
     const simpleSchema = this.simplify(true, schema, true, true, false, false);
-
-    const [values, errs] = initModel(this, simpleSchema, {_config: this._getConfig.bind(this)});
-    if (errs.length > 0) {
-      throw errs[0];
-    }
+    const values = this.initData(simpleSchema, {_config: this._getConfig.bind(this)});
 
     // update class vars
     this.setProperties(values);
 
     // update Schema Types
-    this.schemaTypes = new Set(flattenArray(objectValues(JADNTypes)));
+    this.schemaTypes = new Set(flattenArray(objectValues(this.JADNTypes)));
 
     Object.keys(this.types).forEach((typeName: string) => {
       const typeDef: DefinitionBase = this.types[typeName];

@@ -1,11 +1,5 @@
 // JADN Base Definition Structures
-import { DefinitionData } from '.';
-import {
-  SchemaSimpleType, SchemaObjectType
-} from './interfaces';
-import {
-  isBuiltin, isCompound, isPrimitive, isStructure, JADNTypes
-} from './utils';
+import { SchemaSimpleType, SchemaObjectType } from './interfaces';
 import BaseModel from '../base';
 import { Field, EnumeratedField } from '../fields';
 import Options, { EnumId, PointerId } from '../options';
@@ -16,6 +10,10 @@ import {
 
 export const Slots: Array<string> = ['name', 'type', 'options', 'description', 'fields'];
 
+function baseType(typeName: string): string {
+  const idx: number = typeName.lastIndexOf('.');
+  return typeName.substring(0, idx < 0 ? typeName.length : idx);
+}
 
 class DefinitionBase extends BaseModel {
   _name: string
@@ -25,15 +23,15 @@ class DefinitionBase extends BaseModel {
   fields: Array<Field|EnumeratedField>
 
   // Helper Variables
-  slots: Array<string> = Slots;
+  readonly slots: Array<string> = Slots;
 
   /**
     * Create a DefinitionBase
-    * @param {SchemaObjectType|SchemaSimpleType|DefinitionData} data - Base data
+    * @param {SchemaObjectType|SchemaSimpleType|BaseModel} data - Base data
     * @param {Record<string, any>} kwargs - extra field values for the class
     */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(data: SchemaObjectType|SchemaSimpleType|DefinitionData, kwargs?: Record<string, any>) {
+  constructor(data: SchemaObjectType|SchemaSimpleType|BaseModel, kwargs?: Record<string, any>) {
     super(data, kwargs);
     // Field Vars
     this._name = safeGet(this, 'name', '') as string;
@@ -45,7 +43,7 @@ class DefinitionBase extends BaseModel {
     // Definition Config
     const hasFields = hasProperty(this, 'fields') && !(this.fields === null || this.fields === undefined);
 
-    if (flattenArray(objectValues(JADNTypes)).includes(safeGet(this, 'name'))) {
+    if (flattenArray(objectValues(this.JADNTypes)).includes(safeGet(this, 'name'))) {
       throw new FormatError(`${this.name}(${this.type}) cannot be the name of a JADN type`);
     }
 
@@ -67,19 +65,24 @@ class DefinitionBase extends BaseModel {
 
   /**
     * Initialize base data
-    * @param {SchemaObjectType|SchemaSimpleType|DefinitionData} data - Base data
+    * @param {SchemaObjectType|SchemaSimpleType|BaseModel} data - Base data
     * @return {SchemaObjectType} - initialized data
     */
-  initData(data: SchemaObjectType|SchemaSimpleType|DefinitionData): SchemaObjectType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initData(data: SchemaObjectType|SchemaSimpleType|BaseModel, kwargs?: Record<string, any> ): SchemaObjectType {
     let d: SchemaObjectType;
     if (typeof data === 'object' && Array.isArray(data)) {
       d = zip(Slots, data) as SchemaObjectType;
     } else if (data instanceof DefinitionBase) {
       d = data.object() as SchemaObjectType;
     } else {
-      d = data;
+      d = data as SchemaObjectType;
     }
+    d.options = new Options(d.options);
     d.description = d.description.replace(/\.$/, '');
+    const DefField = baseType(d.type) === 'Enumerated' ? EnumeratedField : Field;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    d.fields = (d.fields || []).map<Field|EnumeratedField>(f => new DefField(f as any, kwargs));
     return d;
   }
 
@@ -93,8 +96,7 @@ class DefinitionBase extends BaseModel {
     * @return {string} basetype of the defintion
     */
   get baseType(): string {
-    const idx: number = this.type.lastIndexOf('.');
-    return this.type.substring(0, idx < 0 ? this.type.length : idx);
+    return baseType(this.type);
   }
 
   /**
@@ -107,7 +109,7 @@ class DefinitionBase extends BaseModel {
       const type = safeGet(typeDef, 'baseType', typeDef.type) as string;
       if (['ArrayOf', 'MapOf'].includes(type)) {
         [typeDef.options.get('ktype'), typeDef.options.get('vtype')].forEach((k: string) => {
-          if (k && !isBuiltin(k)) {
+          if (k && !this.isBuiltin(k)) {
             d.add(k);
           }
         });
@@ -121,7 +123,7 @@ class DefinitionBase extends BaseModel {
       (this.fields || []).forEach(f => {
         const field = f as Field;
         deps = new Set([ ...deps, ...optionDeps(field)]);
-        if (!isBuiltin(field.type)) {
+        if (!this.isBuiltin(field.type)) {
           if (field.type !== this.name) {
             deps.add(field.type);
           }
@@ -141,7 +143,7 @@ class DefinitionBase extends BaseModel {
     if (this.isCompound() && this.baseType !== 'Enumerated') {
       (this.fields || []).forEach(f => {
         const field = f as Field;
-        if (!isBuiltin(field.type)) {
+        if (!this.isBuiltin(field.type)) {
           types.add(field.type);
         }
       });
@@ -155,9 +157,8 @@ class DefinitionBase extends BaseModel {
     */
   set name(val: string) {
     const config = this._config();
-    // TODO: Read TypeName regex from schema.info.config
-    const TypeName = new RegExp(config.info.config.TypeName);
-    if (!TypeName.exec(val)) {
+    const { TypeName } = config.info.config;
+    if (!TypeName.test(val)) {
       throw new ValidationError(`Name invalid - ${val}`);
     }
     this._name = val;
@@ -249,24 +250,27 @@ class DefinitionBase extends BaseModel {
     * Determine if the type is a JADN builtin type
     * @return {boolean} is builtin type
     */
-  isBuiltin(): boolean {
-    return isBuiltin(this.baseType);
+  isBuiltin(vtype?: string): boolean {
+    const type = vtype || this.baseType;
+    return this.isPrimitive(vtype) || this.isStructure(type);
   }
 
   /**
     * Determine if the given type is a JADN builtin primitive
     * @return {boolean} is builtin primitive
     */
-  isPrimitive(): boolean {
-    return isPrimitive(this.baseType);
+  isPrimitive(vtype?: string): boolean {
+    const type = vtype || this.baseType;
+    return this.JADNTypes.Primitive.includes(type);
   }
 
   /**
     * Determine if the given type is a JADN builtin structure
     * @return {boolean} is builtin structure
     */
-   isStructure(): boolean {
-    return isStructure(this.baseType);
+   isStructure(vtype?: string): boolean {
+    const type = vtype || this.baseType;
+    return this.JADNTypes.Structured.includes(type) || this.JADNTypes.Enumeration.includes(type);
   }
 
   /**
@@ -274,8 +278,9 @@ class DefinitionBase extends BaseModel {
     * @param {string} vtype - Type to check as a compound
     * @return {boolean} is builtin cpmpound
     */
-   isCompound(): boolean {
-    return isCompound(this.baseType);
+   isCompound(vtype?: string): boolean {
+    const type = vtype || this.baseType;
+    return ['Array', 'Choice', 'Enumerated', 'Map', 'Record'].includes(type);
   }
 
   /**

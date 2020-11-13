@@ -1,7 +1,7 @@
 import * as convert from './jadnschema/convert';
 import { CommentLevels, SchemaFormats } from './jadnschema/convert/schema/enums';
 import * as jadn from './jadnschema/jadn';
-import { Schema } from './jadnschema/schema';
+import Schema from './jadnschema/schema';
 import { opts2arr, opts2obj } from './jadnschema/schema/options';
 
 

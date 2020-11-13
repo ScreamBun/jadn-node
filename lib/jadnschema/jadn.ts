@@ -8,7 +8,7 @@ from typing import ( Dict, Set, Union )
 from . import schema as jadn_schema
 */
 import { SchemaSimpleJADN } from './schema/interfaces';
-import { Schema } from './schema';
+import Schema from './schema';
 
 /**
  * Validate JADN structure against JSON schema,
