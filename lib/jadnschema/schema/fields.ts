@@ -6,7 +6,7 @@ import {
   SchemaSimpleEnumField, SchemaSimpleGenField, SchemaObjectEnumField, SchemaObjectGenField, SchemaObjectType
 } from './definitions/interfaces';
 import Options from './options';
-import { ValidationError } from '../exceptions';
+import { FormatError, ValidationError } from '../exceptions';
 import { capitalize, safeGet, zip } from '../utils';
 
 const EnumeratedFieldSlots: Array<string> = ['id', 'value', 'description'];
@@ -41,6 +41,9 @@ class EnumeratedField extends BaseModel {
   initData(data: SchemaSimpleEnumField|SchemaObjectEnumField|EnumeratedField): SchemaObjectEnumField {
     let d: SchemaObjectEnumField;
     if (typeof data === 'object' && Array.isArray(data)) {
+      if (data.length !== EnumeratedFieldSlots.length) {
+        throw new FormatError(`Field data should be an array of ${EnumeratedFieldSlots.length}, given array of ${data.length}`)
+      }
       const tmp = zip(EnumeratedFieldSlots, data);
       d = {
         id: tmp.id as number,
@@ -121,7 +124,10 @@ class Field extends BaseModel {
     */
   initData(data: SchemaSimpleGenField|SchemaObjectGenField|Field): SchemaObjectGenField {
     let d: SchemaObjectGenField;
-    if (typeof data === 'object' && Array.isArray(data)) {
+    if (Array.isArray(data)) {
+      if (data.length !== FieldSlots.length) {
+        throw new FormatError(`Field data should be an array of ${FieldSlots.length}, given array of ${data.length}`)
+      }
       const tmp = zip(FieldSlots, data);
       d = {
         id: tmp.id as number,

@@ -1,17 +1,15 @@
+import jadnTests from './jadn';
+import codecTests from './codec';
 
 
-function run(schemaObj) {
-  test('Schema Analysis', () => {
-    const analysis = schemaObj.analyze();
-    expect(analysis).toEqual({
-      package: schemaObj.info.package,
-      exports: schemaObj.info.exports,
-      unreferenced: [],
-      undefined: []
-    });
+function run() {
+  describe('Codec Tests', () => {
+    codecTests();
   });
 
-  // ... Add more basic tests once we need them in different files ...
+  describe('JADN Tests', () => {
+    jadnTests();
+  });
 }
 
 export default run;

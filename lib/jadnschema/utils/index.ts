@@ -4,6 +4,13 @@ import {
   zip
 } from './array';
 
+import binascii, {
+  b2a_hex,
+  hexlify,
+  a2b_hex,
+  unhexlify
+} from './binascii';
+
 import {
   capitalize,
   sentenceCase
@@ -24,6 +31,12 @@ export {
   flattenArray,
   mergeArrayObjects,
   zip,
+  // Binascii
+  binascii,
+  b2a_hex,
+  hexlify,
+  a2b_hex,
+  unhexlify,
   // General
   capitalize,
   sentenceCase,

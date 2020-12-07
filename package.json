@@ -19,9 +19,6 @@
     "prepare": "npm run tsc",
     "prod": "tsc && node ./bin/jadnschema.js",
     "test": "cross-env NODE_ENV=test jest",
-    "test:basic": "cross-env NODE_ENV=test jest -i test/basic.spec",
-    "test:translate": "cross-env NODE_ENV=test jest -i test/translation.spec",
-    "test:validate": "cross-env NODE_ENV=test jest -i test/validate.spec",
     "tsc": "npm run clean && tsc"
   },
   "dependencies": {

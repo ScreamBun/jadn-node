@@ -186,21 +186,21 @@ class Schema extends BaseModel {
   /**
     * Given a schema, return a simplified schema with schema extensions removed
     * @param {boolean} simple - return a simple type (SchemaSimpleJADN) instead of an object (Schema)
-    * @param {SchemaSimpleJADN} schema - JADN schema to simplify
     * @param {boolean} anon - Replace all anonymous type definitions with explicit
     * @param {boolean} multi -  Replace all multiple-value fields with explicit ArrayOf type definitions
     * @param {boolean} derived - Replace all derived enumerations with explicit Enumerated type definitions
     * @param {boolean} mapOf - Replace all MapOf types with listed keys with explicit Map type definitions
+    * @param {SchemaSimpleJADN} schema - JADN schema to simplify
     * @return {SchemaSimpleJADN|Schema} Simplified schema
     */
   // eslint-disable-next-line max-len
-  simplify(simple?: boolean, schema?: SchemaSimpleJADN, anon?: boolean, multi?: boolean, derived?: boolean, mapOf?: boolean): SchemaSimpleJADN|Schema {
+  simplify(simple?: boolean, anon?: boolean, multi?: boolean, derived?: boolean, mapOf?: boolean, schema?: SchemaSimpleJADN): SchemaSimpleJADN|Schema {
     simple = typeof simple === 'boolean' ? simple : true; // eslint-disable-line no-param-reassign
-    schema = schema === undefined ? this.schema() : schema; // eslint-disable-line no-param-reassign
-    anon = typeof anon === 'boolean' ? anon : true; // eslint-disable-line no-param-reassign
-    multi = typeof multi === 'boolean' ? multi : true; // eslint-disable-line no-param-reassign
-    derived = typeof derived === 'boolean' ? derived : true; // eslint-disable-line no-param-reassign
-    mapOf = typeof mapOf === 'boolean' ? mapOf : true; // eslint-disable-line no-param-reassign
+    anon = typeof anon === 'boolean' ? anon : false; // eslint-disable-line no-param-reassign
+    multi = typeof multi === 'boolean' ? multi : false; // eslint-disable-line no-param-reassign
+    derived = typeof derived === 'boolean' ? derived : false; // eslint-disable-line no-param-reassign
+    mapOf = typeof mapOf === 'boolean' ? mapOf : false; // eslint-disable-line no-param-reassign
+    schema = schema || this.schema(); // eslint-disable-line no-param-reassign
 
     const removeAnonymousType = (sch: SchemaObjectJADN): SchemaObjectJADN => {
       const newTypes: Array<SchemaObjectType> = [];
@@ -379,6 +379,10 @@ class Schema extends BaseModel {
     complexSchema = derived ? removeDerivedEnum(complexSchema) : complexSchema;
     complexSchema = mapOf ? removeMapOfEnum(complexSchema) : complexSchema;
     const simpleSchema = this._convertTypes(complexSchema) as SchemaSimpleJADN;
+
+    if (simpleSchema.info && Object.keys(simpleSchema.info).length === 0) {
+      delete simpleSchema.info;
+    }
     return simple ? simpleSchema : new Schema(simpleSchema);
   }
 
@@ -433,7 +437,11 @@ class Schema extends BaseModel {
   dumps(indent?: number, strip?: boolean): string {
     indent = indent || 2; // eslint-disable-line no-param-reassign
     strip = strip || false; // eslint-disable-line no-param-reassign
-    return `${this._dumps(this._orderDefs(this.schema(strip)), indent)}\n`;
+    const schema = this.schema(strip);
+    if (schema.info && Object.keys(schema.info).length === 0) {
+      delete schema.info;
+    }
+    return `${this._dumps(this._orderDefs(schema), indent)}\n`;
   }
 
   // Validation
@@ -524,6 +532,33 @@ class Schema extends BaseModel {
     return errs;
   }
 
+  // Port of Dave K. functions
+  /**
+    * Decode serialized value into API value
+    * @param datatype 
+    * @param val 
+    */
+  decode(datatype: string, val: any) {
+    if (datatype in this.types) {
+      console.log(`${datatype} -> ${val}`);
+      return;
+    }
+    throw new SchemaError(`invalid type, ${datatype}`);
+  }
+
+  /**
+    * Encode API value into serialized value
+    * @param datatype 
+    * @param val 
+    */
+  encode(datatype: string, val: any) {
+    if (datatype in this.types) {
+      console.log(`${datatype} -> ${val}`);
+      return;
+    }
+    throw new SchemaError(`invalid type, ${datatype}`);
+  }
+
   // Helper Functions
   // eslint-disable-next-line no-underscore-dangle
   _getConfig(): SchemaConfig {
@@ -561,7 +596,7 @@ class Schema extends BaseModel {
     this.info = new Info(safeGet(schema, 'info', {}));
 
     // eslint-disable-next-line no-param-reassign
-    const simpleSchema = this.simplify(true, schema, true, true, false, false);
+    const simpleSchema = this.simplify(true, true, true, false, false, schema);
     const values = this.initData(simpleSchema, {_config: this._getConfig.bind(this)});
 
     // update class vars

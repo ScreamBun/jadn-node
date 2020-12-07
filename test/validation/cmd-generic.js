@@ -27,7 +27,7 @@ const command = {
 }
 
 function run(schemaObj) {
-  test('Command Generic -> Allow:IPv4_Connection', () => {
+  test('Allow:IPv4_Connection', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -49,7 +49,7 @@ function run(schemaObj) {
     );
   });
 
-  test('Command Generic -> Allow:MAC_Addr EUI-48', () => {
+  test('Allow:MAC_Addr EUI-48', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -66,7 +66,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:MAC_Addr EUI-64', () => {
+  test('Allow:MAC_Addr EUI-64', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -83,7 +83,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr Chinese', () => {
+  test('Allow:IDN_Email_Addr Chinese', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -100,7 +100,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr Hindi', () => {
+  test('Allow:IDN_Email_Addr Hindi', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -117,7 +117,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr Ukrainian', () => {
+  test('Allow:IDN_Email_Addr Ukrainian', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -134,7 +134,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr Greek', () => {
+  test('Allow:IDN_Email_Addr Greek', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -151,7 +151,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr German', () => {
+  test('Allow:IDN_Email_Addr German', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -168,7 +168,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
 
-  test('Command Generic -> Allow:IDN_Email_Addr Russian', () => {
+  test('Allow:IDN_Email_Addr Russian', () => {
     const command = {
       "action": "allow",
       "target": {
@@ -185,7 +185,7 @@ function run(schemaObj) {
     expect(rsp).toEqual(undefined);
   });
   
-  test('Command Generic -> Allow:Device', () => {
+  test('Allow:Device', () => {
     const command = {
       "action": "allow",
       "target": {
